@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sacramento Housing &amp; Transit Access Explorer — Janaki Gattu</title>
+<meta name="description" content="Apartment locations, transit stops, and light rail lines and stations for Sacramento, CA, on one map. Built by Janaki Gattu, Enterprise GIS Consultant.">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;color:#f5f5f5;background:#0a0a0a}
+  #app{display:flex;flex-direction:column;height:100vh}
+  header{background:#0a0a0a;border-bottom:1px solid #262626;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  header h1{font-size:1.25rem;letter-spacing:-.01em}
+  header h1 a{color:#f5f5f5;text-decoration:none}
+  header h1 span{color:#4ade80}
+  header p{color:#a3a3a3;font-size:.9rem}
+  header .links a{color:#4ade80;font-weight:700;text-decoration:none;margin-left:16px;font-size:.92rem}
+  header .links a:hover{text-decoration:underline}
+  #main{flex:1;display:flex;min-height:0}
+  #map{flex:1;min-width:0}
+  aside{width:340px;max-width:92vw;background:#111;border-left:1px solid #262626;overflow-y:auto;padding:20px}
+  aside h2{font-size:1.05rem;margin-bottom:6px}
+  aside h3{font-size:.95rem;margin:20px 0 8px;color:#4ade80}
+  aside p, aside li{color:#d4d4d4;font-size:.93rem;line-height:1.6}
+  aside ul{padding-left:18px}
+  aside li{margin-bottom:6px}
+  .hook{font-size:1.05rem;color:#f5f5f5;font-weight:600;margin-bottom:10px}
+  .legend{margin-top:8px}
+  .legend div{display:flex;align-items:center;gap:10px;padding:4px 0;color:#d4d4d4;font-size:.92rem}
+  .swatch{width:18px;height:18px;border-radius:4px;flex:none;border:1px solid rgba(255,255,255,.25)}
+  .swatch-dot{width:12px;height:12px;border-radius:50%;flex:none;margin:0 3px;border:1px solid rgba(255,255,255,.4)}
+  .swatch-line{width:18px;height:0;flex:none;border-top:4px solid #fab41e}
+  .swatch-line.blue{border-top-color:#243182}
+  .swatch-line.green{border-top-color:#03a14d}
+  #status{margin-top:16px;background:#161616;border:1px solid #262626;border-radius:10px;padding:12px;font-size:.88rem;color:#a3a3a3}
+  #status b{color:#f5f5f5}
+  #status .ok{color:#4ade80}
+  #status .bad{color:#f87171}
+  .cta{margin-top:22px;background:#052e16;border:1px solid #166534;border-radius:12px;padding:16px}
+  .cta p{color:#bbf7d0;font-size:.93rem}
+  .cta a{display:inline-block;margin-top:10px;background:#4ade80;color:#052e16;font-weight:700;text-decoration:none;border-radius:999px;padding:9px 18px}
+  .cta a:hover{opacity:.9}
+  .back{margin-top:18px;font-size:.9rem}
+  .back a{color:#a3a3a3;text-decoration:none}
+  .back a:hover{color:#f5f5f5}
+  @media(max-width:820px){
+    #main{flex-direction:column}
+    #map{flex:none;height:55vh}
+    aside{width:100%;border-left:0;border-top:1px solid #262626}
+  }
+  .leaflet-control-layers{background:#111;color:#f5f5f5;border:1px solid #262626;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.5)}
+  .leaflet-control-layers label{color:#f5f5f5}
+  .leaflet-control-attribution{background:rgba(10,10,10,.8)!important;color:#a3a3a3!important}
+  .leaflet-control-attribution a{color:#4ade80!important}
+  .leaflet-popup-content{color:#111;line-height:1.5}
+  .leaflet-popup-content b{color:#111}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div>
+      <h1><a href="../../index.html">Sacramento Housing &amp; Transit Access Explorer <span>— Janaki Gattu</span></a></h1>
+      <p>Where housing and transit actually meet in Sacramento. Open data, no sign-up.</p>
+    </div>
+    <div class="links">
+      <a href="../../index.html">&larr; Portfolio</a>
+      <a href="https://github.com/janakigattu" target="_blank" rel="noopener">GitHub</a>
+      <a href="mailto:gjanaki360@gmail.com?subject=Sacramento%20Housing%20and%20Transit%20Explorer">Get in Touch</a>
+    </div>
+  </header>
+  <div id="main">
+    <div id="map"></div>
+    <aside>
+      <h2>What you are looking at</h2>
+      <p class="hook">Before you sign a lease or buy a home in Sacramento, check this map first. A home five minutes from a light rail station costs you less every single day than the same home a mile from the nearest bus stop.</p>
+      <p>The map puts housing and transit on the same screen, because that is how the decision actually works. Apartment locations from Sacramento County open data sit alongside every transit stop in the Caltrans GTFS feed and the SacRT light rail lines and stations from SACOG. A home is not just a price and a floor plan. It is a commute, a bus fare, and a walk in the rain.</p>
+
+      <h3>How to read transit access</h3>
+      <div class="legend">
+        <div><span class="swatch" style="background:#ffaa00"></span>Apartment complex (Sacramento County open data)</div>
+        <div><span class="swatch-dot" style="background:#005ce6"></span>Transit stop, bus and light rail (Caltrans GTFS)</div>
+        <div><span class="swatch-line gold"></span>Gold Line light rail</div>
+        <div><span class="swatch-line blue"></span>Blue Line light rail</div>
+        <div><span class="swatch-line green"></span>Green Line light rail</div>
+        <div><span class="swatch-dot" style="background:#f5f5f5"></span>Light rail station (SACOG)</div>
+      </div>
+      <p style="margin-top:8px">The rule of thumb planners use: about 400 metres is a five-minute walk, and about 800 metres is a ten-minute walk. Click anywhere on the map and the app tells you what is within those distances of that spot: the nearest apartment complex, the number of transit stops within a five-minute walk, and the nearest light rail station. Light rail is the high-frequency spine of the system, so a home near a station is worth more in daily time saved than a home near a single bus stop.</p>
+
+      <h3>What the layers show</h3>
+      <p>Use the layer switcher at the top right of the map to turn layers on and off, and switch between the topographic and imagery basemaps. Transit stops come from the statewide Caltrans GTFS feed, so they only draw for the area you are looking at. Light rail lines and stations come from SACOG's Regional Transit Network Plan for the Sacramento region.</p>
+
+      <h3>What this map does not do</h3>
+      <ul>
+        <li>It is not a listings site. It shows where apartment complexes are, not which units are available or what they cost.</li>
+        <li>A stop on the map is not a promise of frequent service. Check the route timetable before you rely on a stop, and check how many arrivals a day it actually gets.</li>
+        <li>Transit data is schedule data, not real time. A delayed bus does not show up here.</li>
+        <li>Walking distance is measured as the crow flies, not along streets. A stop 400 metres away across a freeway is not a five-minute walk.</li>
+      </ul>
+
+      <h3>Data sources</h3>
+      <ul>
+        <li>Apartments, Sacramento County open data, ArcGIS REST service</li>
+        <li>California Transit Stops, Caltrans GTFS feed via California Open Data (data last updated November 19, 2025)</li>
+        <li>Light Rail lines and stations, SACOG Regional Transit Network Plan, ArcGIS REST service</li>
+        <li>Basemaps: Esri World Topo and World Imagery</li>
+      </ul>
+
+      <div id="status"><b>Layer status:</b> loading&hellip;</div>
+
+      <div class="cta">
+        <p><b>Planning housing, transit, or development in the Sacramento region?</b> A map is the start, not the answer. I build housing and transit access tools for organisations that need evidence they can defend.</p>
+        <a href="mailto:gjanaki360@gmail.com?subject=Housing%20and%20transit%20GIS%20help">Talk about your project &rarr;</a>
+      </div>
+      <p class="back"><a href="../../index.html">&larr; Back to portfolio</a></p>
+    </aside>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js"></script>
+<script>
+(function(){
+  // Sacramento centre
+  var map = L.map('map').setView([38.5816, -121.4944], 12);
+
+  var topo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Esri, HERE, Garmin, OpenStreetMap contributors, and the GIS user community'
+  }).addTo(map);
+
+  var imagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Esri, Maxar, Earthstar Geographics, and the GIS user community'
+  });
+
+  // Apartments — Sacramento County open data, verified live
+  var apartments = L.esri.featureLayer({
+    url: 'https://services1.arcgis.com/5NARefyPVtAeuJPU/ArcGIS/rest/services/Apartments/FeatureServer/0',
+    useCors: true
+  }).addTo(map);
+
+  // California Transit Stops — Caltrans GTFS feed, verified live
+  var transitStops = L.esri.featureLayer({
+    url: 'https://caltrans-gis.dot.ca.gov/arcgis/rest/services/CHrailroad/CA_Transit_Stops/FeatureServer/0',
+    useCors: true
+  }).addTo(map);
+
+  // Light Rail Stations — SACOG Regional Transit Network Plan, verified live
+  var lightRailStations = L.esri.featureLayer({
+    url: 'https://services9.arcgis.com/eNX73FDxjlKFtCtH/ArcGIS/rest/services/Regional_Transit_Network_WFL/FeatureServer/60',
+    useCors: true
+  }).addTo(map);
+
+  // Light Rail lines — SACOG Regional Transit Network Plan, verified live
+  var lightRail = L.esri.featureLayer({
+    url: 'https://services9.arcgis.com/eNX73FDxjlKFtCtH/ArcGIS/rest/services/Regional_Transit_Network_WFL/FeatureServer/63',
+    useCors: true
+  }).addTo(map);
+
+  L.control.layers(
+    { 'Topographic': topo, 'Imagery': imagery },
+    {
+      'Apartment complexes (Sac County open data)': apartments,
+      'Transit stops (Caltrans GTFS)': transitStops,
+      'Light Rail stations (SACOG)': lightRailStations,
+      'Light Rail lines (SACOG)': lightRail
+    },
+    { collapsed: false }
+  ).addTo(map);
+
+  // Layer status reporting — a failed layer is shown, never silently missing
+  var statusEl = document.getElementById('status');
+  var states = { apartments: 'loading', stops: 'loading', stations: 'loading', rail: 'loading' };
+  function renderStatus(){
+    var rows = [];
+    rows.push('Apartment complexes (Sac County): ' + label(states.apartments));
+    rows.push('Transit stops (Caltrans GTFS): ' + label(states.stops));
+    rows.push('Light Rail stations (SACOG): ' + label(states.stations));
+    rows.push('Light Rail lines (SACOG): ' + label(states.rail));
+    var failed = (states.apartments === 'error' || states.stops === 'error' || states.stations === 'error' || states.rail === 'error');
+    statusEl.innerHTML = '<b>Layer status:</b><br>' + rows.join('<br>') +
+      (failed ? '<br><span class="bad">A layer did not load. The public service may be temporarily unavailable — try refreshing the page.</span>' : '');
+  }
+  function label(s){
+    if(s === 'ok') return '<span class="ok">loaded</span>';
+    if(s === 'error') return '<span class="bad">failed to load</span>';
+    return 'loading&hellip;';
+  }
+  function watch(layer, key){
+    layer.on('load', function(){ states[key] = 'ok'; renderStatus(); });
+    layer.on('requesterror', function(){ states[key] = 'error'; renderStatus(); });
+  }
+  watch(apartments, 'apartments');
+  watch(transitStops, 'stops');
+  watch(lightRailStations, 'stations');
+  watch(lightRail, 'rail');
+  renderStatus();
+  setTimeout(function(){
+    var changed = false;
+    Object.keys(states).forEach(function(k){ if(states[k] === 'loading'){ states[k] = 'error'; changed = true; } });
+    if(changed) renderStatus();
+  }, 20000);
+
+  // Click on the map: what housing and transit is near this spot?
+  function distMeters(latlng, feature){
+    if(!feature || !feature.geometry || !feature.geometry.coordinates) return null;
+    var c = feature.geometry.coordinates;
+    return latlng.distanceTo(L.latLng(c[1], c[0]));
+  }
+  function fmtDist(m){
+    if(m === null || m === undefined || isNaN(m)) return '';
+    if(m < 1000) return Math.round(m / 10) * 10 + ' m';
+    return (m / 1000).toFixed(1) + ' km';
+  }
+  function esc(s){
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  map.on('click', function(e){
+    var results = { apartments: null, stops: null, stations: null, rail: null };
+    var done = { apartments: false, stops: false, stations: false, rail: false };
+    var rendered = false;
+
+    function tryRender(){
+      if(rendered) return;
+      if(!done.apartments || !done.stops || !done.stations || !done.rail) return;
+      rendered = true;
+      renderPopup();
+    }
+    function renderPopup(){
+      var parts = [];
+      parts.push('<b>Transit access here</b>');
+      if(results.apartments && results.apartments.features && results.apartments.features.length){
+        var a = results.apartments.features[0].properties || {};
+        var name = a.LANDMARK || 'Apartment complex';
+        parts.push('<br><b>Apartment complex:</b> ' + esc(name) + (a.DESCRIPTION ? ' (' + esc(a.DESCRIPTION) + ')' : ''));
+      } else {
+        parts.push('<br>No apartment complex at this exact spot. Try clicking an orange parcel.');
+      }
+      if(results.stops && results.stops.features && results.stops.features.length){
+        var feats = results.stops.features.slice();
+        feats.sort(function(f1, f2){ return (distMeters(e.latlng, f1) || 0) - (distMeters(e.latlng, f2) || 0); });
+        var nearest = feats[0].properties || {};
+        var d = distMeters(e.latlng, feats[0]);
+        parts.push('<br><b>' + feats.length + ' transit stop' + (feats.length === 1 ? '' : 's') + ' within a 5-minute walk (400 m).</b>');
+        parts.push('<br>Nearest: ' + esc(nearest.stop_name || 'Unnamed stop') +
+          (nearest.agency ? ' (' + esc(nearest.agency) + ')' : '') +
+          (nearest.n_routes ? ', ' + nearest.n_routes + ' route' + (nearest.n_routes === 1 ? '' : 's') : '') +
+          (d !== null ? ', about ' + fmtDist(d) + ' away' : ''));
+      } else {
+        parts.push('<br>No transit stop within a 5-minute walk (400 m) of this spot.');
+      }
+      if(results.stations && results.stations.features && results.stations.features.length){
+        var sfeats = results.stations.features.slice();
+        sfeats.sort(function(f1, f2){ return (distMeters(e.latlng, f1) || 0) - (distMeters(e.latlng, f2) || 0); });
+        var s = sfeats[0].properties || {};
+        var sd = distMeters(e.latlng, sfeats[0]);
+        parts.push('<br>Nearest light rail station: <b>' + esc(s.STOP_NAME || s.NAME || 'Unnamed station') + '</b>' +
+          (sd !== null ? ', about ' + fmtDist(sd) + ' away' : ''));
+      } else {
+        parts.push('<br>No light rail station within a 10-minute walk (800 m).');
+      }
+      if(results.rail && results.rail.features && results.rail.features.length){
+        var r = results.rail.features[0].properties || {};
+        parts.push('<br>Light rail line nearby: <b>' + esc(r.short_name || 'Light rail') + ' Line</b>' +
+          (r.long_name ? ' (' + esc(r.long_name) + ')' : ''));
+      }
+      L.popup()
+        .setLatLng(e.latlng)
+        .setContent(parts.join(''))
+        .openOn(map);
+    }
+
+    apartments.query().intersects(e.latlng).run(function(error, fc){
+      results.apartments = (!error && fc) ? fc : { features: [] };
+      done.apartments = true; tryRender();
+    });
+    transitStops.query().nearby(e.latlng, 400).run(function(error, fc){
+      results.stops = (!error && fc) ? fc : { features: [] };
+      done.stops = true; tryRender();
+    });
+    lightRailStations.query().nearby(e.latlng, 800).run(function(error, fc){
+      results.stations = (!error && fc) ? fc : { features: [] };
+      done.stations = true; tryRender();
+    });
+    lightRail.query().nearby(e.latlng, 200).run(function(error, fc){
+      results.rail = (!error && fc) ? fc : { features: [] };
+      done.rail = true; tryRender();
+    });
+    // Safety net: render whatever arrived after 4 seconds
+    setTimeout(function(){ if(!rendered){ rendered = true; renderPopup(); } }, 4000);
+  });
+})();
+</script>
+</body>
+</html>
