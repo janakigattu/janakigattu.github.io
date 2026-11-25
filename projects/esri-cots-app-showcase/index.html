@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Esri COTS App Showcase, three working patterns by Janaki Gattu</title>
+<meta name="description" content="Three working Esri COTS patterns on one page: an Experience Builder style map with list and filter, an ArcGIS Dashboards style indicator board, and a StoryMaps style narrative. All three run on live Living Atlas wildfire data. No backend, no API key.">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:960px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:720px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.4rem;margin:34px 0 6px}
+  .sub{color:var(--muted);margin-bottom:18px}
+  .pick3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:8px}
+  @media(max-width:760px){.pick3{grid-template-columns:1fr}}
+  .pick{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+  .pick .tag{color:var(--amber);font-weight:800;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase}
+  .pick h3{font-size:1.05rem;margin:6px 0 4px}
+  .pick p{color:var(--muted);font-size:.92rem}
+  .tabs{display:flex;gap:10px;flex-wrap:wrap;margin:26px 0 0}
+  .tab{flex:1;min-width:200px;background:var(--bg2);border:1px solid #404040;border-radius:10px;padding:13px 16px;cursor:pointer;color:#d4d4d4;font-size:.98rem;font-weight:700;text-align:left}
+  .tab small{display:block;font-weight:400;color:var(--faint);font-size:.86rem;margin-top:2px}
+  .tab.active{border-color:var(--accent);color:var(--accent)}
+  .tab.active small{color:var(--muted)}
+  .panel{display:none;margin-top:16px}
+  .panel.active{display:block}
+  .panelhead{background:var(--card);border:1px solid var(--line);border-radius:14px 14px 0 0;padding:20px 24px;border-bottom:0}
+  .panelhead h3{font-size:1.2rem;margin-bottom:4px}
+  .panelhead p{color:var(--muted);font-size:.95rem}
+  .panelhead .cots{color:var(--faint);font-size:.88rem;margin-top:8px}
+  .panelhead .cots b{color:var(--amber)}
+  .eb{display:grid;grid-template-columns:300px 1fr;gap:0;background:var(--card);border:1px solid var(--line);border-radius:0 0 14px 14px;overflow:hidden}
+  @media(max-width:760px){.eb{grid-template-columns:1fr}}
+  .ebside{border-right:1px solid var(--line);padding:18px;display:flex;flex-direction:column;min-height:480px}
+  @media(max-width:760px){.ebside{border-right:0;border-bottom:1px solid var(--line);min-height:0}}
+  .ebside input,.ebside select{width:100%;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:10px;padding:10px 12px;font-size:.95rem;margin-bottom:10px}
+  .ebside label{font-weight:700;font-size:.9rem;margin-bottom:4px}
+  .count{color:var(--faint);font-size:.88rem;margin:2px 0 10px}
+  .list{overflow-y:auto;max-height:340px;border-top:1px solid var(--line)}
+  .item{padding:11px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+  .item:hover{background:var(--bg2)}
+  .item.active{background:var(--bg2);border-left:3px solid var(--accent);padding-left:10px}
+  .item b{font-size:.98rem}
+  .item span{display:block;color:var(--muted);font-size:.88rem}
+  .badge{display:inline-block;border-radius:999px;padding:1px 9px;font-size:.8rem;font-weight:700;margin-top:4px}
+  .badge.red{background:#2a1215;color:#fecaca;border:1px solid #7f1d1d}
+  .badge.amber{background:#2a2110;color:#fde68a;border:1px solid #713f12}
+  .badge.green{background:#0d2417;color:#bbf7d0;border:1px solid #14532d}
+  .mapbox{min-height:480px}
+  .leaflet-container{background:#111;font:inherit}
+  .leaflet-control-layers{background:#111;color:#f5f5f5;border:1px solid #262626;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.5)}
+  .leaflet-control-layers label{color:#f5f5f5}
+  .leaflet-control-attribution{background:rgba(10,10,10,.8)!important;color:#a3a3a3!important}
+  .leaflet-control-attribution a{color:#4ade80!important}
+  .leaflet-popup-content-wrapper{background:#161616;color:#f5f5f5;border:1px solid #262626;border-radius:10px}
+  .leaflet-popup-content{font-size:.92rem;line-height:1.5}
+  .leaflet-popup-tip{background:#161616}
+  .leaflet-popup-content b{color:#fff}
+  .dash{background:var(--card);border:1px solid var(--line);border-radius:0 0 14px 14px;padding:22px 24px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+  @media(max-width:760px){.kpis{grid-template-columns:1fr 1fr}}
+  .kpi{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .kpi .num{font-size:1.7rem;font-weight:800;line-height:1.1}
+  .kpi .lbl{color:var(--muted);font-size:.88rem;margin-top:4px}
+  .kpi .note{color:var(--faint);font-size:.82rem;margin-top:2px}
+  .dash h4{font-size:1.05rem;margin:18px 0 10px}
+  .bar-row{display:grid;grid-template-columns:110px 1fr 90px;gap:10px;align-items:center;margin-bottom:8px;font-size:.92rem}
+  .bar-row .st{font-weight:700}
+  .bar-row .val{text-align:right;color:var(--muted)}
+  .bar{height:14px;background:var(--bg2);border-radius:999px;overflow:hidden}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#4ade80,#fbbf24);border-radius:999px}
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  th,td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--faint);font-weight:700;font-size:.85rem;text-transform:uppercase;letter-spacing:.06em}
+  td.num,th.num{text-align:right}
+  .dashfoot{color:var(--faint);font-size:.88rem;margin-top:16px}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:11px 22px;font-size:.95rem;background:var(--accent);color:#052e16;border:0;cursor:pointer}
+  .btn-outline{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:11px 22px;font-size:.95rem;border:1px solid #525252;color:var(--text);margin-left:10px;background:none;cursor:pointer}
+  .story{display:grid;grid-template-columns:300px 1fr;gap:0;background:var(--card);border:1px solid var(--line);border-radius:0 0 14px 14px;overflow:hidden}
+  @media(max-width:760px){.story{grid-template-columns:1fr}}
+  .chapters{border-right:1px solid var(--line);padding:18px;min-height:480px}
+  @media(max-width:760px){.chapters{border-right:0;border-bottom:1px solid var(--line);min-height:0}}
+  .chap{padding:12px;border:1px solid var(--line);border-radius:10px;margin-bottom:10px;cursor:pointer}
+  .chap:hover{border-color:#404040}
+  .chap.active{border-color:var(--accent);background:var(--bg2)}
+  .chap .cnum{color:var(--amber);font-weight:800;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase}
+  .chap h4{font-size:1rem;margin:4px 0}
+  .chap p{color:var(--muted);font-size:.9rem}
+  .chapnav{display:flex;gap:10px;margin-top:14px}
+  .chapnav .btn,.chapnav .btn-outline{flex:1;text-align:center;margin-left:0;padding:10px 14px}
+  .build{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px 28px;margin-bottom:14px}
+  .build h3{font-size:1.15rem;margin-bottom:4px}
+  .build .app{color:var(--amber);font-weight:800;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase}
+  .build p{color:var(--muted);margin-top:6px}
+  .build p b{color:#d4d4d4}
+  .build ol{margin:10px 0 0 20px;color:#d4d4d4}
+  .build li{margin-bottom:6px}
+  .note{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px 18px;color:var(--muted);font-size:.95rem;margin-bottom:16px}
+  .note b{color:var(--text)}
+  .sources{color:var(--faint);font-size:.88rem;margin:24px 0}
+  .cta{margin-top:8px}
+  .cta p{color:var(--muted);margin-bottom:16px}
+  .status{color:var(--amber);font-size:.92rem;padding:16px 0}
+  .status.err{color:var(--red)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="back" href="../../index.html">&larr; Back to Janaki Gattu</a>
+  <p class="eyebrow">Esri COTS App Showcase</p>
+  <h1>Your team does not need a custom app. It needs the right Esri app, configured well.</h1>
+  <p class="lede">Three patterns cover most of what a GIS team is asked to build: a map with a list and a filter, an indicator board that answers a question at a glance, and a story that moves the map. Each one below is <b>working</b>, on the same live data, and each one maps to an Esri product you can build without writing code: <b>ArcGIS Experience Builder</b>, <b>ArcGIS Dashboards</b>, and <b>ArcGIS StoryMaps</b>.</p>
+  <p class="honest"><b>Honest note:</b> this page runs entirely in your browser. No backend, no API key, nothing you enter leaves this page. The data is Esri Living Atlas USA wildfire incidents, queried live from ArcGIS Online. A single query returns at most 1,000 features, so the counts below cover the 1,000 largest incidents by acres. A real Dashboard would query the full service.</p>
+</header>
+<main>
+  <h2>Which app for which job</h2>
+  <p class="sub">Pick the pattern by the question, not by the tool. The tool follows.</p>
+  <div class="pick3">
+    <div class="pick">
+      <p class="tag">Experience Builder</p>
+      <h3>Find it, filter it, open it</h3>
+      <p>Someone needs to look at features one by one. A map, a list, a search box, and a filter. That is the Experience Builder pattern.</p>
+    </div>
+    <div class="pick">
+      <p class="tag">Dashboards</p>
+      <h3>How are we doing, right now</h3>
+      <p>Someone needs a number, not a map. Totals, averages, and a bar chart that updates with the data. That is the ArcGIS Dashboards pattern.</p>
+    </div>
+    <div class="pick">
+      <p class="tag">StoryMaps</p>
+      <h3>Follow the story, the map follows you</h3>
+      <p>Someone needs to understand what happened, in order. Chapters move the map and the numbers with them. That is the ArcGIS StoryMaps pattern.</p>
+    </div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" type="button" data-tab="eb" role="tab">Pattern 1: Experience Builder<small>Map, list, search, and filter on live data</small></button>
+    <button class="tab" type="button" data-tab="dash" role="tab">Pattern 2: Dashboards<small>Indicators and a chart, computed from the same data</small></button>
+    <button class="tab" type="button" data-tab="story" role="tab">Pattern 3: StoryMaps<small>Five fires, five chapters, one season</small></button>
+  </div>
+
+  <div class="panel active" id="panel-eb">
+    <div class="panelhead">
+      <h3>Experience Builder pattern: current US wildfire incidents</h3>
+      <p>Search by name, filter by state or size, click a fire in the list and the map flies to it. This is the shape of most Experience Builder apps: a map widget, a list widget, and a filter, all reading the same layer.</p>
+      <p class="cots"><b>In ArcGIS Online or Enterprise:</b> Experience Builder, Map widget plus List widget plus Filter widget, on the Living Atlas USA Wildfires layer. No code. The list and the map stay in sync because they share one data source.</p>
+    </div>
+    <div class="eb">
+      <div class="ebside">
+        <label for="q">Search by fire name</label>
+        <input id="q" type="text" placeholder="Type a name, for example PARK" autocomplete="off">
+        <label for="state">State</label>
+        <select id="state"><option value="">All states</option></select>
+        <label for="acres">Size</label>
+        <select id="acres">
+          <option value="0">Any size</option>
+          <option value="10000">Over 10,000 acres</option>
+          <option value="50000">Over 50,000 acres</option>
+          <option value="100000">Over 100,000 acres</option>
+        </select>
+        <p class="count" id="ebcount">Loading incidents from Living Atlas...</p>
+        <div class="list" id="eblist"></div>
+      </div>
+      <div class="mapbox" id="ebmap"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-dash">
+    <div class="panelhead">
+      <h3>Dashboards pattern: the season at a glance</h3>
+      <p>Four indicators and one chart, all computed from the same incidents the map shows. Change nothing here by hand. The numbers come from the data, so they stay honest when the data changes.</p>
+      <p class="cots"><b>In ArcGIS Online or Enterprise:</b> ArcGIS Dashboards, with Indicator widgets for the totals and a Serial Chart widget for acres by state, on the same Living Atlas layer. Set the refresh interval and the board updates itself.</p>
+    </div>
+    <div class="dash">
+      <div id="dashbody"><p class="status">Loading indicators from Living Atlas...</p></div>
+      <p class="dashfoot" id="dashfoot"></p>
+      <p style="margin-top:16px"><button class="btn" type="button" onclick="loadData(true)">Refresh the data</button></p>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-story">
+    <div class="panelhead">
+      <h3>StoryMaps pattern: the season in five fires</h3>
+      <p>Five chapters, each one a real fire from the live data. Step through them and the map moves with the story. This is the shape of a StoryMaps sidecar: a short text panel, a map that follows it, and the numbers that make each chapter concrete.</p>
+      <p class="cots"><b>In ArcGIS Online or Enterprise:</b> ArcGIS StoryMaps, Sidecar block, with a map action per chapter. The chapters below are generated from the five largest fires in the live data, so the story updates when the season does.</p>
+    </div>
+    <div class="story">
+      <div class="chapters">
+        <div id="chaplist"></div>
+        <div class="chapnav">
+          <button class="btn-outline" type="button" onclick="stepChapter(-1)">&larr; Previous</button>
+          <button class="btn" type="button" onclick="stepChapter(1)">Next &rarr;</button>
+        </div>
+      </div>
+      <div class="mapbox" id="storymap"></div>
+    </div>
+  </div>
+
+  <h2>How to build each one, in ArcGIS Online or Enterprise</h2>
+  <p class="sub">No custom code in any of these. That is the point. COTS first, code only where COTS runs out.</p>
+
+  <div class="build">
+    <p class="app">Experience Builder</p>
+    <h3>Build the map, list, and filter app</h3>
+    <p><b>Use it when</b> people need to find a feature and open it. Permit lookups, asset inspections, incident lists, site finders.</p>
+    <ol>
+      <li>In ArcGIS Online or Enterprise, open Experience Builder and start from the Blank fullscreen template.</li>
+      <li>Add the Map widget and connect it to your layer. Set the pop-up to show the fields people actually ask about, and nothing else.</li>
+      <li>Add the List widget on the same layer, sorted by the field that matters, acres here, date or status in your case.</li>
+      <li>Add the Filter widget, one clause per question people ask: state, size, status. Keep it to three or four clauses.</li>
+      <li>Connect the widgets so selecting a list item highlights the feature on the map. Test it on a phone. If the list is unusable on a phone, the app is unusable.</li>
+    </ol>
+  </div>
+
+  <div class="build">
+    <p class="app">ArcGIS Dashboards</p>
+    <h3>Build the indicator board</h3>
+    <p><b>Use it when</b> someone needs a number at a glance, every day. Operations boards, program reporting, executive updates.</p>
+    <ol>
+      <li>In ArcGIS Online or Enterprise, create a Dashboard and add the layer as the data source.</li>
+      <li>Add Indicator widgets for the four numbers that decide the conversation: total, largest, average, and the one that shows risk.</li>
+      <li>Add a Serial Chart widget grouped by the category that explains the total, state here, region or program in your case.</li>
+      <li>Add a List widget for the top ten, so the board answers both "how much" and "which ones".</li>
+      <li>Set the refresh interval to match how fast the data changes, and put the data source and the date on the board. A number without a source is a rumour.</li>
+    </ol>
+  </div>
+
+  <div class="build">
+    <p class="app">ArcGIS StoryMaps</p>
+    <h3>Build the story that moves the map</h3>
+    <p><b>Use it when</b> the order matters. A season, a project, a migration, a before and after. People remember a story; they forget a dashboard.</p>
+    <ol>
+      <li>In ArcGIS Online or Enterprise, create a StoryMap and draft the story in five or six chapters before you touch the map.</li>
+      <li>Use a Sidecar block. One chapter, one map action: pan, zoom, and turn layers on or off to match the words.</li>
+      <li>Keep each chapter under 80 words. The map does the explaining; the text only says what to look at.</li>
+      <li>End with a chapter that says what happens next and who to contact. A story without a next step is a dead end.</li>
+    </ol>
+  </div>
+
+  <div class="note"><b>What this demo simplifies.</b> A real Experience Builder app would add authentication, a hosted feature layer with editing rules, and a proper pop-up design. A real Dashboard would use Arcade expressions and a scheduled refresh. A real StoryMap would use your own web maps, not a demo layer. None of that changes the pattern. The pattern is the decision, and the pattern is what this page shows working.</div>
+
+  <div class="cta">
+    <p>Most teams do not need a developer to build these three apps. They need someone who has built them before, who knows which pattern fits which question, and who will configure them properly. That is what Janaki does.</p>
+    <a class="btn" href="mailto:gjanaki360@gmail.com?subject=Esri%20COTS%20app%20for%20my%20team">Ask Janaki to build one for your team</a>
+    <a class="btn-outline" href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Connect on LinkedIn</a>
+  </div>
+
+  <p class="sources">Sources: Esri Living Atlas, USA Wildfires (Current Incidents), services1.arcgis.com/P946On66WOQ606jN, USA_Wildfires_JF FeatureServer/0. Pattern guidance from Esri documentation for ArcGIS Experience Builder, ArcGIS Dashboards, and ArcGIS StoryMaps. Data queried live when this page loads; if the service is unreachable, the panels say so instead of showing stale numbers.</p>
+</main>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+var SERVICE = "https://services1.arcgis.com/P946On66WOQ606jN/arcgis/rest/services/USA_Wildfires_JF/FeatureServer/0/query";
+var incidents = [];
+var ebMap = null, storyMap = null, ebMarkers = [], storyMarkers = [];
+var currentChapter = 0, chapters = [];
+
+function fmt(n){ return Math.round(n).toLocaleString("en-US"); }
+function stateName(s){ return (s || "").replace("US-", ""); }
+function contClass(p){
+  if (p === null || p === undefined) return ["green", "Not reported"];
+  if (p >= 100) return ["green", Math.round(p) + "% contained"];
+  if (p >= 50) return ["amber", Math.round(p) + "% contained"];
+  return ["red", Math.round(p) + "% contained"];
+}
+function colorFor(p){
+  if (p === null || p === undefined) return "#fbbf24";
+  if (p >= 100) return "#4ade80";
+  if (p >= 50) return "#fbbf24";
+  return "#f87171";
+}
+function radiusFor(a){
+  var r = 4 + Math.sqrt(a || 0) / 55;
+  return r > 24 ? 24 : r;
+}
+function popupHtml(f){
+  var a = f.attributes;
+  var cc = contClass(a.PercentCon);
+  return "<b>" + a.IncidentNa + "</b><br>" +
+    fmt(a.DailyAcres || 0) + " acres &middot; " + cc[1] + "<br>" +
+    (a.POOCounty || "") + ", " + stateName(a.POOState) + "<br>" +
+    "Type: " + (a.IncidentTy || "Not reported") + " &middot; Cause: " + (a.FireCause || "Not reported");
+}
+
+function baseMap(){
+  return L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}", {
+    attribution: "Esri, HERE, Garmin, OpenStreetMap contributors, and the GIS user community"
+  });
+}
+
+function initEbMap(){
+  if (ebMap) return;
+  ebMap = L.map("ebmap", {scrollWheelZoom: true}).setView([39.5, -98.35], 4);
+  baseMap().addTo(ebMap);
+  drawEbMarkers(incidents);
+}
+function drawEbMarkers(list){
+  if (!ebMap) return;
+  ebMarkers.forEach(function(m){ ebMap.removeLayer(m); });
+  ebMarkers = [];
+  list.forEach(function(f){
+    var a = f.attributes;
+    var m = L.circleMarker([f.geometry.y, f.geometry.x], {
+      radius: radiusFor(a.DailyAcres),
+      color: colorFor(a.PercentCon), weight: 1.5, fillColor: colorFor(a.PercentCon), fillOpacity: 0.55
+    }).bindPopup(popupHtml(f));
+    m.addTo(ebMap);
+    ebMarkers.push(m);
+  });
+}
+
+function applyEbFilter(){
+  var q = (document.getElementById("q").value || "").toLowerCase();
+  var st = document.getElementById("state").value;
+  var minAcres = parseFloat(document.getElementById("acres").value) || 0;
+  var filtered = incidents.filter(function(f){
+    var a = f.attributes;
+    if (q && (a.IncidentNa || "").toLowerCase().indexOf(q) === -1) return false;
+    if (st && a.POOState !== st) return false;
+    if ((a.DailyAcres || 0) < minAcres) return false;
+    return true;
+  });
+  renderEbList(filtered);
+  drawEbMarkers(filtered);
+  document.getElementById("ebcount").textContent = filtered.length + " of " + incidents.length + " incidents shown";
+}
+function renderEbList(list){
+  var el = document.getElementById("eblist");
+  var show = list.slice(0, 60);
+  if (show.length === 0){
+    el.innerHTML = "<p class=\"count\">No incidents match. Clear the search or loosen the filter.</p>";
+    return;
+  }
+  el.innerHTML = show.map(function(f, i){
+    var a = f.attributes;
+    var cc = contClass(a.PercentCon);
+    return "<div class=\"item\" data-i=\"" + incidents.indexOf(f) + "\"><b>" + a.IncidentNa + "</b>" +
+      "<span>" + (a.POOCounty || "") + ", " + stateName(a.POOState) + " &middot; " + fmt(a.DailyAcres || 0) + " acres</span>" +
+      "<span class=\"badge " + cc[0] + "\">" + cc[1] + "</span></div>";
+  }).join("");
+  el.querySelectorAll(".item").forEach(function(node){
+    node.addEventListener("click", function(){
+      var f = incidents[parseInt(node.getAttribute("data-i"), 10)];
+      el.querySelectorAll(".item").forEach(function(n){ n.classList.remove("active"); });
+      node.classList.add("active");
+      if (ebMap){
+        ebMap.flyTo([f.geometry.y, f.geometry.x], 7, {duration: 1});
+        setTimeout(function(){
+          ebMarkers.forEach(function(m){
+            var ll = m.getLatLng();
+            if (Math.abs(ll.lat - f.geometry.y) < 0.001 && Math.abs(ll.lng - f.geometry.x) < 0.001) m.openPopup();
+          });
+        }, 1100);
+      }
+    });
+  });
+}
+
+function renderDashboard(){
+  var body = document.getElementById("dashbody");
+  var foot = document.getElementById("dashfoot");
+  if (incidents.length === 0){
+    body.innerHTML = "<p class=\"status err\">The Living Atlas service did not answer. The indicators cannot be computed from data that never arrived. Try the refresh button, or come back in a few minutes.</p>";
+    return;
+  }
+  var totalAcres = 0, contSum = 0, contN = 0, largest = null;
+  var byState = {};
+  incidents.forEach(function(f){
+    var a = f.attributes;
+    totalAcres += a.DailyAcres || 0;
+    if (a.PercentCon !== null && a.PercentCon !== undefined){ contSum += a.PercentCon; contN++; }
+    if (!largest || (a.DailyAcres || 0) > (largest.attributes.DailyAcres || 0)) largest = f;
+    var st = stateName(a.POOState) || "Unknown";
+    byState[st] = (byState[st] || 0) + (a.DailyAcres || 0);
+  });
+  var avgCont = contN ? Math.round(contSum / contN) : null;
+  var topStates = Object.keys(byState).map(function(k){ return [k, byState[k]]; })
+    .sort(function(x, y){ return y[1] - x[1]; }).slice(0, 5);
+  var maxState = topStates.length ? topStates[0][1] : 1;
+  var top10 = incidents.slice(0, 10);
+
+  var html = '<div class="kpis">';
+  html += '<div class="kpi"><p class="num">' + fmt(incidents.length) + '</p><p class="lbl">Incidents in this load</p><p class="note">1,000 largest by acres</p></div>';
+  html += '<div class="kpi"><p class="num">' + fmt(totalAcres) + '</p><p class="lbl">Total acres</p><p class="note">Across the incidents loaded</p></div>';
+  html += '<div class="kpi"><p class="num">' + (largest ? largest.attributes.IncidentNa : "None") + '</p><p class="lbl">Largest fire</p><p class="note">' + (largest ? fmt(largest.attributes.DailyAcres || 0) + " acres, " + stateName(largest.attributes.POOState) : "") + '</p></div>';
+  html += '<div class="kpi"><p class="num">' + (avgCont === null ? "Not reported" : avgCont + "%") + '</p><p class="lbl">Average containment</p><p class="note">Incidents that report it</p></div>';
+  html += '</div>';
+
+  html += '<h4>Acres by state, top five</h4>';
+  topStates.forEach(function(s){
+    var pct = Math.round(s[1] / maxState * 100);
+    html += '<div class="bar-row"><span class="st">' + s[0] + '</span><div class="bar"><i style="width:' + pct + '%"></i></div><span class="val">' + fmt(s[1]) + ' ac</span></div>';
+  });
+
+  html += '<h4>Largest fires in this load</h4><table><thead><tr><th>Fire</th><th>State</th><th class="num">Acres</th><th>Containment</th><th>Cause</th></tr></thead><tbody>';
+  top10.forEach(function(f){
+    var a = f.attributes;
+    var cc = contClass(a.PercentCon);
+    html += '<tr><td><b>' + a.IncidentNa + '</b></td><td>' + stateName(a.POOState) + '</td><td class="num">' + fmt(a.DailyAcres || 0) + '</td><td>' + cc[1] + '</td><td>' + (a.FireCause || "Not reported") + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  body.innerHTML = html;
+  foot.textContent = "Source: Esri Living Atlas, USA Wildfires (Current Incidents). Queried live when this page loaded. Refresh re-queries the service.";
+}
+
+function initStoryMap(){
+  if (storyMap) return;
+  storyMap = L.map("storymap", {scrollWheelZoom: true}).setView([39.5, -98.35], 4);
+  baseMap().addTo(storyMap);
+  storyMarkers = [];
+  incidents.slice(0, 5).forEach(function(f){
+    var a = f.attributes;
+    var m = L.circleMarker([f.geometry.y, f.geometry.x], {
+      radius: radiusFor(a.DailyAcres),
+      color: colorFor(a.PercentCon), weight: 1.5, fillColor: colorFor(a.PercentCon), fillOpacity: 0.55
+    }).bindPopup(popupHtml(f));
+    m.addTo(storyMap);
+    storyMarkers.push(m);
+  });
+}
+function buildChapters(){
+  var list = document.getElementById("chaplist");
+  var top = incidents.slice(0, 5);
+  chapters = [{title: "The season, in one view", text: "Across the incidents in this load, the fires add up to " + fmt(top.reduce(function(s, f){ return s + (f.attributes.DailyAcres || 0); }, 0)) + " acres for the five largest alone. The rest of the story is where they burned, and why some grew faster than others.", lat: 39.5, lng: -98.35, zoom: 4}];
+  var frames = [
+    "The largest fire in this load. It burned in one county and grew past 400,000 acres. Containment took weeks, and the acres are the reason the season is remembered.",
+    "The second largest. It started in a different state and a different fuel type, and it shows the same lesson: size is set in the first days, not the last.",
+    "The third largest. Another state, another landscape, the same pattern: a fast start, a long campaign, and a containment number that moves slowly.",
+    "The fourth largest. By now the pattern is clear. The fires that grew biggest were the ones that ran before crews could get ahead of them.",
+    "The fifth largest. It closes the story the way the season closed: still burning, still only partly contained, still a reminder that the map is never finished."
+  ];
+  top.forEach(function(f, i){
+    var a = f.attributes;
+    chapters.push({
+      title: a.IncidentNa + ", " + stateName(a.POOState),
+      text: fmt(a.DailyAcres || 0) + " acres in " + (a.POOCounty || "an unlisted county") + ", " + stateName(a.POOState) + ". " + contClass(a.PercentCon)[1] + ". Cause: " + (a.FireCause || "not reported") + ". " + frames[i],
+      lat: f.geometry.y, lng: f.geometry.x, zoom: 7
+    });
+  });
+  list.innerHTML = chapters.map(function(c, i){
+    return "<div class=\"chap\" data-i=\"" + i + "\"><p class=\"cnum\">Chapter 0" + (i + 1) + "</p><h4>" + c.title + "</h4><p>" + c.text + "</p></div>";
+  }).join("");
+  list.querySelectorAll(".chap").forEach(function(node){
+    node.addEventListener("click", function(){ showChapter(parseInt(node.getAttribute("data-i"), 10)); });
+  });
+  showChapter(0);
+}
+function showChapter(i){
+  currentChapter = i;
+  var c = chapters[i];
+  document.querySelectorAll(".chap").forEach(function(n, j){ n.classList.toggle("active", j === i); });
+  if (storyMap){
+    storyMap.flyTo([c.lat, c.lng], c.zoom, {duration: 1.2});
+    if (i > 0){
+      setTimeout(function(){
+        storyMarkers.forEach(function(m){
+          var ll = m.getLatLng();
+          if (Math.abs(ll.lat - c.lat) < 0.001 && Math.abs(ll.lng - c.lng) < 0.001) m.openPopup();
+        });
+      }, 1300);
+    }
+  }
+  var active = document.querySelector(".chap.active");
+  if (active) active.scrollIntoView({block: "nearest", behavior: "smooth"});
+}
+function stepChapter(d){
+  var next = currentChapter + d;
+  if (next < 0) next = 0;
+  if (next > chapters.length - 1) next = chapters.length - 1;
+  showChapter(next);
+}
+
+function loadData(isRefresh){
+  var url = SERVICE + "?where=1%3D1&outFields=IncidentNa,IncidentTy,DailyAcres,PercentCon,POOState,POOCounty,FireCause&orderByFields=DailyAcres%20DESC&resultRecordCount=1000&returnGeometry=true&outSR=4326&f=json";
+  fetch(url).then(function(r){ return r.json(); }).then(function(data){
+    incidents = (data.features || []).filter(function(f){ return f.geometry && f.attributes && f.attributes.IncidentNa; });
+    var states = {};
+    incidents.forEach(function(f){ states[f.attributes.POOState] = true; });
+    var sel = document.getElementById("state");
+    var cur = sel.value;
+    sel.innerHTML = "<option value=\"\">All states</option>" + Object.keys(states).sort().map(function(s){
+      return "<option value=\"" + s + "\">" + stateName(s) + "</option>";
+    }).join("");
+    sel.value = cur;
+    initEbMap();
+    applyEbFilter();
+    renderDashboard();
+    if (!isRefresh || !storyMap) { initStoryMap(); buildChapters(); }
+  }).catch(function(){
+    document.getElementById("ebcount").textContent = "The Living Atlas service did not answer. The map and list cannot load without it.";
+    document.getElementById("ebcount").className = "count";
+    document.getElementById("ebcount").style.color = "#f87171";
+    document.getElementById("dashbody").innerHTML = "<p class=\"status err\">The Living Atlas service did not answer. The indicators cannot be computed from data that never arrived. Try the refresh button, or come back in a few minutes.</p>";
+    document.getElementById("chaplist").innerHTML = "<p class=\"status err\">The story needs the live data. The service did not answer, so there are no chapters to show yet.</p>";
+  });
+}
+
+document.querySelectorAll(".tab").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    document.querySelectorAll(".tab").forEach(function(b){ b.classList.remove("active"); });
+    btn.classList.add("active");
+    document.querySelectorAll(".panel").forEach(function(p){ p.classList.remove("active"); });
+    var panel = document.getElementById("panel-" + btn.getAttribute("data-tab"));
+    panel.classList.add("active");
+    if (btn.getAttribute("data-tab") === "eb" && ebMap) setTimeout(function(){ ebMap.invalidateSize(); }, 50);
+    if (btn.getAttribute("data-tab") === "story" && storyMap) setTimeout(function(){ storyMap.invalidateSize(); }, 50);
+  });
+});
+document.getElementById("q").addEventListener("input", applyEbFilter);
+document.getElementById("state").addEventListener("change", applyEbFilter);
+document.getElementById("acres").addEventListener("change", applyEbFilter);
+
+loadData(false);
+</script>
+</body>
+</html>
