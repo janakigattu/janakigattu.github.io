@@ -73,7 +73,25 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://janakigattu.github.io/projects/arcgis-enterprise-upgrade-planner/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://janakigattu.github.io/projects/esri-cots-app-showcase/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://janakigattu.github.io/projects/enterprise-gis-governance-scorecard-agent/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://janakigattu.github.io/projects/webgisdr-backup-recovery-planner/</loc>
     <lastmod>2026-11-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
