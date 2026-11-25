@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArcGIS Enterprise Upgrade Planner, a working planner by Janaki Gattu</title>
+<meta name="description" content="A working ArcGIS Enterprise Upgrade Planner by Janaki Gattu. Enter your current and target versions and get the upgrade path Esri supports, the component order, the warnings that matter, and a checklist you can run. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  .form{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px}
+  .form h2{font-size:1.35rem;margin-bottom:6px}
+  .form .sub{color:var(--muted);margin-bottom:22px}
+  .field{margin-bottom:20px}
+  .field label{display:block;font-weight:700;margin-bottom:6px}
+  .field .hint{color:var(--faint);font-size:.9rem;font-weight:400;margin-top:4px}
+  select{width:100%;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:10px;padding:12px 14px;font-size:1rem}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:560px){.grid2{grid-template-columns:1fr}}
+  fieldset{border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:20px}
+  legend{font-weight:700;padding:0 8px}
+  .check{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;cursor:pointer;color:#d4d4d4}
+  .check:last-child{margin-bottom:0}
+  .check input{margin-top:5px;accent-color:var(--accent);width:17px;height:17px;flex:none}
+  .check small{display:block;color:var(--faint);font-size:.88rem}
+  .radios{display:flex;gap:10px;flex-wrap:wrap}
+  .radio{flex:1;min-width:140px;background:var(--bg2);border:1px solid #404040;border-radius:10px;padding:12px 14px;cursor:pointer;color:#d4d4d4;font-size:.95rem}
+  .radio input{accent-color:var(--accent);margin-right:8px}
+  .radio:has(input:checked){border-color:var(--accent)}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer}
+  .btn-dark{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a;border:0;cursor:pointer}
+  .btn-outline{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;border:1px solid #525252;color:var(--text);margin-left:10px;background:none;cursor:pointer}
+  .result{margin-top:28px}
+  .scorecard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px;margin-bottom:16px}
+  .score{font-size:3rem;font-weight:800;line-height:1;color:var(--accent)}
+  .score.red{color:var(--red)}
+  .score.amber{color:var(--amber)}
+  .scorecard h2{font-size:1.4rem;margin:10px 0 4px}
+  .scorecard p{color:var(--muted)}
+  .path{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px 0 4px}
+  .ver{background:var(--bg2);border:1px solid #404040;border-radius:999px;padding:8px 16px;font-weight:700}
+  .ver.target{border-color:var(--accent);color:var(--accent)}
+  .arrow{color:var(--faint);font-weight:700}
+  .warn{border-radius:12px;padding:14px 18px;margin-bottom:12px;font-size:.95rem}
+  .warn.red{background:#2a1215;border:1px solid #7f1d1d;color:#fecaca}
+  .warn.amber{background:#2a2110;border:1px solid #713f12;color:#fde68a}
+  .warn.green{background:#0d2417;border:1px solid #14532d;color:#bbf7d0}
+  .warn b{display:block;margin-bottom:2px}
+  .phase{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px 28px;margin-bottom:16px}
+  .phase h3{font-size:1.15rem;margin-bottom:4px}
+  .phase .psub{color:var(--muted);font-size:.95rem;margin-bottom:14px}
+  .step{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line);cursor:pointer;color:#d4d4d4}
+  .step input{margin-top:5px;accent-color:var(--accent);width:17px;height:17px;flex:none}
+  .step.done{color:var(--faint);text-decoration:line-through}
+  .step small{display:block;color:var(--faint);font-size:.88rem;text-decoration:none}
+  .progressline{color:var(--faint);font-size:.9rem;margin:4px 0 18px}
+  .note{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px 18px;color:var(--muted);font-size:.95rem;margin-bottom:16px}
+  .note b{color:var(--text)}
+  .sources{color:var(--faint);font-size:.88rem;margin:24px 0}
+  .cta{margin-top:8px}
+  .cta p{color:var(--muted);margin-bottom:16px}
+  @media print{
+    body{background:#fff;color:#000}
+    header,.form,.btn,.btn-dark,.btn-outline,.back{display:none!important}
+    .scorecard,.phase,.warn,.note{border:1px solid #999;background:#fff;color:#000}
+    .scorecard p,.phase .psub,.step,.note{color:#000}
+    .step small{color:#333}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="back" href="../../index.html">&larr; Back to Janaki Gattu</a>
+  <p class="eyebrow">ArcGIS Enterprise Upgrade Planner</p>
+  <h1>Most failed upgrades are not installer errors. They are version jumps Esri never supported, taken without a backup.</h1>
+  <p class="lede">Enter your current version and your target version. This planner applies Esri&rsquo;s published upgrade rules, works out whether you can go direct or need an interim version, puts the components in the right order, and hands you a checklist you can actually run. It is built from ten years of administering ArcGIS Enterprise, including upgrades at Caltrans.</p>
+  <p class="honest"><b>Honest note:</b> this planner runs entirely in your browser. No backend, no API key, nothing you enter leaves this page. It applies Esri&rsquo;s published rules to the versions you enter. It does not inspect your environment, so check the system requirements for your target version before you book the window.</p>
+</header>
+<main>
+  <div class="form" id="planner-form">
+    <h2>Your deployment</h2>
+    <p class="sub">Four questions. The plan builds itself from your answers.</p>
+
+    <div class="grid2">
+      <div class="field">
+        <label for="current">Current version</label>
+        <select id="current">
+          <option value="10.7.1">10.7.1</option>
+          <option value="10.8">10.8</option>
+          <option value="10.8.1">10.8.1</option>
+          <option value="10.9">10.9</option>
+          <option value="10.9.1" selected>10.9.1</option>
+          <option value="11.0">11.0</option>
+          <option value="11.1">11.1</option>
+          <option value="11.2">11.2</option>
+          <option value="11.3">11.3</option>
+          <option value="11.4">11.4</option>
+          <option value="11.5">11.5</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="target">Target version</label>
+        <select id="target">
+          <option value="11.1">11.1</option>
+          <option value="11.2">11.2</option>
+          <option value="11.3">11.3</option>
+          <option value="11.4">11.4</option>
+          <option value="11.5">11.5</option>
+          <option value="12.0" selected>12.0</option>
+        </select>
+        <p class="hint">If the target is older than the current version, the planner will tell you to stop. Upgrades only go forward.</p>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Deployment pattern</label>
+      <div class="radios">
+        <label class="radio"><input type="radio" name="pattern" value="single" checked> Single machine</label>
+        <label class="radio"><input type="radio" name="pattern" value="base"> Base deployment</label>
+        <label class="radio"><input type="radio" name="pattern" value="ha"> Highly available</label>
+      </div>
+      <p class="hint">Single machine means ArcGIS Enterprise Builder or one box. Base means Portal, Server, and Data Store on separate machines. Highly available means more than one machine per component.</p>
+    </div>
+
+    <fieldset>
+      <legend>What else is in the deployment?</legend>
+      <label class="check"><input type="checkbox" id="c-geoevent"><span>ArcGIS GeoEvent Server<small>Real-time feeds and spatiotemporal big data store.</small></span></label>
+      <label class="check"><input type="checkbox" id="c-notebook"><span>ArcGIS Notebook Server<small>Notebooks and scheduled notebook tasks.</small></span></label>
+      <label class="check"><input type="checkbox" id="c-workflow"><span>ArcGIS Workflow Manager Server<small>Workflow jobs and step templates.</small></span></label>
+      <label class="check"><input type="checkbox" id="c-image"><span>Federated ArcGIS Image Server<small>Imagery services federated to the portal.</small></span></label>
+      <label class="check"><input type="checkbox" id="c-geoanalytics"><span>Federated ArcGIS GeoAnalytics Server<small>Big data analysis services.</small></span></label>
+      <label class="check"><input type="checkbox" id="c-scene"><span>Hosted scene layers with caches in the tile cache data store<small>If you are going to 12.0, this changes the path. Upgrading without migrating the caches deletes them.</small></span></label>
+      <label class="check"><input type="checkbox" id="c-wab"><span>Apps built with ArcGIS Web AppBuilder or Configurable Apps<small>Retired at 12.0. They have to be rebuilt in Experience Builder before you move.</small></span></label>
+      <label class="check"><input type="checkbox" id="c-custom"><span>Custom widgets, add-ins, or apps built on the ArcGIS APIs<small>They need re-testing against the target version, in staging, before production.</small></span></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Readiness, honestly</legend>
+      <label class="check"><input type="checkbox" id="r-staging"><span>We have a staging or test environment at the same version as production</span></label>
+      <label class="check"><input type="checkbox" id="r-backup"><span>We have a current webgisdr backup, and we have proved it restores</span></label>
+      <label class="check"><input type="checkbox" id="r-sysreq"><span>We have checked the system requirements for the target version (operating system, database, hardware)</span></label>
+      <label class="check"><input type="checkbox" id="r-inventory"><span>We have an inventory of custom apps, widgets, and integrations</span></label>
+      <label class="check"><input type="checkbox" id="r-window"><span>A maintenance window is agreed with the people who use the platform</span></label>
+    </fieldset>
+
+    <button class="btn" type="button" onclick="buildPlan()">Build my upgrade plan</button>
+  </div>
+
+  <div class="result" id="result" hidden></div>
+</main>
+</div>
+<script>
+var VERSIONS = ["10.7.1","10.8","10.8.1","10.9","10.9.1","11.0","11.1","11.2","11.3","11.4","11.5","12.0"];
+// Highest version Esri supports as a direct upgrade target, per source version.
+// Source: enterprise.arcgis.com, "Versions supported for direct upgrade".
+var MAX_DIRECT = {
+  "10.7.1":"11.3", "10.8":"11.5", "10.8.1":"11.5", "10.9":"11.5", "10.9.1":"11.5",
+  "11.0":"12.0", "11.1":"12.0", "11.2":"12.0", "11.3":"12.0", "11.4":"12.0", "11.5":"12.0"
+};
+function idx(v){ return VERSIONS.indexOf(v); }
+function planPath(source, target, force115){
+  var chain = [];
+  var cur = source;
+  var guard = 0;
+  while (idx(cur) < idx(target) && guard < 6){
+    guard++;
+    var max = MAX_DIRECT[cur];
+    var next = idx(max) < idx(target) ? max : target;
+    if (force115 && idx(cur) < idx("11.5") && idx(next) > idx("11.5")){
+      next = "11.5";
+    }
+    if (idx(next) <= idx(cur)) break;
+    chain.push(next);
+    cur = next;
+  }
+  return chain;
+}
+function patternName(p){
+  return p === "single" ? "Single machine" : p === "base" ? "Base deployment" : "Highly available deployment";
+}
+function downtime(p, jumps){
+  var base = p === "single" ? [2,4] : p === "base" ? [4,8] : [8,16];
+  return [base[0]*jumps, base[1]*jumps];
+}
+function esc(s){ return s; }
+function buildPlan(){
+  var current = document.getElementById("current").value;
+  var target = document.getElementById("target").value;
+  var pattern = document.querySelector('input[name="pattern"]:checked').value;
+  var scene = document.getElementById("c-scene").checked;
+  var wab = document.getElementById("c-wab").checked;
+  var custom = document.getElementById("c-custom").checked;
+  var extras = [];
+  if (document.getElementById("c-geoevent").checked) extras.push("ArcGIS GeoEvent Server");
+  if (document.getElementById("c-notebook").checked) extras.push("ArcGIS Notebook Server");
+  if (document.getElementById("c-workflow").checked) extras.push("ArcGIS Workflow Manager Server");
+  if (document.getElementById("c-image").checked) extras.push("Federated ArcGIS Image Server");
+  if (document.getElementById("c-geoanalytics").checked) extras.push("Federated ArcGIS GeoAnalytics Server");
+
+  var result = document.getElementById("result");
+  var html = "";
+
+  if (idx(target) <= idx(current)){
+    html += '<div class="scorecard"><p class="score red">Stop</p><h2>No upgrade to plan</h2><p>The target version ' + target + ' is the same as or older than the current version ' + current + '. An upgrade only moves forward. Pick a target version newer than ' + current + '.</p></div>';
+    result.innerHTML = html;
+    result.hidden = false;
+    result.scrollIntoView({behavior:"smooth"});
+    return;
+  }
+
+  // 12.0 forces an 11.5 stop when scene layers or Web AppBuilder apps are present and the source is 11.3 or earlier.
+  // At 11.4, Web AppBuilder apps still force the 11.5 stop, but scene layers alone do not: the caches can be
+  // migrated at 11.4 and the upgrade can then go direct to 12.0.
+  var force115 = target === "12.0" && ((idx(current) <= idx("11.3") && (scene || wab)) || (current === "11.4" && wab));
+  var chain = planPath(current, target, force115);
+  var direct = chain.length === 1;
+
+  // Readiness score.
+  var score = 0, gaps = [];
+  if (document.getElementById("r-staging").checked) score += 25; else gaps.push(["No staging environment", "Rehearse the full upgrade in staging first. An upgrade you have only read about is an upgrade you have not tested."]);
+  if (document.getElementById("r-backup").checked) score += 25; else gaps.push(["No proved backup", "Run webgisdr and prove the backup restores before you start. There is no downgrade path. The backup is the rollback."]);
+  if (document.getElementById("r-sysreq").checked) score += 20; else gaps.push(["System requirements not checked", "Supported operating systems, databases, and hardware change between releases. Check the target version requirements before you book the window."]);
+  if (document.getElementById("r-inventory").checked) score += 15; else gaps.push(["Custom apps not inventoried", "List every custom widget, add-in, and integration now. Each one needs a re-test in staging against the target version."]);
+  if (document.getElementById("r-window").checked) score += 15; else gaps.push(["No maintenance window agreed", "Agree the window with the people who use the platform before you start, including how long services will be down."]);
+  var verdict = score >= 85 ? ["Ready to plan the window", "green", "The groundwork is in place. Work the checklist below in order and validate before you hand the platform back."] :
+                score >= 50 ? ["Almost ready", "amber", "Close the gaps below before you book the window. The two that matter most are the staging rehearsal and the proved backup."] :
+                ["Not ready yet", "red", "Close the gaps below first. Starting an upgrade without a staging rehearsal and a proved backup is how a weekend becomes a week."];
+
+  var dt = downtime(pattern, chain.length);
+
+  html += '<div class="scorecard">';
+  html += '<p class="score ' + verdict[1] + '">' + score + ' / 100</p>';
+  html += '<h2>' + verdict[0] + '</h2><p>' + verdict[2] + '</p>';
+  html += '<div class="path"><span class="ver">' + current + '</span>';
+  chain.forEach(function(v, i){
+    html += '<span class="arrow">&rarr;</span><span class="ver' + (i === chain.length - 1 ? ' target' : '') + '">' + v + '</span>';
+  });
+  html += '</div>';
+  html += '<p>' + patternName(pattern) + ' &middot; ' + chain.length + (chain.length === 1 ? ' upgrade' : ' upgrades') + ' &middot; planning estimate ' + dt[0] + ' to ' + dt[1] + ' hours of upgrade work, plus a validation window of at least half that again.</p>';
+  html += '</div>';
+
+  // Warnings.
+  if (direct){
+    html += '<div class="warn green"><b>Direct upgrade supported</b>Esri supports a direct upgrade from ' + current + ' to ' + target + '. No interim version needed.</div>';
+  } else {
+    html += '<div class="warn amber"><b>Interim version required</b>Esri does not support a direct upgrade from ' + current + ' to ' + target + '. You upgrade to ' + chain.slice(0, -1).join(', then to ') + ' first, validate, then upgrade to ' + target + '. Each step is a full upgrade with its own backup and validation.</div>';
+  }
+  if (force115 && scene){
+    html += '<div class="warn red"><b>Hosted scene layers: do not skip 11.5</b>From 11.3 or earlier you cannot go straight to 12.0 with hosted scene layers. At 11.5, add the object store and migrate the hosted scene layer caches to it first. If you upgrade to 12.0 without migrating, the caches are deleted and the scene layers stop working.</div>';
+  }
+  if (scene && target === "12.0" && !force115){
+    html += '<div class="warn amber"><b>Hosted scene layers: migrate the caches first</b>Before the 12.0 upgrade, add the object store and migrate the hosted scene layer caches to it. If you upgrade to 12.0 without migrating, the caches are deleted and the scene layers stop working.</div>';
+  }
+  if (force115 && wab){
+    html += '<div class="warn red"><b>Web AppBuilder apps: rebuild before 12.0</b>Web AppBuilder and Configurable Apps are retired at 12.0. Rebuild those apps in Experience Builder while you are at 11.5. They will not run at 12.0.</div>';
+  }
+  if (idx(target) >= idx("11.0") && idx(current) <= idx("10.9.1")){
+    html += '<div class="warn amber"><b>Features retired at 11.0</b>Some features were retired at 11.0. Check Esri&rsquo;s retired-features list for the target version against what your deployment uses, and migrate away from anything on it before you upgrade.</div>';
+  }
+  if (pattern === "ha"){
+    html += '<div class="warn amber"><b>Highly available deployment</b>Upgrade the primary ArcGIS Data Store machines first, then the standby machines. Upgrade one component at a time and confirm it is healthy before moving to the next.</div>';
+  }
+  if (custom){
+    html += '<div class="warn amber"><b>Custom widgets and apps</b>Re-test every custom widget, add-in, and integration in staging against ' + target + ' before production. Custom code is the most common reason an upgrade passes the installer and fails the users.</div>';
+  }
+  gaps.forEach(function(g){
+    html += '<div class="warn ' + (g[0].indexOf("backup") >= 0 || g[0].indexOf("staging") >= 0 ? 'red' : 'amber') + '"><b>' + g[0] + '</b>' + g[1] + '</div>';
+  });
+
+  // Phases.
+  function steps(list){
+    return list.map(function(s){
+      return '<label class="step"><input type="checkbox" onchange="this.parentElement.classList.toggle(\'done\', this.checked); updateProgress();"><span>' + s[0] + (s[1] ? '<small>' + s[1] + '</small>' : '') + '</span></label>';
+    }).join('');
+  }
+  var prep = [
+    ["Run webgisdr and prove the backup restores", "A backup you have never restored is a hope, not a rollback."],
+    ["Take machine snapshots or file-system backups as well", "webgisdr covers the deployment. Snapshots cover the machines."],
+    ["Read the release notes and system requirements for " + target, "Operating system, database, and hardware support change between releases."],
+    ["Inventory custom apps, widgets, and integrations", "Note what each one does and who owns it."],
+    ["Rehearse the full upgrade in staging", "Same version, same data shape, same steps. Fix what breaks there."],
+    ["Book the maintenance window and tell users what will be down", "Include the validation window, not just the installer time."]
+  ];
+  if (scene && target === "12.0") prep.push(["Plan the hosted scene layer cache migration" + (idx(current) <= idx("11.3") ? " at 11.5" : " before the 12.0 upgrade"), "Add the object store and migrate the caches before the final jump to 12.0."]);
+  if (wab && target === "12.0") prep.push(["Rebuild Web AppBuilder apps in Experience Builder", "Do this at 11.5, while the old apps still run."]);
+
+  html += '<p class="progressline" id="progressline">0 of 0 checklist steps done</p>';
+  html += '<div class="phase"><h3>Phase 0: Before you touch anything</h3><p class="psub">Do all of this before the maintenance window. Skipping it is how upgrades fail.</p>' + steps(prep) + '</div>';
+
+  chain.forEach(function(ver, ji){
+    var order = [
+      ["Upgrade Portal for ArcGIS to " + ver, "Portal goes first. Do not start anything else until it is up and healthy."],
+      ["Upgrade ArcGIS Web Adaptor for Portal", "IIS or Java, whichever your deployment uses."],
+      ["Upgrade the ArcGIS Server site that is the portal hosting server", "Then confirm the hosting server is federated and healthy."],
+      ["Upgrade ArcGIS Web Adaptor for ArcGIS Server", "Same adaptor rules as the Portal one."],
+      ["Upgrade ArcGIS Data Store to " + ver, "Do not uninstall the previous version first. The setup upgrades it in place. All data stores on the same site must run the same release."]
+    ];
+    extras.forEach(function(e){
+      order.push(["Upgrade " + e + " to " + ver, "One server role at a time, confirming health before the next."]);
+    });
+    order.push(["Upgrade any other federated server sites to " + ver, "Every component of a base deployment must run the same version. Mixed versions are not supported."]);
+    html += '<div class="phase"><h3>Phase ' + (ji + 1) + ': Upgrade to ' + ver + '</h3><p class="psub">Esri&rsquo;s published component order. Follow it exactly.</p>' + steps(order) + '</div>';
+  });
+
+  var validate = [
+    ["Sign in to the portal and confirm content, groups, and sharing are intact", ""],
+    ["Open the services that matter most and confirm they draw", "Start with the ones users open first every morning."],
+    ["Open the apps: Experience Builder, Dashboards, and any custom apps", ""],
+    ["Confirm federations and server registrations are healthy", ""],
+    ["Check ArcGIS Monitor, or the logs, for errors since the upgrade", ""],
+    ["Ask two or three real users to run their normal work", "Their test beats any checklist. If they are happy, hand the platform back."]
+  ];
+  html += '<div class="phase"><h3>Phase ' + (chain.length + 1) + ': Validate before you hand it back</h3><p class="psub">Validation is part of the upgrade, not an afterthought.</p>' + steps(validate) + '</div>';
+
+  html += '<div class="phase"><h3>Rollback: know it before you need it</h3><p class="psub">There is no downgrade path. If validation fails, the rollback is restoring the webgisdr backup and the machine snapshots you took in Phase 0. Decide the rollback point before you start, and write down who makes the call.</p>' + steps([
+    ["Restore the webgisdr backup taken in Phase 0", ""],
+    ["Restore machine snapshots if the install itself is the problem", ""],
+    ["Confirm the restored deployment serves content before telling users", ""]
+  ]) + '</div>';
+
+  html += '<div class="note"><b>Planning estimate, not a promise.</b> The ' + dt[0] + ' to ' + dt[1] + ' hour range covers the upgrade work for a ' + patternName(pattern).toLowerCase() + ' across ' + chain.length + (chain.length === 1 ? ' version step' : ' version steps') + '. It does not cover the staging rehearsal, the validation window, or fixing what a custom app needs. Budget all three.</div>';
+
+  html += '<div class="cta"><p>An upgrade plan is only as good as the person running it. If your team would rather have someone who has done this before run the upgrade, that is what Janaki does.</p>';
+  html += '<button class="btn-dark" type="button" onclick="window.print()">Print this plan</button> ';
+  html += '<a class="btn" href="mailto:gjanaki360@gmail.com?subject=ArcGIS%20Enterprise%20upgrade%20' + current + '%20to%20' + target + '">Ask Janaki to run the upgrade</a> ';
+  html += '<a class="btn-outline" href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Connect on LinkedIn</a></div>';
+
+  html += '<p class="sources">Sources: Esri, &ldquo;Upgrade ArcGIS Enterprise&rdquo; and &ldquo;Prepare to upgrade ArcGIS Data Store&rdquo;, enterprise.arcgis.com. Direct-upgrade table, component order, the 12.0 interim-version rule, the hosted scene layer cache rule, and the same-version rule are all from Esri&rsquo;s published upgrade documentation. Check the documentation for your exact target version before you start.</p>';
+
+  result.innerHTML = html;
+  result.hidden = false;
+  updateProgress();
+  result.scrollIntoView({behavior:"smooth"});
+}
+function updateProgress(){
+  var boxes = document.querySelectorAll("#result input[type=checkbox]");
+  var done = 0;
+  boxes.forEach(function(b){ if (b.checked) done++; });
+  var line = document.getElementById("progressline");
+  if (line) line.textContent = done + " of " + boxes.length + " checklist steps done";
+}
+</script>
+</body>
+</html>
