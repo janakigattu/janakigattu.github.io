@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Which ArcGIS AI assistant for this task? — Advisor by Janaki Gattu</title>
+<meta name="description" content="Pick a task and get the right ArcGIS AI assistant for it, with its availability and where it runs. Built by Janaki Gattu. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  .facts{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:28px}
+  @media(max-width:640px){.facts{grid-template-columns:1fr}}
+  .fact{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;color:#d4d4d4;font-size:.95rem}
+  .fact b{color:var(--text)}
+  .fact .n{color:var(--accent);font-weight:800;font-size:1.4rem;display:block;line-height:1.1}
+  h2{font-size:1.35rem;margin:0 0 6px;line-height:1.3}
+  .step-label{color:var(--faint);font-weight:800;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase}
+  .tasks{display:flex;flex-direction:column;gap:10px;margin:16px 0 24px}
+  .task{text-align:left;background:var(--card);border:1px solid #404040;color:var(--text);border-radius:12px;padding:15px 18px;font-size:1rem;cursor:pointer;font-family:inherit;line-height:1.45}
+  .task:hover{border-color:var(--accent)}
+  .task.active{border-color:var(--accent);background:#14211a}
+  .task .sub{display:block;color:var(--muted);font-size:.9rem;margin-top:2px}
+  .result{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px;display:none}
+  .result.show{display:block}
+  .badges{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}
+  .badge{font-size:.82rem;font-weight:700;border-radius:999px;padding:5px 12px;border:1px solid #404040;color:#d4d4d4}
+  .badge.ga{color:#052e16;background:var(--accent);border-color:var(--accent)}
+  .badge.beta{color:#451a03;background:var(--amber);border-color:var(--amber)}
+  .badge.none{color:#f87171;border-color:#7f1d1d}
+  .result h3{font-size:1.5rem;line-height:1.25}
+  .result p{color:#d4d4d4;margin-bottom:10px}
+  .result p:last-child{margin-bottom:0}
+  .result .why{color:var(--muted)}
+  .caveat{margin-top:20px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .caveat b{color:var(--amber)}
+  .nextstep{color:var(--accent);font-weight:700}
+  .cta{margin-top:28px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:28px;text-align:center}
+  .cta h2{margin-bottom:8px}
+  .cta p{color:var(--muted);max-width:560px;margin:0 auto 20px}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a}
+  .btn-green{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;margin-left:10px}
+  @media(max-width:560px){.btn-green{margin-left:0;margin-top:10px}}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu&rsquo;s portfolio</a>
+    <p class="eyebrow">Working advisor &middot; Live demo</p>
+    <h1>Twelve assistants live inside ArcGIS. Pick the task, and this advisor tells you which one fits.</h1>
+    <p class="lede">Three of them are ready for everyone at no extra cost. The rest are still in beta or preview, and most of the value today arrives through ArcGIS Online. This advisor sticks to what is verified, and says so plainly when there is no named assistant for a task.</p>
+    <p class="honest"><b>How this advisor works, honestly:</b> it runs entirely in your browser. There is no server, no API key, and nothing you pick leaves this page. Every recommendation comes from the verified facts listed below, drawn from Esri&rsquo;s public update on AI assistants. Nothing here is invented.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <div class="facts">
+      <div class="fact"><span class="n">12</span><b>AI assistants live inside ArcGIS.</b></div>
+      <div class="fact"><span class="n">3</span><b>Generally available at no extra cost:</b> Survey123, Business Analyst, and Translation.</div>
+      <div class="fact"><b>Beta or preview:</b> the rest, including the Pro, Notebooks, and Arcade assistants.</div>
+      <div class="fact"><b>Where they run:</b> most value today arrives through ArcGIS Online. The Item details assistant is the only one in Enterprise, and only in 12.0.</div>
+    </div>
+
+    <p class="step-label">Step 1 &middot; Pick your task</p>
+    <h2>What do you need to do?</h2>
+    <div class="tasks" id="tasks"></div>
+
+    <div class="result" id="result" aria-live="polite"></div>
+
+    <div class="cta">
+      <h2>Not sure which assistant your team should switch on first?</h2>
+      <p>Book a session with Janaki and bring the task your team repeats most. You leave with an honest answer on what to use, what to wait on, and what to check with your administrator first.</p>
+      <a class="btn" href="mailto:gjanaki360@gmail.com?subject=AI%20Assistants%20advisor%20—%20which%20assistant%20for%20my%20team">Email Janaki</a>
+      <a class="btn-green" href="https://janakigattu.github.io/#book">Book a Session</a>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>AI Assistants in GIS advisor — a working demo by <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Janaki Gattu</a>, Enterprise GIS Consultant &amp; GIS Solutions Architect. Facts from <a href="https://www.esri.com/arcgis-blog/products/arcgis-online/geoai/whats-new-in-ai-assistants-june-2026" target="_blank" rel="noopener">Esri: What&rsquo;s new in AI assistants</a>. Questions? <a href="mailto:gjanaki360@gmail.com?subject=AI%20Assistants%20advisor">Email gjanaki360@gmail.com</a>. <a href="https://janakigattu.github.io/">Back to the portfolio</a>.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var OPTIN = "Access is governed at the organisation level. An administrator must opt in to AI features before your team can use this assistant, so check with your administrator first.";
+  var ESRI_URL = "https://www.esri.com/arcgis-blog/products/arcgis-online/geoai/whats-new-in-ai-assistants-june-2026";
+
+  var TASKS = [
+    {
+      id: "survey",
+      label: "Build a survey",
+      sub: "Turn a plain-language description into a draft survey",
+      assistant: "Survey123 assistant",
+      status: "ga",
+      statusLabel: "Generally available",
+      cost: "No extra cost",
+      where: "ArcGIS Online",
+      whereNote: "Most assistant value today arrives through ArcGIS Online.",
+      why: "The Survey123 assistant is one of the three generally available assistants, included at no extra cost. It turns a plain-language description into a draft survey, which a human then reviews before it reaches anyone.",
+      next: "Try it on a real survey your team needs, and have a human review the draft before it goes out."
+    },
+    {
+      id: "translate",
+      label: "Translate content",
+      sub: "Translate surveys and apps into another language",
+      assistant: "Translation assistant",
+      status: "ga",
+      statusLabel: "Generally available",
+      cost: "No extra cost",
+      where: "ArcGIS Online",
+      whereNote: "Most assistant value today arrives through ArcGIS Online.",
+      why: "The Translation assistant is one of the three generally available assistants, included at no extra cost. It drafts translations of surveys and apps, and a human should review the result before it is published.",
+      next: "Run it on one survey or app first, and have a fluent reviewer check the translation before it reaches users."
+    },
+    {
+      id: "report",
+      label: "Analyse data for a report",
+      sub: "Get the right analysis steps for a business question",
+      assistant: "Business Analyst assistant",
+      status: "ga",
+      statusLabel: "Generally available",
+      cost: "No extra cost",
+      where: "ArcGIS Online",
+      whereNote: "Most assistant value today arrives through ArcGIS Online.",
+      why: "The Business Analyst assistant is one of the three generally available assistants, included at no extra cost. It suggests the right analysis steps for a business question, so the report starts from a sound analysis rather than a guess.",
+      next: "Start with one real business question and follow the analysis steps it suggests, checking each result against data you trust."
+    },
+    {
+      id: "arcade",
+      label: "Write Arcade expressions",
+      sub: "Get help writing expressions for labels, pop-ups, and symbology",
+      assistant: "Arcade assistant",
+      status: "beta",
+      statusLabel: "Beta / preview",
+      cost: "Availability: beta / preview",
+      where: "ArcGIS Online",
+      whereNote: "Most assistant value today arrives through ArcGIS Online.",
+      why: "The Arcade assistant is in beta or preview, not generally available. That means it can help with expressions, but it is still early, so test what it produces on a copy before you rely on it in a live map or app.",
+      next: "Test its expressions in a non-production map first, and check the output line by line before you use it."
+    },
+    {
+      id: "notebook",
+      label: "Analyse data in a notebook",
+      sub: "Work through analysis steps inside ArcGIS Notebooks",
+      assistant: "Notebooks assistant",
+      status: "beta",
+      statusLabel: "Beta / preview",
+      cost: "Availability: beta / preview",
+      where: "ArcGIS Online",
+      whereNote: "Most assistant value today arrives through ArcGIS Online.",
+      why: "The Notebooks assistant is in beta or preview, not generally available. It can help with analysis inside notebooks, but it is still early, so validate every result against the data before you act on it.",
+      next: "Try it on a notebook you already trust, compare its output with results you know are right, and only then use it on new work."
+    },
+    {
+      id: "summarise",
+      label: "Summarise a layer or item",
+      sub: "Get a summary of an item in your portal or organisation",
+      assistant: "Item details assistant",
+      status: "beta",
+      statusLabel: "Beta / preview",
+      cost: "Availability: beta / preview",
+      where: "Enterprise 12.0 only",
+      whereNote: "The Item details assistant is the only assistant with an Enterprise deployment, and only in Enterprise 12.0. Most assistant value today arrives through ArcGIS Online.",
+      why: "The Item details assistant is the one assistant that runs in Enterprise, and only in version 12.0. If your organisation runs a different Enterprise version, this assistant is not available to you there, and the value arrives through ArcGIS Online instead.",
+      next: "Check which Enterprise version you run. If it is not 12.0, ask your administrator about ArcGIS Online access for this task."
+    },
+    {
+      id: "dashboard",
+      label: "Draft a dashboard",
+      sub: "Build a dashboard from your data",
+      assistant: null,
+      status: "none",
+      statusLabel: "No dedicated assistant named",
+      cost: "No named assistant in the verified list",
+      where: "ArcGIS Online",
+      whereNote: "Most assistant value today arrives through ArcGIS Online.",
+      why: "There is no dedicated assistant named for drafting a dashboard in the verified list of twelve assistants. This advisor will not invent one. The closest honest option is the Business Analyst assistant, which is generally available at no extra cost, for the analysis behind the dashboard: get the analysis right first, then build the dashboard from those results.",
+      next: "Use the Business Analyst assistant for the analysis behind the dashboard, then build the dashboard itself with the standard ArcGIS Dashboards tools."
+    }
+  ];
+
+  var tasksBox = document.getElementById("tasks");
+  var resultBox = document.getElementById("result");
+
+  function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  function showResult(task){
+    var badgeClass = task.status === "ga" ? "ga" : (task.status === "beta" ? "beta" : "none");
+    var heading = task.assistant
+      ? "Use the " + task.assistant + "."
+      : "No dedicated assistant is named for this task.";
+    var html = "<p class=\"step-label\">Recommendation</p>";
+    html += "<h3>" + esc(heading) + "</h3>";
+    html += "<div class=\"badges\">";
+    html += "<span class=\"badge " + badgeClass + "\">" + esc(task.statusLabel) + "</span>";
+    html += "<span class=\"badge\">" + esc(task.cost) + "</span>";
+    html += "<span class=\"badge\">" + esc(task.where) + "</span>";
+    html += "</div>";
+    html += "<p class=\"why\">" + esc(task.why) + "</p>";
+    html += "<p>" + esc(task.whereNote) + "</p>";
+    html += "<p><span class=\"nextstep\">Next step:</span> " + esc(task.next) + "</p>";
+    html += "<div class=\"caveat\"><b>Before you switch it on:</b> " + esc(OPTIN) + "</div>";
+    html += "<p style=\"margin-top:16px;font-size:.9rem;color:var(--faint)\">Source: <a href=\"" + ESRI_URL + "\" target=\"_blank\" rel=\"noopener\" style=\"color:var(--faint)\">Esri, What&rsquo;s new in AI assistants</a></p>";
+    resultBox.innerHTML = html;
+    resultBox.classList.add("show");
+    resultBox.scrollIntoView({behavior:"smooth", block:"nearest"});
+  }
+
+  TASKS.forEach(function(task){
+    var b = document.createElement("button");
+    b.className = "task";
+    b.type = "button";
+    b.textContent = task.label;
+    var sub = document.createElement("span");
+    sub.className = "sub";
+    sub.textContent = task.sub;
+    b.appendChild(sub);
+    b.addEventListener("click", function(){
+      var btns = tasksBox.querySelectorAll(".task");
+      btns.forEach(function(x){ x.classList.remove("active"); });
+      b.classList.add("active");
+      showResult(task);
+    });
+    tasksBox.appendChild(b);
+  });
+})();
+</script>
+</body>
+</html>
