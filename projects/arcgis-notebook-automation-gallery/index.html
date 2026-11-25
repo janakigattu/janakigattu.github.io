@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArcGIS Notebook Automation Gallery: four notebooks that run while your team sleeps, by Janaki Gattu</title>
+<meta name="description" content="Four working ArcGIS Notebook automations by Janaki Gattu: a nightly data QA check, a weekly user and content audit, a scheduled layer sync, and a monthly service health report. Run each one on sample data, read the log, and copy the Python skeleton. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 8px}
+  .sub{color:var(--muted);margin-bottom:18px}
+  .week{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin:18px 0 6px}
+  .day{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 8px;text-align:center;font-size:.85rem}
+  .day b{display:block;font-size:.95rem;margin-bottom:4px}
+  .day span{color:var(--muted);display:block;line-height:1.45}
+  .day .run{color:var(--accent);font-weight:700}
+  .weeknote{color:var(--faint);font-size:.88rem;margin-bottom:8px}
+  .nb{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px 28px;margin-bottom:22px}
+  .nb .nnum{color:var(--accent);font-weight:800;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase}
+  .nb h3{font-size:1.3rem;margin:8px 0 4px;line-height:1.3}
+  .nb .sched{color:var(--amber);font-size:.92rem;font-weight:700;margin-bottom:10px}
+  .nb p{color:var(--muted)}
+  .nb p b{color:#d4d4d4}
+  .nb .replaces{margin-top:10px;font-size:.95rem}
+  .controls{margin:18px 0 0;display:flex;gap:10px;flex-wrap:wrap}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:12px 24px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer}
+  .btn:disabled{opacity:.45;cursor:default}
+  .btn-dark{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:12px 24px;font-size:1rem;background:var(--text);color:#0a0a0a;border:0;cursor:pointer}
+  .btn-outline{display:inline-block;font-weight:700;border-radius:999px;padding:12px 24px;font-size:1rem;border:1px solid #525252;color:var(--text);background:none;cursor:pointer}
+  .log{display:none;margin-top:18px;background:#000;border:1px solid var(--line);border-radius:12px;padding:16px 18px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86rem;line-height:1.7;color:#d4d4d4;white-space:pre-wrap;word-break:break-word}
+  .log.show{display:block}
+  .log .ok{color:var(--accent)}
+  .log .warn{color:var(--amber)}
+  .log .bad{color:var(--red)}
+  .log .dim{color:var(--faint)}
+  .results{display:none;margin-top:18px}
+  .results.show{display:block}
+  .results h4{font-size:1.05rem;margin-bottom:10px}
+  .resgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .res{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .res .big{font-size:1.7rem;font-weight:800;line-height:1.1}
+  .res .big.green{color:var(--accent)}
+  .res .big.amber{color:var(--amber)}
+  .res .big.red{color:var(--red)}
+  .res p{font-size:.88rem;color:var(--muted);margin-top:2px}
+  .res ul{margin:6px 0 0 18px;color:#d4d4d4;font-size:.9rem}
+  .res li{margin-bottom:3px}
+  details{margin-top:18px}
+  summary{cursor:pointer;color:var(--accent);font-weight:700;font-size:.98rem}
+  details pre{background:#000;border:1px solid var(--line);border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:.85rem;line-height:1.6;color:#d4d4d4;margin-top:10px;white-space:pre}
+  details p{font-size:.9rem;margin-top:10px}
+  .copybtn{margin-top:10px}
+  .howto{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px 28px}
+  .howto ol{margin:10px 0 0 20px;color:#d4d4d4}
+  .howto li{margin-bottom:10px}
+  .howto li b{color:var(--text)}
+  .sources{margin-top:34px;color:var(--muted);font-size:.92rem}
+  .sources ul{margin:8px 0 0 20px}
+  .sources li{margin-bottom:6px}
+  .cta{margin-top:34px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px 28px}
+  .cta h2{margin-top:0}
+  .cta p{color:var(--muted);margin-bottom:16px}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+  @media (max-width:600px){.week{grid-template-columns:repeat(4,1fr)}.nb{padding:20px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu&rsquo;s portfolio</a>
+    <p class="eyebrow">Working gallery &middot; Live demo</p>
+    <h1>ArcGIS Notebook Automation Gallery</h1>
+    <p class="lede">Nobody schedules a meeting to check for duplicate IDs. <b>That is exactly why a notebook should do it at 2 a.m.</b></p>
+    <p class="honest"><b>How this gallery works, honestly:</b> each notebook below runs for real, here in your browser, on a small sample dataset. The checks, the counts, and the log are computed live, not printed from a screenshot. The Python next to each one is the skeleton that runs the same job on your own Portal or ArcGIS Online, on ArcGIS Notebook Server. There is no server here, no API key, and nothing you run leaves this page.</p>
+  </div>
+</header>
+<main>
+  <div class="wrap">
+
+    <h2>The week, at a glance</h2>
+    <p class="sub">Four notebooks, four schedules. The nightly and six-hourly jobs run every day; the audit runs Monday morning; the health report runs on the first of the month.</p>
+    <div class="week" id="weekStrip"></div>
+    <p class="weeknote">Built on the ArcGIS Notebook Server scheduler: from Enterprise 10.8.1 you can create a task that runs a notebook on a recurring schedule, from once per minute to once every five months, with no one watching it.</p>
+
+    <h2>The four notebooks</h2>
+
+    <section class="nb" id="nb-qa">
+      <p class="nnum">Notebook 01</p>
+      <h3>Nightly Data QA Check</h3>
+      <p class="sched">Runs daily at 02:00 &middot; 12 asset records in the sample</p>
+      <p>Every edit that lands in the asset layer gets checked overnight: <b>records with no geometry, required fields left blank, duplicate IDs, and edits older than 180 days</b> that nobody has touched since. The notebook writes the failures to a QA table and emails the count, so the morning starts with a list instead of a surprise.</p>
+      <p class="replaces"><b>Replaces:</b> the monthly manual spot-check that always found the same problems three weeks too late.</p>
+      <div class="controls">
+        <button class="btn" type="button" data-run="qa">Run it now</button>
+        <button class="btn-outline" type="button" data-reset="qa">Reset</button>
+      </div>
+      <div class="log" id="log-qa" aria-live="polite"></div>
+      <div class="results" id="results-qa"></div>
+      <details>
+        <summary>Show the Python skeleton</summary>
+        <pre id="code-qa">from arcgis.gis import GIS
+
+gis = GIS("home")
+layer = gis.content.get("YOUR_ASSET_LAYER_ITEM_ID").layers[0]
+rows = layer.query(where="1=1", out_fields="*", return_geometry=True).features
+
+missing_geom = [f for f in rows if f.geometry is None]
+blank_status = [f for f in rows if not f.attributes.get("STATUS")]
+seen, dup_ids = set(), []
+for f in rows:
+    asset_id = f.attributes.get("ASSET_ID")
+    if asset_id in seen:
+        dup_ids.append(asset_id)
+    seen.add(asset_id)</pre>
+        <p>Swap in your layer item id and field names, then schedule it from the Tasks pane in the notebook editor. A scheduled run takes no input while it runs, so keep every value it needs in parameters.</p>
+        <button class="btn-dark copybtn" type="button" data-copy="code-qa">Copy Python</button>
+      </details>
+    </section>
+
+    <section class="nb" id="nb-audit">
+      <p class="nnum">Notebook 02</p>
+      <h3>Weekly User and Content Audit</h3>
+      <p class="sched">Runs Mondays at 07:00 &middot; 10 users and 8 items in the sample</p>
+      <p>Once a week the notebook lists <b>members who have not signed in for 90 days, items that were never shared, and items with no views in 180 days</b>. Those three lists are the start of every access review: dormant accounts get disabled, unshared drafts get shared or deleted, and stale content stops confusing the search results.</p>
+      <p class="replaces"><b>Replaces:</b> the annual clean-up that everyone agrees to do and nobody does.</p>
+      <div class="controls">
+        <button class="btn" type="button" data-run="audit">Run it now</button>
+        <button class="btn-outline" type="button" data-reset="audit">Reset</button>
+      </div>
+      <div class="log" id="log-audit" aria-live="polite"></div>
+      <div class="results" id="results-audit"></div>
+      <details>
+        <summary>Show the Python skeleton</summary>
+        <pre id="code-audit">from arcgis.gis import GIS
+from datetime import datetime, timedelta
+
+gis = GIS("home")
+cutoff = datetime.now() - timedelta(days=90)
+
+dormant = []
+for user in gis.users.search(max_users=500):
+    last = user.last_login
+    if last is None or last &lt; cutoff:
+        dormant.append(user.username)
+
+for item in gis.content.search("owner:*", max_items=500):
+    if not item.shared_with or item.num_views == 0:
+        print(item.title, "| shared:", bool(item.shared_with))</pre>
+        <p>Run it with a Publisher or Administrator account that can see all members and items. The notebook only reports; disabling an account is a separate, human decision.</p>
+        <button class="btn-dark copybtn" type="button" data-copy="code-audit">Copy Python</button>
+      </details>
+    </section>
+
+    <section class="nb" id="nb-sync">
+      <p class="nnum">Notebook 03</p>
+      <h3>Scheduled Layer Sync</h3>
+      <p class="sched">Runs every 6 hours &middot; 14 source rows against 12 target rows in the sample</p>
+      <p>The field crew edits one layer; the public map reads another. Every six hours the notebook compares the two by ID and applies <b>inserts for new rows, updates for changed rows, and deletes for retired rows</b>, then reports exactly what changed. No one re-keys an edit, and the public map is never more than six hours behind the field.</p>
+      <p class="replaces"><b>Replaces:</b> exporting a shapefile, emailing it, and hoping someone imports it before the next crew goes out.</p>
+      <div class="controls">
+        <button class="btn" type="button" data-run="sync">Run it now</button>
+        <button class="btn-outline" type="button" data-reset="sync">Reset</button>
+      </div>
+      <div class="log" id="log-sync" aria-live="polite"></div>
+      <div class="results" id="results-sync"></div>
+      <details>
+        <summary>Show the Python skeleton</summary>
+        <pre id="code-sync">from arcgis.gis import GIS
+
+gis = GIS("home")
+source = gis.content.get("SOURCE_LAYER_ITEM_ID").layers[0]
+target = gis.content.get("TARGET_LAYER_ITEM_ID").layers[0]
+
+src = {f.attributes["ASSET_ID"]: f for f in
+       source.query(where="1=1", out_fields="*").features}
+tgt = {f.attributes["ASSET_ID"]: f for f in
+       target.query(where="1=1", out_fields="*").features}
+
+adds = [f for k, f in src.items() if k not in tgt]
+updates = [f for k, f in src.items()
+           if k in tgt and f.attributes != tgt[k].attributes]
+deletes = [tgt[k].attributes["OBJECTID"] for k in tgt if k not in src]
+
+target.edit_features(adds=adds, updates=updates, deletes=deletes)</pre>
+        <p>Match on a stable business key, never on OBJECTID, because the two layers assign those independently. Log the counts every run so a bad sync is visible the same day.</p>
+        <button class="btn-dark copybtn" type="button" data-copy="code-sync">Copy Python</button>
+      </details>
+    </section>
+
+    <section class="nb" id="nb-health">
+      <p class="nnum">Notebook 04</p>
+      <h3>Monthly Service Health Report</h3>
+      <p class="sched">Runs on the 1st of the month at 06:00 &middot; 8 services in the sample</p>
+      <p>On the first of the month the notebook pulls <b>uptime, average response time, and error counts for every service</b>, flags any service below the 99.5 percent uptime target, and names the slowest one. The report goes to the platform owner before the month starts, not after a user reports a slow map.</p>
+      <p class="replaces"><b>Replaces:</b> discovering a struggling service from a support ticket.</p>
+      <div class="controls">
+        <button class="btn" type="button" data-run="health">Run it now</button>
+        <button class="btn-outline" type="button" data-reset="health">Reset</button>
+      </div>
+      <div class="log" id="log-health" aria-live="polite"></div>
+      <div class="results" id="results-health"></div>
+      <details>
+        <summary>Show the Python skeleton</summary>
+        <pre id="code-health">from arcgis.gis import GIS
+
+gis = GIS("home")
+for server in gis.admin.servers.list():
+    for service in server.services.list():
+        status = service.status
+        print(service.serviceName, "|", service.type,
+              "| running:", status.get("realTimeState") == "STARTED")
+
+# Uptime and response times come from ArcGIS Monitor metrics,
+# or from the service statistics your team already collects.
+# This notebook turns those numbers into the monthly report.</pre>
+        <p>Pair it with ArcGIS Monitor for the uptime and response-time numbers. The notebook is the report writer, not the monitor.</p>
+        <button class="btn-dark copybtn" type="button" data-copy="code-health">Copy Python</button>
+      </details>
+    </section>
+
+    <div class="howto">
+      <h2 style="margin-top:0">How a scheduled notebook works</h2>
+      <p class="sub">Four steps, all inside ArcGIS Enterprise. No custom server, no cron job on a desktop that someone switches off.</p>
+      <ol>
+        <li><b>Write the notebook in the notebook editor.</b> Python, with the ArcGIS API for Python already available. Test it by running it once by hand.</li>
+        <li><b>Declare the values it needs as parameters.</b> Item ids, thresholds, email addresses. A scheduled run inserts those parameters as a cell at the top, like global variables.</li>
+        <li><b>Create a task from the Tasks pane.</b> Give it a title, pick the repeat type, and set the schedule. Available from Enterprise 10.8.1: a notebook can run once in the future or on a recurring basis, from once per minute to once every five months.</li>
+        <li><b>Let it run with no one watching.</b> A scheduled run opens a new container and runs without user control, so the notebook must not ask for input while it runs. Turn on Update Item on Completion if you want the notebook to keep its own results.</li>
+      </ol>
+    </div>
+
+    <div class="sources">
+      <h2 style="margin-top:0">Sources</h2>
+      <ul>
+        <li><a href="https://enterprise.arcgis.com/en/notebook/12.0/use/windows/prepare-a-notebook-for-automated-execution.htm" target="_blank" rel="noopener">Esri: Schedule a notebook task, ArcGIS Notebook Server 12.0</a> (scheduling from 10.8.1, Tasks pane, parameters, no user interaction while a scheduled run executes)</li>
+        <li><a href="https://developers.arcgis.com/python/" target="_blank" rel="noopener">ArcGIS API for Python</a> (GIS, content search, feature layer query and edit_features, users search)</li>
+        <li>Sample datasets on this page are small, made-up records built to show each check working. Your layer, users, and services plug into the same skeletons.</li>
+      </ul>
+    </div>
+
+    <div class="cta">
+      <h2>Pick the notebook your team needs first</h2>
+      <p>Most teams start with the nightly QA check, because bad data is the problem that quietly corrupts everything downstream. Tell Janaki which of the four matches your platform, or describe the manual job your team repeats every week, and she will scope the notebook that replaces it.</p>
+      <a class="btn" href="mailto:gjanaki360@gmail.com?subject=ArcGIS%20Notebook%20automation">Email Janaki about a notebook</a>
+      <a class="btn-outline" href="https://janakigattu.github.io/#book" style="margin-left:10px">Book a session</a>
+    </div>
+
+  </div>
+</main>
+<footer>
+  <div class="wrap">
+    <p>ArcGIS Notebook Automation Gallery &middot; Built by <a href="https://janakigattu.github.io/">Janaki Gattu</a>, Enterprise GIS Consultant &middot; <a href="https://www.linkedin.com/in/janaki-gis-enterprise">LinkedIn</a> &middot; <a href="https://github.com/janakigattu">GitHub</a></p>
+    <p style="margin-top:8px">Runs entirely in your browser. No backend, no API key, nothing sent anywhere.</p>
+  </div>
+</footer>
+<script>
+/* Sample data and pure checks. No DOM access at the top level, so this
+   block can be exercised in Node: extract it and call the compute fns. */
+var QA_RECORDS = [
+  {id:"V-101", name:"Valve 101", status:"Active", editedDaysAgo:12, hasGeometry:true},
+  {id:"V-102", name:"Valve 102", status:"Active", editedDaysAgo:45, hasGeometry:true},
+  {id:"V-103", name:"Valve 103", status:null, editedDaysAgo:210, hasGeometry:true},
+  {id:"V-104", name:"Valve 104", status:"Active", editedDaysAgo:8, hasGeometry:false},
+  {id:"V-105", name:"Valve 105", status:"Active", editedDaysAgo:300, hasGeometry:true},
+  {id:"V-102", name:"Valve 102 duplicate", status:"Active", editedDaysAgo:45, hasGeometry:true},
+  {id:"V-106", name:"Valve 106", status:"Active", editedDaysAgo:3, hasGeometry:true},
+  {id:"V-107", name:"Valve 107", status:"Inactive", editedDaysAgo:190, hasGeometry:true},
+  {id:"V-108", name:"Valve 108", status:"Active", editedDaysAgo:22, hasGeometry:false},
+  {id:"V-109", name:"Valve 109", status:null, editedDaysAgo:60, hasGeometry:true},
+  {id:"V-110", name:"Valve 110", status:"Active", editedDaysAgo:5, hasGeometry:true},
+  {id:"V-111", name:"Valve 111", status:"Active", editedDaysAgo:400, hasGeometry:true}
+];
+var AUDIT_USERS = [
+  {name:"a.meyer", role:"Publisher", lastLoginDaysAgo:12, itemsOwned:14},
+  {name:"b.chen", role:"Publisher", lastLoginDaysAgo:95, itemsOwned:22},
+  {name:"c.ortiz", role:"Viewer", lastLoginDaysAgo:210, itemsOwned:3},
+  {name:"d.patel", role:"Admin", lastLoginDaysAgo:4, itemsOwned:31},
+  {name:"e.nguyen", role:"Publisher", lastLoginDaysAgo:130, itemsOwned:9},
+  {name:"f.ross", role:"Viewer", lastLoginDaysAgo:30, itemsOwned:1},
+  {name:"g.kim", role:"Publisher", lastLoginDaysAgo:7, itemsOwned:18},
+  {name:"h.ali", role:"Viewer", lastLoginDaysAgo:400, itemsOwned:0},
+  {name:"i.smith", role:"Publisher", lastLoginDaysAgo:60, itemsOwned:5},
+  {name:"j.doe", role:"Viewer", lastLoginDaysAgo:2, itemsOwned:2}
+];
+var AUDIT_ITEMS = [
+  {title:"Downtown parcels", shared:true, views180:240, owner:"a.meyer"},
+  {title:"Field collection form", shared:true, views180:18, owner:"b.chen"},
+  {title:"Draft zoning map", shared:false, views180:0, owner:"c.ortiz"},
+  {title:"Stormwater assets", shared:true, views180:310, owner:"d.patel"},
+  {title:"Old survey results", shared:false, views180:0, owner:"e.nguyen"},
+  {title:"Public parks", shared:true, views180:520, owner:"g.kim"},
+  {title:"Temp test layer", shared:false, views180:0, owner:"h.ali"},
+  {title:"Road closures", shared:true, views180:95, owner:"i.smith"}
+];
+var SYNC_SOURCE = [
+  {id:"S-01", status:"Active", condition:"Good"}, {id:"S-02", status:"Active", condition:"Good"},
+  {id:"S-03", status:"Active", condition:"Good"}, {id:"S-04", status:"Inactive", condition:"Fair"},
+  {id:"S-05", status:"Active", condition:"Good"}, {id:"S-06", status:"Active", condition:"Good"},
+  {id:"S-07", status:"Active", condition:"Good"}, {id:"S-08", status:"Active", condition:"Good"},
+  {id:"S-09", status:"Active", condition:"Poor"}, {id:"S-10", status:"Active", condition:"Good"},
+  {id:"S-11", status:"Active", condition:"Good"}, {id:"S-12", status:"Active", condition:"Good"},
+  {id:"S-13", status:"Active", condition:"Good"}, {id:"S-14", status:"Active", condition:"Good"}
+];
+var SYNC_TARGET = [
+  {id:"S-01", status:"Active", condition:"Good"}, {id:"S-02", status:"Active", condition:"Good"},
+  {id:"S-03", status:"Active", condition:"Good"}, {id:"S-04", status:"Active", condition:"Good"},
+  {id:"S-05", status:"Active", condition:"Good"}, {id:"S-06", status:"Active", condition:"Good"},
+  {id:"S-07", status:"Active", condition:"Good"}, {id:"S-08", status:"Active", condition:"Good"},
+  {id:"S-09", status:"Active", condition:"Good"}, {id:"S-10", status:"Active", condition:"Good"},
+  {id:"S-11", status:"Active", condition:"Good"}, {id:"S-12", status:"Active", condition:"Good"},
+  {id:"T-99", status:"Active", condition:"Good"}
+];
+var HEALTH_SERVICES = [
+  {name:"Parcels (MapServer)", uptime:99.98, responseMs:210, errors:3},
+  {name:"Addresses (GeocodeServer)", uptime:99.91, responseMs:340, errors:12},
+  {name:"Zoning (FeatureServer)", uptime:99.42, responseMs:890, errors:47},
+  {name:"Imagery (ImageServer)", uptime:99.99, responseMs:1200, errors:1},
+  {name:"Field maps (FeatureServer)", uptime:99.87, responseMs:410, errors:8},
+  {name:"Basemap cache (MapServer)", uptime:100.00, responseMs:95, errors:0},
+  {name:"Permits (FeatureServer)", uptime:99.31, responseMs:1450, errors:63},
+  {name:"Dashboards (FeatureServer)", uptime:99.95, responseMs:260, errors:5}
+];
+var STALE_DAYS = 180, DORMANT_DAYS = 90, UPTIME_TARGET = 99.5;
+
+function computeQA(records){
+  var missingGeom = records.filter(function(r){ return !r.hasGeometry; });
+  var blankStatus = records.filter(function(r){ return !r.status; });
+  var seen = {}, dupIds = [], dupRows = [];
+  records.forEach(function(r){
+    if (seen[r.id]) { if (dupIds.indexOf(r.id) === -1) dupIds.push(r.id); dupRows.push(r); }
+    seen[r.id] = true;
+  });
+  var stale = records.filter(function(r){ return r.editedDaysAgo > STALE_DAYS; });
+  var flagged = {};
+  missingGeom.concat(blankStatus, stale, dupRows).forEach(function(r){ flagged[r.id + "|" + r.name] = true; });
+  return {total: records.length, missingGeom: missingGeom, blankStatus: blankStatus,
+    dupIds: dupIds, stale: stale,
+    totalIssues: missingGeom.length + blankStatus.length + dupIds.length + stale.length,
+    clean: records.length - Object.keys(flagged).length};
+}
+function computeAudit(users, items){
+  var dormant = users.filter(function(u){ return u.lastLoginDaysAgo >= DORMANT_DAYS; });
+  var unshared = items.filter(function(i){ return !i.shared; });
+  var noViews = items.filter(function(i){ return i.views180 === 0; });
+  return {users: users.length, items: items.length, dormant: dormant, unshared: unshared,
+    noViews: noViews, totalFindings: dormant.length + unshared.length + noViews.length};
+}
+function computeSync(source, target){
+  var tgtById = {};
+  target.forEach(function(r){ tgtById[r.id] = r; });
+  var srcById = {};
+  source.forEach(function(r){ srcById[r.id] = r; });
+  var adds = source.filter(function(r){ return !tgtById[r.id]; });
+  var updates = source.filter(function(r){
+    return tgtById[r.id] && (tgtById[r.id].status !== r.status || tgtById[r.id].condition !== r.condition);
+  });
+  var deletes = target.filter(function(r){ return !srcById[r.id]; });
+  var unchanged = source.filter(function(r){
+    return tgtById[r.id] && tgtById[r.id].status === r.status && tgtById[r.id].condition === r.condition;
+  });
+  return {source: source.length, targetBefore: target.length, adds: adds, updates: updates,
+    deletes: deletes, unchanged: unchanged, targetAfter: target.length + adds.length - deletes.length};
+}
+function computeHealth(services){
+  var total = services.reduce(function(a, s){ return a + s.uptime; }, 0);
+  var avg = total / services.length;
+  var below = services.filter(function(s){ return s.uptime < UPTIME_TARGET; });
+  var slowest = services.reduce(function(a, s){ return s.responseMs > a.responseMs ? s : a; }, services[0]);
+  var errors = services.reduce(function(a, s){ return a + s.errors; }, 0);
+  return {count: services.length, avgUptime: avg, belowTarget: below, slowest: slowest, totalErrors: errors};
+}
+var WEEK = [
+  {day:"Mon", jobs:["QA 02:00", "Sync 6-hourly", "Audit 07:00"]},
+  {day:"Tue", jobs:["QA 02:00", "Sync 6-hourly"]},
+  {day:"Wed", jobs:["QA 02:00", "Sync 6-hourly"]},
+  {day:"Thu", jobs:["QA 02:00", "Sync 6-hourly"]},
+  {day:"Fri", jobs:["QA 02:00", "Sync 6-hourly"]},
+  {day:"Sat", jobs:["QA 02:00", "Sync 6-hourly"]},
+  {day:"Sun", jobs:["QA 02:00", "Sync 6-hourly"]}
+];
+
+/* --- DOM wiring (browser only) --- */
+if (typeof document !== "undefined") {
+  var RUNNERS = {
+    qa: {
+      steps: function(){
+        var r = computeQA(QA_RECORDS);
+        return [
+          {t:"Connecting to Portal as the notebook service account", cls:"dim"},
+          {t:"Querying the asset layer: " + r.total + " records returned", cls:"dim"},
+          {t:"Check 1, geometry: " + r.missingGeom.length + " records with no geometry: " + r.missingGeom.map(function(x){ return x.id; }).join(", "), cls: r.missingGeom.length ? "warn" : "ok"},
+          {t:"Check 2, required fields: " + r.blankStatus.length + " records with a blank status: " + r.blankStatus.map(function(x){ return x.id; }).join(", "), cls: r.blankStatus.length ? "warn" : "ok"},
+          {t:"Check 3, duplicates: " + r.dupIds.length + " duplicate ID: " + r.dupIds.join(", "), cls: r.dupIds.length ? "warn" : "ok"},
+          {t:"Check 4, stale edits: " + r.stale.length + " records not edited in " + STALE_DAYS + " days: " + r.stale.map(function(x){ return x.id; }).join(", "), cls: r.stale.length ? "warn" : "ok"},
+          {t:"Writing " + r.totalIssues + " findings to the QA table", cls:"dim"},
+          {t:"Done. " + r.totalIssues + " issues across " + r.total + " records. " + r.clean + " records clean.", cls: r.totalIssues ? "bad" : "ok"}
+        ];
+      },
+      results: function(){
+        var r = computeQA(QA_RECORDS);
+        return "<h4>Last run: " + r.totalIssues + " issues, " + r.clean + " of " + r.total + " records clean</h4>" +
+          "<div class=\"resgrid\">" +
+          "<div class=\"res\"><div class=\"big red\">" + r.missingGeom.length + "</div><p>No geometry: " + r.missingGeom.map(function(x){ return x.id; }).join(", ") + "</p></div>" +
+          "<div class=\"res\"><div class=\"big amber\">" + r.blankStatus.length + "</div><p>Blank status: " + r.blankStatus.map(function(x){ return x.id; }).join(", ") + "</p></div>" +
+          "<div class=\"res\"><div class=\"big amber\">" + r.dupIds.length + "</div><p>Duplicate ID: " + r.dupIds.join(", ") + "</p></div>" +
+          "<div class=\"res\"><div class=\"big amber\">" + r.stale.length + "</div><p>Stale edits over " + STALE_DAYS + " days: " + r.stale.map(function(x){ return x.id; }).join(", ") + "</p></div>" +
+          "</div>";
+      }
+    },
+    audit: {
+      steps: function(){
+        var r = computeAudit(AUDIT_USERS, AUDIT_ITEMS);
+        return [
+          {t:"Connecting to Portal as the notebook service account", cls:"dim"},
+          {t:"Listing members: " + r.users + " users, " + r.items + " items scanned", cls:"dim"},
+          {t:"Dormant members, no sign-in for " + DORMANT_DAYS + " days: " + r.dormant.length + " (" + r.dormant.map(function(u){ return u.name; }).join(", ") + ")", cls: r.dormant.length ? "warn" : "ok"},
+          {t:"Items never shared: " + r.unshared.length + " (" + r.unshared.map(function(i){ return i.title; }).join("; ") + ")", cls: r.unshared.length ? "warn" : "ok"},
+          {t:"Items with no views in 180 days: " + r.noViews.length, cls: r.noViews.length ? "warn" : "ok"},
+          {t:"Done. " + r.totalFindings + " findings. Nothing was disabled or deleted; the lists go to the platform owner for review.", cls: r.totalFindings ? "bad" : "ok"}
+        ];
+      },
+      results: function(){
+        var r = computeAudit(AUDIT_USERS, AUDIT_ITEMS);
+        return "<h4>Last run: " + r.totalFindings + " findings</h4>" +
+          "<div class=\"resgrid\">" +
+          "<div class=\"res\"><div class=\"big amber\">" + r.dormant.length + "</div><p>Dormant members</p><ul>" + r.dormant.map(function(u){ return "<li>" + u.name + ", " + u.role + ", last sign-in " + u.lastLoginDaysAgo + " days ago</li>"; }).join("") + "</ul></div>" +
+          "<div class=\"res\"><div class=\"big amber\">" + r.unshared.length + "</div><p>Items never shared</p><ul>" + r.unshared.map(function(i){ return "<li>" + i.title + "</li>"; }).join("") + "</ul></div>" +
+          "<div class=\"res\"><div class=\"big amber\">" + r.noViews.length + "</div><p>Items with no views in 180 days</p><ul>" + r.noViews.map(function(i){ return "<li>" + i.title + "</li>"; }).join("") + "</ul></div>" +
+          "</div>";
+      }
+    },
+    sync: {
+      steps: function(){
+        var r = computeSync(SYNC_SOURCE, SYNC_TARGET);
+        return [
+          {t:"Connecting to Portal as the notebook service account", cls:"dim"},
+          {t:"Reading source layer: " + r.source + " rows. Reading target layer: " + r.targetBefore + " rows.", cls:"dim"},
+          {t:"Comparing by business key ASSET_ID", cls:"dim"},
+          {t:"Inserts: " + r.adds.length + " new rows (" + r.adds.map(function(x){ return x.id; }).join(", ") + ")", cls:"ok"},
+          {t:"Updates: " + r.updates.length + " changed rows (" + r.updates.map(function(x){ return x.id; }).join(", ") + ")", cls:"ok"},
+          {t:"Deletes: " + r.deletes.length + " retired row (" + r.deletes.map(function(x){ return x.id; }).join(", ") + ")", cls:"ok"},
+          {t:"Unchanged: " + r.unchanged.length + " rows", cls:"dim"},
+          {t:"edit_features applied. Target now holds " + r.targetAfter + " rows, matching the source.", cls:"ok"}
+        ];
+      },
+      results: function(){
+        var r = computeSync(SYNC_SOURCE, SYNC_TARGET);
+        return "<h4>Last run: " + r.adds.length + " inserts, " + r.updates.length + " updates, " + r.deletes.length + " delete</h4>" +
+          "<div class=\"resgrid\">" +
+          "<div class=\"res\"><div class=\"big green\">" + r.adds.length + "</div><p>Inserts: " + r.adds.map(function(x){ return x.id; }).join(", ") + "</p></div>" +
+          "<div class=\"res\"><div class=\"big green\">" + r.updates.length + "</div><p>Updates: " + r.updates.map(function(x){ return x.id; }).join(", ") + " (status or condition changed)</p></div>" +
+          "<div class=\"res\"><div class=\"big amber\">" + r.deletes.length + "</div><p>Delete: " + r.deletes.map(function(x){ return x.id; }).join(", ") + " (retired, not in the source)</p></div>" +
+          "<div class=\"res\"><div class=\"big\">" + r.targetAfter + "</div><p>Rows in the target after the sync</p></div>" +
+          "</div>";
+      }
+    },
+    health: {
+      steps: function(){
+        var r = computeHealth(HEALTH_SERVICES);
+        return [
+          {t:"Connecting to Portal as the notebook service account", cls:"dim"},
+          {t:"Collecting metrics for " + r.count + " services from ArcGIS Monitor", cls:"dim"},
+          {t:"Average uptime across all services: " + r.avgUptime.toFixed(2) + "%", cls:"dim"},
+          {t:"Below the " + UPTIME_TARGET + "% target: " + r.belowTarget.length + " services (" + r.belowTarget.map(function(s){ return s.name + " " + s.uptime + "%"; }).join("; ") + ")", cls: r.belowTarget.length ? "warn" : "ok"},
+          {t:"Slowest service: " + r.slowest.name + " at " + r.slowest.responseMs + " ms average response", cls:"warn"},
+          {t:"Total errors in the last 30 days: " + r.totalErrors, cls:"dim"},
+          {t:"Done. Report sent to the platform owner. " + r.belowTarget.length + " services need attention before next month.", cls: r.belowTarget.length ? "bad" : "ok"}
+        ];
+      },
+      results: function(){
+        var r = computeHealth(HEALTH_SERVICES);
+        return "<h4>Last run: average uptime " + r.avgUptime.toFixed(2) + "%, " + r.belowTarget.length + " services below target</h4>" +
+          "<div class=\"resgrid\">" +
+          "<div class=\"res\"><div class=\"big green\">" + r.avgUptime.toFixed(2) + "%</div><p>Average uptime, " + r.count + " services</p></div>" +
+          "<div class=\"res\"><div class=\"big red\">" + r.belowTarget.length + "</div><p>Below " + UPTIME_TARGET + "% target</p><ul>" + r.belowTarget.map(function(s){ return "<li>" + s.name + ", " + s.uptime + "%</li>"; }).join("") + "</ul></div>" +
+          "<div class=\"res\"><div class=\"big amber\">" + r.slowest.responseMs + " ms</div><p>Slowest: " + r.slowest.name + "</p></div>" +
+          "<div class=\"res\"><div class=\"big\">" + r.totalErrors + "</div><p>Total errors in the last 30 days</p></div>" +
+          "</div>";
+      }
+    }
+  };
+
+  function stamp(){
+    var d = new Date();
+    function p(n){ return (n < 10 ? "0" : "") + n; }
+    return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+  }
+  function esc(s){
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function runNotebook(key, btn){
+    var logEl = document.getElementById("log-" + key);
+    var resEl = document.getElementById("results-" + key);
+    var runner = RUNNERS[key];
+    btn.disabled = true;
+    resEl.classList.remove("show");
+    resEl.innerHTML = "";
+    logEl.classList.add("show");
+    logEl.innerHTML = "";
+    var steps = runner.steps();
+    steps.forEach(function(step, i){
+      setTimeout(function(){
+        var line = document.createElement("div");
+        line.innerHTML = "<span class=\"dim\">" + stamp() + "</span>  <span class=\"" + step.cls + "\">" + esc(step.t) + "</span>";
+        logEl.appendChild(line);
+        if (i === steps.length - 1) {
+          resEl.innerHTML = runner.results();
+          resEl.classList.add("show");
+          btn.disabled = false;
+        }
+      }, 350 * (i + 1));
+    });
+  }
+  function resetNotebook(key){
+    var logEl = document.getElementById("log-" + key);
+    var resEl = document.getElementById("results-" + key);
+    logEl.classList.remove("show");
+    logEl.innerHTML = "";
+    resEl.classList.remove("show");
+    resEl.innerHTML = "";
+    var btn = document.querySelector("[data-run=\"" + key + "\"]");
+    if (btn) btn.disabled = false;
+  }
+  document.querySelectorAll("[data-run]").forEach(function(btn){
+    btn.addEventListener("click", function(){ runNotebook(btn.getAttribute("data-run"), btn); });
+  });
+  document.querySelectorAll("[data-reset]").forEach(function(btn){
+    btn.addEventListener("click", function(){ resetNotebook(btn.getAttribute("data-reset")); });
+  });
+  document.querySelectorAll("[data-copy]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var code = document.getElementById(btn.getAttribute("data-copy")).textContent;
+      function done(){ btn.textContent = "Copied"; setTimeout(function(){ btn.textContent = "Copy Python"; }, 2000); }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(done, function(){ fallback(); });
+      } else { fallback(); }
+      function fallback(){
+        var ta = document.createElement("textarea");
+        ta.value = code;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); } catch (e) {}
+        document.body.removeChild(ta);
+        done();
+      }
+    });
+  });
+  var strip = document.getElementById("weekStrip");
+  WEEK.forEach(function(d){
+    var cell = document.createElement("div");
+    cell.className = "day";
+    cell.innerHTML = "<b>" + d.day + "</b>" + d.jobs.map(function(j){
+      return "<span" + (j.indexOf("Audit") === 0 ? " class=\"run\"" : "") + ">" + esc(j) + "</span>";
+    }).join("");
+    strip.appendChild(cell);
+  });
+}
+</script>
+</body>
+</html>
