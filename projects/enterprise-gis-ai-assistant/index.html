@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enterprise GIS AI Assistant — a working demo by Janaki Gattu</title>
+<meta name="description" content="A working Enterprise GIS AI Assistant demo by Janaki Gattu. Ask about ArcGIS Enterprise and ArcGIS Online migration, AI Assistants, ArcGIS Monitor, and production AI agents, or run a guided Migration Readiness check. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  .tabs{display:flex;gap:10px;margin:28px 0 0;flex-wrap:wrap}
+  .tab{border:1px solid #404040;background:var(--card);color:var(--text);border-radius:999px;padding:10px 20px;font-size:.95rem;font-weight:700;cursor:pointer}
+  .tab.active{background:var(--accent);color:#052e16;border-color:var(--accent)}
+  main{padding:28px 0 64px}
+  .panel{display:none}
+  .panel.active{display:block}
+  /* Chat */
+  .chatlog{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;min-height:320px;max-height:520px;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+  .msg{max-width:88%;padding:12px 16px;border-radius:12px;font-size:.98rem}
+  .msg.user{align-self:flex-end;background:#1f2937;border:1px solid #374151}
+  .msg.bot{align-self:flex-start;background:var(--bg2);border:1px solid var(--line)}
+  .msg.bot p{margin-bottom:8px}
+  .msg.bot p:last-child{margin-bottom:0}
+  .msg .nextstep{color:var(--accent);font-weight:700}
+  .msg .src{font-size:.85rem;color:var(--faint);margin-top:8px}
+  .msg .src a{color:var(--faint)}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+  .chip{border:1px solid #404040;background:var(--bg2);color:#d4d4d4;border-radius:999px;padding:7px 14px;font-size:.88rem;cursor:pointer}
+  .chip:hover{border-color:var(--accent);color:var(--text)}
+  .composer{display:flex;gap:10px;margin-top:4px}
+  .composer input{flex:1;background:var(--bg2);border:1px solid #404040;border-radius:999px;padding:13px 18px;color:var(--text);font-size:1rem;outline:none}
+  .composer input:focus{border-color:var(--accent)}
+  .composer button{background:var(--accent);color:#052e16;border:0;border-radius:999px;padding:13px 24px;font-weight:700;font-size:1rem;cursor:pointer}
+  /* Readiness */
+  .progress{height:8px;background:var(--bg2);border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-bottom:22px}
+  .progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s ease}
+  .qcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px}
+  .qcard .qnum{color:var(--faint);font-weight:800;font-size:.85rem;letter-spacing:.1em}
+  .qcard h2{font-size:1.35rem;margin:8px 0 6px;line-height:1.3}
+  .qcard p{color:var(--muted);margin-bottom:18px}
+  .opts{display:flex;flex-direction:column;gap:10px}
+  .opt{text-align:left;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:12px;padding:14px 18px;font-size:1rem;cursor:pointer}
+  .opt:hover{border-color:var(--accent)}
+  .result{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px}
+  .score{font-size:3rem;font-weight:800;line-height:1;color:var(--accent)}
+  .result h2{font-size:1.4rem;margin:10px 0}
+  .result h3{margin:20px 0 8px;font-size:1.1rem}
+  .result ul{margin-left:20px;color:#d4d4d4}
+  .result li{margin-bottom:6px}
+  .result .cta{margin-top:24px}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a}
+  .btn-outline{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;border:1px solid #525252;color:var(--text);margin-left:10px}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="back" href="../../index.html">&larr; Back to Janaki Gattu&rsquo;s portfolio</a>
+    <p class="eyebrow">Working AI agent &middot; Live demo</p>
+    <h1>Enterprise GIS AI Assistant</h1>
+    <p class="lede">Ask it about <b>ArcGIS Enterprise migration</b>, <b>ArcGIS Online migration</b>, <b>AI Assistants</b>, <b>ArcGIS Monitor</b>, or <b>production AI agents</b>. Or run the guided <b>Migration Readiness</b> check and get a score and a plan in two minutes.</p>
+    <p class="honest"><b>How this demo works, honestly:</b> it runs entirely in your browser. There is no server, no API key, and nothing you type leaves this page. The assistant answers from a knowledge base built from Janaki Gattu&rsquo;s published LinkedIn articles and Esri&rsquo;s public documentation, linked under each answer. It is a working demonstration of the kind of assistant Janaki builds for GIS teams, not a model connected to the internet.</p>
+    <div class="tabs">
+      <button class="tab active" id="tab-chat" type="button">Ask the assistant</button>
+      <button class="tab" id="tab-ready" type="button">Migration Readiness check</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <div class="panel active" id="panel-chat">
+      <div class="chatlog" id="chatlog">
+        <div class="msg bot">
+          <p>Hello. I am the Enterprise GIS AI Assistant, a demo built by Janaki Gattu. Ask me about migrating ArcGIS Enterprise or ArcGIS Online, AI Assistants in ArcGIS, ArcGIS Monitor, or what it takes to run an AI agent in production.</p>
+          <p><span class="nextstep">Next step:</span> try one of the questions below, or type your own.</p>
+        </div>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="composer">
+        <input id="chatinput" type="text" placeholder="Ask about migration, AI Assistants, Monitor, or agents&hellip;" autocomplete="off">
+        <button id="sendbtn" type="button">Ask</button>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-ready">
+      <div class="progress"><i id="progbar"></i></div>
+      <div id="readiness"></div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Enterprise GIS AI Assistant — a working demo by <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Janaki Gattu</a>, Enterprise GIS Consultant &amp; GIS Solutions Architect. Knowledge drawn from her published articles and Esri documentation. Questions about your own platform? <a href="mailto:gjanaki360@gmail.com?subject=Enterprise%20GIS%20AI%20Assistant%20demo">Email gjanaki360@gmail.com</a>.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var LINKEDIN = "https://www.linkedin.com/in/janaki-gis-enterprise";
+  var MIG_ARTICLE = "https://www.linkedin.com/pulse/arcgis-enterprise-migration-start-scope-tool-janaki-gattu-g8xnc/";
+  var HARNESS_ARTICLE = "https://www.linkedin.com/pulse/harness-engineering-discipline-separates-production-ai-janaki-gattu-jdcdc/";
+  var UN_ARTICLE = "https://www.linkedin.com/pulse/arcgis-utility-network-modernise-model-before-you-migrate-gattu-z6vuc/";
+  var AI_JUNE = "https://www.esri.com/arcgis-blog/products/arcgis-online/geoai/whats-new-in-ai-assistants-june-2026";
+  var MONITOR_DOC = "https://doc.arcgis.com/en/monitor/2024.0/get-started/windows/introduction-to-arcgis-monitor.htm";
+  var MONITOR_BLOG = "https://www.esri.com/arcgis-blog/products/monitor/administration/arcgis-monitor-understanding-component-status-and-alerts";
+  var COLLAB_BLOG = "https://www.esri.com/arcgis-blog/products/arcgis-enterprise/administration/collaborate-between-arcgis-enterprise-online-and-field-maps";
+  var ARCUSER_MOVE = "https://www.esri.com/about/newsroom/arcuser/how-to-move-arcgis-content-between-organizations";
+
+  var KB = [
+    {keys:["webgisdr","backup and restore","backup","restore","full deployment","new machines","new infrastructure","same version"],
+     title:"WebGISDR",
+     body:"<p>WebGISDR is the first option to evaluate for a full deployment move on the same operating system and at the same version. It was designed for backup and recovery, and under the right conditions the same backup-and-restore workflow carries a deployment to new machines in one coordinated process.</p><p>Plan the network work early: the DNS alias users connect to has to line up between the source and the target, and WebGISDR works on Windows and Linux only.</p>",
+     next:"Check that your source and target run the same version and operating system, then test a WebGISDR restore in a non-production environment before you commit to it.",
+     src:{label:"Janaki Gattu, ArcGIS Enterprise Migration: Start With Scope, Not the Tool", url:MIG_ARTICLE}},
+    {keys:["join site","machine by machine","stay available","replace machines","one at a time"],
+     title:"Join Site",
+     body:"<p>Join Site takes a different route to a similar destination: you add a new machine to the existing Portal and ArcGIS Server site and remove the old one, step by step. Done carefully, the service stays available throughout.</p><p>The preparation is the price. Content locations need to be reachable from the new machine, both machines operate together for a period, and every manual step should be backed by a backup you have verified.</p>",
+     next:"Confirm shared storage is reachable from the new machine, and verify a backup before you start removing old machines.",
+     src:{label:"Janaki Gattu, ArcGIS Enterprise Migration: Start With Scope, Not the Tool", url:MIG_ARTICLE}},
+    {keys:["group export","group import","export import","promote","selected content","dev to prod","development to production"],
+     title:"Group export and import",
+     body:"<p>When only selected content needs to move, exporting a group and importing it elsewhere is straightforward and visible. An administrator can see what is in the package and where it lands.</p><p>Its boundary is equally clear: it covers hosted content only, and referenced data that lives in a registered data store does not travel inside a hosted-content package. Check each item's data source before you rely on this route. Group export and import is not available for ArcGIS Online.</p>",
+     next:"List the items in the group and check each one's data source, hosted or referenced, before you export.",
+     src:{label:"Janaki Gattu, ArcGIS Enterprise Migration: Start With Scope, Not the Tool", url:MIG_ARTICLE}},
+    {keys:["collaboration","distributed collaboration","partnered collaboration","share between","sync","shared editing","field maps"],
+     title:"Distributed and partnered collaboration",
+     body:"<p>Distributed collaboration is built for sharing that will happen more than once. Once two deployments trust each other, selected content can be shared on a schedule rather than copied by hand each time. It handles both hosted content and content that references registered data, and it works between ArcGIS Enterprise deployments and between Enterprise and ArcGIS Online.</p><p>Partnered collaboration is the ArcGIS Online equivalent: it shares content across ArcGIS Online organisations. Allow time for the initial setup, and confirm that the item types you care about are supported.</p>",
+     next:"If the sharing will repeat, set up a collaboration workspace instead of copying content by hand, and confirm your item types are supported first.",
+     src:{label:"Esri, Collaborate between ArcGIS Enterprise, ArcGIS Online and ArcGIS Field Maps", url:COLLAB_BLOG}},
+    {keys:["python","script","scripting","automate","arcgis api for python","clone","clone_items","offlinecontentmanager","api for python"],
+     title:"Scripting with the ArcGIS API for Python",
+     body:"<p>Scripting with the ArcGIS API for Python gives you the most control over a content move, including automation across deployment types. The clone_items() function disassembles items, determines their dependencies, and reassembles them in the target organisation, and the newer OfflineContentManager functions cover the same ground with less legacy overhead. Both work for ArcGIS Online and ArcGIS Enterprise.</p><p>That control is valuable when the same move will be repeated and checked the same way each time. It is less valuable as a one-off if no one on the team will maintain the script afterwards. A migration script that only its author understands becomes its own support problem.</p>",
+     next:"If the move will repeat, budget for someone to own and maintain the script. If it is a one-off and nobody on the team writes Python, choose a no-code route instead.",
+     src:{label:"Janaki Gattu, ArcGIS Enterprise Migration: Start With Scope, Not the Tool", url:MIG_ARTICLE}},
+    {keys:["rebuild","fresh start","start fresh","clean up","stale","retire"],
+     title:"Rebuilding",
+     body:"<p>Rebuilding deserves a fair hearing. Starting fresh lets a team leave behind stale items, inactive accounts, and configuration that no one can explain. There is no carry-over limit because nothing is carried over automatically.</p><p>The cost is honest and predictable: everything still needed has to be published, configured, shared, and tested again. That only works from a complete inventory. Without one, rebuilding is how useful work disappears quietly.</p>",
+     next:"Before you choose rebuilding, build the complete inventory first: every portal item, service, application, group, owner, data source, and scheduled dependency.",
+     src:{label:"Janaki Gattu, ArcGIS Enterprise Migration: Start With Scope, Not the Tool", url:MIG_ARTICLE}},
+    {keys:["scope","kinds of migration","types of migration","what is migration","three kinds","define the move"],
+     title:"Three kinds of migration work",
+     body:"<p>Most migration requests fall into one of three groups. Moving a full environment carries the deployment itself, content, users, groups, and configuration, to new infrastructure. Moving selected content promotes or shares specific items, groups, or workflows, for example from development to production. Changing product or platform moves between ArcGIS Online and ArcGIS Enterprise, or between Windows, Linux, and Kubernetes.</p><p>Settle the scope before you argue about the method. If the scope is vague, the tool discussion will be vague as well, and the gaps surface late, during testing, during cutover, or on the first morning when editors return to work that no longer behaves as it did.</p>",
+     next:"Write down which of the three kinds your move is, in one sentence a non-technical stakeholder can repeat back.",
+     src:{label:"Janaki Gattu, ArcGIS Enterprise Migration: Start With Scope, Not the Tool", url:MIG_ARTICLE}},
+    {keys:["online to enterprise","enterprise to online","move to online","move to enterprise","arcgis online migration","migration to arcgis online","from online"],
+     title:"Moving between ArcGIS Online and ArcGIS Enterprise",
+     body:"<p>A team moving from ArcGIS Online to ArcGIS Enterprise, without Python capacity in-house, needs a deliberate scope: which users are added, with which licences and privileges; which content moves through collaboration; and which items, such as dashboards in older versions, will be rebuilt. For a single move, that measured combination is usually more realistic than building a scripting practice for one project.</p><p>Going the other way, distributed collaboration can share Enterprise feature layers to ArcGIS Online as copies, so the public can use them without signing in to Enterprise, while edits synchronise back. Remember that maps and apps still reference the source layer URLs, so the layer sources have to be updated to the target after the move.</p>",
+     next:"Write the scope first: users and licences, content that moves through collaboration, and items that must be rebuilt. Then test the move with a small group before the full cutover.",
+     src:{label:"Janaki Gattu, ArcGIS Enterprise Migration: Start With Scope, Not the Tool", url:MIG_ARTICLE}},
+    {keys:["monitor","arcgis monitor","health","alerts","metrics","status","uptime","performance monitoring"],
+     title:"ArcGIS Monitor",
+     body:"<p>ArcGIS Monitor is Esri's enterprise monitoring solution for ArcGIS Enterprise. It captures metrics on system health, usage, and performance so administrators can identify problems before they affect users. It has three components: ArcGIS Monitor Server, the web interface for analysis and configuration; ArcGIS Monitor Agent, which collects data from registered components; and the Monitor database repository, which stores settings and metrics.</p><p>Each registered component carries metrics with alert rules. When a metric falls outside its threshold, an alert is raised, and the component's status reflects its most severe metric: nominal, info, warning, critical, incident active, monitoring off, alerting off, or no data. As of Enterprise 12.2, Monitor also covers ArcGIS Velocity.</p>",
+     next:"Register your portal, GIS servers, and data stores as components, then set alert thresholds on the metrics that matter, starting with request rate, CPU, and disk.",
+     src:{label:"Esri, Introduction to ArcGIS Monitor (documentation)", url:MONITOR_DOC}},
+    {keys:["ai assistant","ai assistants","assistants","survey123","business analyst","translation assistant","pro assistant","arcade assistant","notebooks assistant","item details","storymaps assistant","documentation assistant"],
+     title:"AI Assistants in ArcGIS",
+     body:"<p>Esri's AI assistants are now woven through ArcGIS. Three are generally available and included with user types at no extra cost: the Survey123 assistant, which turns a plain-language description into a draft survey; the Business Analyst assistant, which suggests the right analysis steps for a business question; and the Translation assistant, which drafts translations of surveys and apps across Survey123, Instant Apps, and Experience Builder.</p><p>The rest are in beta or preview, including the ArcGIS Pro assistant, the Notebooks assistant, the Arcade assistant, the Documentation assistant, and the StoryMaps assistant. The honest Enterprise caveat: most assistant value today arrives through ArcGIS Online. The Item details assistant is the only one with an Enterprise deployment, and only in Enterprise 12.0, not the 12.1 long-term support release most enterprises run. Access is governed at the organisation level, and an administrator must opt in to AI features.</p>",
+     next:"Start with one of the three generally available assistants on a real task, and have a human review the output before it reaches users. Check with your administrator whether AI features are enabled in your organisation.",
+     src:{label:"Esri, What's new in AI assistants (June 2026)", url:AI_JUNE}},
+    {keys:["harness","agent","agents","production","retry","sandbox","cost control","rate limit","graceful degradation","gates","readiness check","observability","agentic"],
+     title:"Harness engineering: production AI agents",
+     body:"<p>A model on its own can reason and generate text. It cannot reach your data, call your services, remember what happened yesterday, or know when it has failed. The harness around it does that work, and the harness is the product. A harness does four jobs: it connects the agent to a defined set of tools and data, it remembers context across steps and sessions, it constrains what the agent may do and spend, and it observes everything so a run can be replayed.</p><p>Four controls carry the load: retry and fallback with a budget, sandboxed execution, rate limits and cost controls, and graceful degradation, where the agent delivers a partial answer with labelled gaps instead of a confident answer built on a failed lookup. Before any agent goes to production, it should pass six gates: every tool and data source named, write access scoped to the task, a defined fallback on the third failed call, code executing in an isolated environment, a cost ceiling with a hard stop, and full logs that let you reconstruct the run.</p>",
+     next:"Pick one small, well-defined task and build its harness first: list the tools it needs and nothing more, decide permissions before you write code, and log every step from day one.",
+     src:{label:"Janaki Gattu, Harness Engineering: The Discipline That Separates Production AI Agents from Demos", url:HARNESS_ARTICLE}},
+    {keys:["utility network","trace","tracing","un ","network model"],
+     title:"Utility Network",
+     body:"<p>Utility Network is not a software upgrade. It is a data, workflow, and governance change. A trace can return the wrong set of customers without any error message, and the result looks plausible until someone who knows the field checks it against what is actually in the ground. That gap between the model and the work it supports is where most Utility Network projects are really decided.</p><p>The rule Janaki sets out in her article: modernise the model before you migrate the data. The network model, the asset packages, and the working practices have to be right before a single feature moves.</p>",
+     next:"Read her Utility Network article, then check your own network model against the field before planning any data move.",
+     src:{label:"Janaki Gattu, ArcGIS Utility Network: Modernise the Model Before You Migrate the Data", url:UN_ARTICLE}},
+    {keys:["experience builder","ai chat","widget","custom widget","agent skill"],
+     title:"Experience Builder and AI Chat",
+     body:"<p>The November 2026 Experience Builder release adds AI Chat in beta: users ask questions about an app in plain language, query and filter data, navigate the map, and drive supported widgets, with answers that can include tables, charts, maps, and feature details. It requires signed-in users in an organisation with AI agents enabled, and credit consumption applies after the beta period.</p><p>For builders, Esri also published an open-source Agent Skill that teaches an AI coding assistant to build custom Experience Builder widgets the way Esri intends, supplying the conventions, APIs, folder structure, and a starting skeleton, so custom widgets stop being a developer-only task.</p>",
+     next:"If your team has AI agents enabled, try AI Chat on a copy of an existing app first, and check the credit position with your administrator before rolling it out.",
+     src:{label:"Esri, What's New in ArcGIS Experience Builder (November 2026)", url:"https://www.esri.com/arcgis-blog/products/experience-builder/announcements/whats-new-in-arcgis-experience-builder-november-2026"}},
+    {keys:["velocity","geoevent","real-time","real time","feeds","streaming"],
+     title:"ArcGIS Velocity and the GeoEvent migration",
+     body:"<p>Following the GeoEvent Server deprecation announcement, Esri built the ArcGIS Velocity Migration Tool for organisations moving to ArcGIS Velocity. You export the GeoEvent site configuration as XML and upload it, and the tool sorts every input, processor, service, and output into three buckets: fully compatible, partially compatible, or no equivalent. It produces a tailored migration guide and a Velocity JSON configuration you can import into a test environment.</p><p>The recommended path is a side-by-side migration, so GeoEvent keeps running while Velocity outputs are compared and validated. ArcGIS Monitor now covers Velocity in Enterprise 12.2.</p>",
+     next:"Export your GeoEvent configuration and run it through the migration tool before committing to a cutover date, so you know what transfers, what needs manual work, and what must be rebuilt.",
+     src:{label:"Esri, The ArcGIS Velocity Migration Tool", url:"https://www.esri.com/arcgis-blog/products/arcgis-velocity/real-time/the-arcgis-velocity-migration-tool"}},
+    {keys:["questions","checklist","before you choose","what to ask","plan","cutover","rollback","downtime","testing","test plan"],
+     title:"Questions to answer before you choose",
+     body:"<p>Before choosing a migration approach, write the answers down. A migration plan that lives only in a meeting changes shape every time it is discussed. The eight questions: are you moving a full environment or only selected content? Is this a one-time project or a workflow the team will repeat? Are you moving between ArcGIS Online and ArcGIS Enterprise? Are you changing deployment options? What content types are involved, and is the content hosted or referenced? How much downtime can the organisation accept, and when? What skills are available on the team? And would rebuilding give you a cleaner result?</p><p>Alongside those questions, build the inventory: every portal item, service, application, group, owner, data source, and scheduled dependency, with a note on what breaks if its address changes. Build the target, test against it with real applications and real user groups, and keep a rollback route you have actually practised.</p>",
+     next:"Answer the eight questions in writing, then run the Migration Readiness check on this page to score where you stand.",
+     src:{label:"Janaki Gattu, ArcGIS Enterprise Migration: Start With Scope, Not the Tool", url:MIG_ARTICLE}}
+  ];
+
+  var SUGGESTED = [
+    "What is WebGISDR best for?",
+    "How do I move content to ArcGIS Online?",
+    "What is ArcGIS Monitor?",
+    "Which AI Assistants are generally available?",
+    "What is a harness for an AI agent?",
+    "What questions should I answer before migrating?"
+  ];
+
+  var FALLBACK = "<p>I can answer from Janaki's published articles and Esri documentation on migration, AI Assistants, ArcGIS Monitor, and production AI agents. Try asking about WebGISDR, Join Site, distributed collaboration, ArcGIS Monitor, AI Assistants, or the harness around an AI agent.</p><p><span class=\"nextstep\">Next step:</span> pick one of the suggested questions below, or run the Migration Readiness check to get a score and a plan for your own move.</p>";
+
+  var chatlog = document.getElementById("chatlog");
+  var chatinput = document.getElementById("chatinput");
+  var chipsBox = document.getElementById("chips");
+
+  function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  function addMsg(html, who){
+    var d = document.createElement("div");
+    d.className = "msg " + who;
+    d.innerHTML = html;
+    chatlog.appendChild(d);
+    chatlog.scrollTop = chatlog.scrollHeight;
+  }
+
+  function answer(q){
+    var text = q.toLowerCase();
+    var best = null, bestScore = 0;
+    KB.forEach(function(entry){
+      var score = 0;
+      entry.keys.forEach(function(k){
+        if(text.indexOf(k) !== -1){ score += k.length; }
+      });
+      if(score > bestScore){ bestScore = score; best = entry; }
+    });
+    if(!best || bestScore < 4){ return FALLBACK; }
+    return best.body + "<p><span class=\"nextstep\">Next step:</span> " + esc(best.next) + "</p>" +
+      "<p class=\"src\">Source: <a href=\"" + best.src.url + "\" target=\"_blank\" rel=\"noopener\">" + esc(best.src.label) + "</a></p>";
+  }
+
+  function ask(q){
+    if(!q){ return; }
+    addMsg("<p>" + esc(q) + "</p>", "user");
+    chatinput.value = "";
+    setTimeout(function(){ addMsg(answer(q), "bot"); }, 350);
+  }
+
+  SUGGESTED.forEach(function(s){
+    var b = document.createElement("button");
+    b.className = "chip"; b.type = "button"; b.textContent = s;
+    b.addEventListener("click", function(){ ask(s); });
+    chipsBox.appendChild(b);
+  });
+  document.getElementById("sendbtn").addEventListener("click", function(){ ask(chatinput.value.trim()); });
+  chatinput.addEventListener("keydown", function(e){ if(e.key === "Enter"){ ask(chatinput.value.trim()); } });
+
+  /* Tabs */
+  var tabChat = document.getElementById("tab-chat");
+  var tabReady = document.getElementById("tab-ready");
+  var panelChat = document.getElementById("panel-chat");
+  var panelReady = document.getElementById("panel-ready");
+  tabChat.addEventListener("click", function(){
+    tabChat.classList.add("active"); tabReady.classList.remove("active");
+    panelChat.classList.add("active"); panelReady.classList.remove("active");
+  });
+  tabReady.addEventListener("click", function(){
+    tabReady.classList.add("active"); tabChat.classList.remove("active");
+    panelReady.classList.add("active"); panelChat.classList.remove("active");
+    if(!started){ startReadiness(); }
+  });
+
+  /* Migration Readiness check */
+  var QUESTIONS = [
+    {q:"What are you moving?", sub:"Name the kind of move first. Everything else follows from this answer.",
+     opts:[["A full environment — content, users, groups, and configuration",10,"full"],["Selected content — specific items, groups, or workflows",12,"content"],["Changing product or platform — Online to Enterprise, or Windows to Linux or Kubernetes",8,"platform"],["Not sure yet",2,"unsure"]]},
+    {q:"Is this a one-time project, or a workflow the team will repeat?", sub:"A repeated move is worth a different tool than a single move.",
+     opts:[["One-time project",10,"once"],["A workflow we will repeat",12,"repeat"]]},
+    {q:"Are you moving between ArcGIS Online and ArcGIS Enterprise?", sub:"A move across the Online and Enterprise boundary needs its own scope.",
+     opts:[["Yes",10,"yes"],["No",12,"no"],["Not sure",4,"unsure"]]},
+    {q:"Are you changing deployment options — Windows, Linux, or Kubernetes?", sub:"A platform change is a fresh installation, not a copy operation.",
+     opts:[["Yes",8,"yes"],["No",12,"no"]]},
+    {q:"Is your content mostly hosted, or does it reference a registered data store?", sub:"Referenced data does not travel inside a hosted-content package.",
+     opts:[["Mostly hosted",12,"hosted"],["Mostly referenced",10,"referenced"],["A mix of both",8,"mix"],["Not sure",3,"unsure"]]},
+    {q:"How much downtime can your organisation accept?", sub:"The answer decides whether the system can go quiet or has to stay available.",
+     opts:[["Almost none — the system must stay available",8,"none"],["A planned window",12,"window"],["Flexible",10,"flexible"]]},
+    {q:"Does your team have Python and infrastructure skills in-house?", sub:"Scripting is the most flexible route, but only if someone will own the scripts.",
+     opts:[["Yes, both",12,"both"],["Python only",9,"python"],["Infrastructure only",9,"infra"],["Neither",4,"neither"]]},
+    {q:"Would rebuilding give you a cleaner result than carrying the current deployment forward?", sub:"Rebuilding is the slowest option, and sometimes the right one.",
+     opts:[["Yes — a fresh start would help",10,"yes"],["No — carry the current deployment forward",12,"no"],["Not sure",5,"unsure"]]}
+  ];
+  var MAX = 96;
+  var started = false;
+  var step = 0;
+  var answers = [];
+  var box = document.getElementById("readiness");
+  var progbar = document.getElementById("progbar");
+
+  function startReadiness(){
+    started = true; step = 0; answers = [];
+    renderQ();
+  }
+
+  function renderQ(){
+    progbar.style.width = Math.round(step / QUESTIONS.length * 100) + "%";
+    var item = QUESTIONS[step];
+    var html = '<div class="qcard"><p class="qnum">Question ' + (step+1) + ' of ' + QUESTIONS.length + '</p><h2>' + esc(item.q) + '</h2><p>' + esc(item.sub) + '</p><div class="opts">';
+    item.opts.forEach(function(o, i){
+      html += '<button class="opt" type="button" data-i="' + i + '">' + esc(o[0]) + '</button>';
+    });
+    html += '</div></div>';
+    box.innerHTML = html;
+    var btns = box.querySelectorAll(".opt");
+    btns.forEach(function(b){
+      b.addEventListener("click", function(){
+        var o = item.opts[parseInt(b.getAttribute("data-i"), 10)];
+        answers.push({q:item.q, label:o[0], pts:o[1], key:o[2]});
+        step++;
+        if(step < QUESTIONS.length){ renderQ(); } else { renderResult(); }
+      });
+    });
+  }
+
+  function renderResult(){
+    progbar.style.width = "100%";
+    var total = 0;
+    answers.forEach(function(a){ total += a.pts; });
+    var score = Math.round(total / MAX * 100);
+    var band, bandText;
+    if(score >= 75){ band = "Ready to plan cutover"; bandText = "Your scope is clear and the gaps are small. The next step is a written plan with a named approach, a test pass against real applications and real user groups, and a rollback route you have actually practised."; }
+    else if(score >= 50){ band = "Nearly ready — close the gaps first"; bandText = "You can see the shape of the move, but a few answers are still open. Close the gaps below before you pick a tool or a date. The inventory is the single most valuable document at this stage."; }
+    else { band = "Not ready yet — start with the inventory"; bandText = "Too much is still unknown to choose an approach safely. Start by naming the kind of move and building the inventory: every portal item, service, application, group, owner, data source, and scheduled dependency, with a note on what breaks if its address changes."; }
+
+    var gaps = [];
+    answers.forEach(function(a){
+      if(a.key === "unsure"){ gaps.push("Decide: " + a.q); }
+    });
+    if(answers[6] && answers[6].key === "neither"){ gaps.push("No Python or infrastructure skills in-house: choose a no-code route (collaboration, group export and import, or WebGISDR) or bring in help before relying on scripting."); }
+    if(answers[3] && answers[3].key === "yes"){ gaps.push("A platform change means a fresh installation on the new platform, with users set up directly and content moved through collaboration or republished. Keep the existing deployment available for reference."); }
+
+    var approach;
+    var a0 = answers[0].key, a1 = answers[1].key, a3 = answers[3].key, a5 = answers[5].key;
+    if(a3 === "yes"){ approach = "Fresh installation on the new platform, users set up directly, some content through distributed collaboration, the remainder republished or rebuilt, while the existing deployment stays available for reference. Use the change to retire content and accounts that are no longer used."; }
+    else if(a0 === "full" && a5 === "none"){ approach = "Join Site: replace machines one at a time while the system stays available. Confirm shared storage is reachable from the new machine first."; }
+    else if(a0 === "full"){ approach = "WebGISDR is the cleaner first candidate: a full deployment move at the same operating system and version, with Join Site as the more manual alternative. Plan the DNS alias work early."; }
+    else if(a0 === "content" && a1 === "repeat"){ approach = "Distributed collaboration: set up a trusted sharing relationship once, then share on a schedule. Handle unsupported items individually, and consider scripting later once the team has capacity to own it."; }
+    else if(a0 === "content"){ approach = "Group export and import for hosted content, or scripting with the ArcGIS API for Python if the move will repeat. Check each item's data source before you rely on a hosted-content package."; }
+    else { approach = "Settle the kind of move first. A full-environment move, a content move, and a platform change need different tools, and choosing before the scope is set is how migrations become rescues."; }
+
+    var html = '<div class="result"><p class="score">' + score + ' / 100</p><h2>' + esc(band) + '</h2><p style="color:var(--muted)">' + esc(bandText) + '</p>';
+    html += '<h3>Recommended approach</h3><p style="color:#d4d4d4">' + esc(approach) + '</p>';
+    if(gaps.length){
+      html += '<h3>Gaps to close before you commit</h3><ul>';
+      gaps.forEach(function(g){ html += '<li>' + esc(g) + '</li>'; });
+      html += '</ul>';
+    }
+    html += '<h3>Your answers</h3><ul>';
+    answers.forEach(function(a){ html += '<li><b>' + esc(a.q) + '</b> — ' + esc(a.label) + '</li>'; });
+    html += '</ul><div class="cta"><a class="btn" href="mailto:gjanaki360@gmail.com?subject=Migration%20Readiness%20score%20' + score + '%20—%20Enterprise%20GIS">Discuss my score with Janaki</a><a class="btn-outline" href="' + MIG_ARTICLE + '" target="_blank" rel="noopener">Read the full migration article</a></div>';
+    html += '<p style="margin-top:18px;color:var(--faint);font-size:.9rem">This check is a starting point drawn from Janaki Gattu&rsquo;s migration article. It does not replace testing in your own environment.</p></div>';
+    box.innerHTML = html;
+  }
+})();
+</script>
+</body>
+</html>
