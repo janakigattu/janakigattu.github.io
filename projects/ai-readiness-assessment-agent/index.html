@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Readiness Assessment: a working assessment by Janaki Gattu</title>
+<meta name="description" content="A working AI Readiness Assessment by Janaki Gattu. Answer 10 questions across 6 areas and get a score, a red, amber, or green status per area, and the top gaps to close before you spend anything on AI. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  .areas{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:24px 0}
+  .area{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .area h3{font-size:1rem;margin-bottom:4px}
+  .area p{color:var(--muted);font-size:.92rem}
+  .startbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px}
+  .startbox h2{font-size:1.35rem;margin-bottom:8px}
+  .startbox p{color:var(--muted);margin-bottom:14px}
+  .startbox ul{margin:0 0 20px 20px;color:#d4d4d4}
+  .startbox li{margin-bottom:6px}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer}
+  .btn-dark{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a}
+  .btn-outline{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;border:1px solid #525252;color:var(--text);margin-left:10px}
+  .progress{height:8px;background:var(--bg2);border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-bottom:22px}
+  .progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s ease}
+  .progresstext{color:var(--faint);font-size:.9rem;margin-bottom:8px}
+  .qcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px}
+  .qcard .qnum{color:var(--accent);font-weight:800;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase}
+  .qcard h2{font-size:1.35rem;margin:8px 0 6px;line-height:1.3}
+  .qcard p{color:var(--muted);margin-bottom:18px}
+  .opts{display:flex;flex-direction:column;gap:10px}
+  .opt{text-align:left;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:12px;padding:14px 18px;font-size:1rem;cursor:pointer}
+  .opt:hover{border-color:var(--accent)}
+  .backbtn{margin-top:16px;background:none;border:0;color:var(--muted);cursor:pointer;font-size:.95rem;text-decoration:underline}
+  .result{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px}
+  .score{font-size:3rem;font-weight:800;line-height:1;color:var(--accent)}
+  .score.red{color:var(--red)}
+  .score.amber{color:var(--amber)}
+  .result h2{font-size:1.4rem;margin:10px 0}
+  .result h3{margin:22px 0 8px;font-size:1.1rem}
+  .result p{color:var(--muted)}
+  .result ul{margin-left:20px;color:#d4d4d4}
+  .result li{margin-bottom:6px}
+  .result .cta{margin-top:24px}
+  .areagrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:12px}
+  .arearesult{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .arearesult h4{font-size:.98rem;margin-bottom:2px}
+  .arearesult p{font-size:.9rem;color:var(--muted)}
+  .pill{display:inline-block;font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:6px}
+  .pill.green{background:#14532d;color:#bbf7d0}
+  .pill.amber{background:#451a03;color:#fde68a}
+  .pill.red{background:#450a0a;color:#fecaca}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+  @media (max-width:600px){.btn-outline{margin-left:0;margin-top:10px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu&rsquo;s portfolio</a>
+    <p class="eyebrow">Working assessment &middot; Live demo</p>
+    <h1>AI Readiness Assessment</h1>
+    <p class="lede">Most AI projects fail on the data, not the model. <b>Ten questions show whether your team is ready before you spend anything.</b></p>
+    <p class="honest"><b>How this assessment works, honestly:</b> it runs entirely in your browser. There is no server, no API key, no account, and nothing you answer leaves this page. Your score is calculated here, on this device, and it is not stored or sent anywhere.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <div id="intro">
+      <div class="areas">
+        <div class="area"><h3>1. Use cases and value</h3><p>One job named first, with a number that says whether it worked, and a business owner who wants the result.</p></div>
+        <div class="area"><h3>2. Data readiness</h3><p>The data the assistant needs, in one place, current, clean, and with a written list of what it must never touch.</p></div>
+        <div class="area"><h3>3. People and skills</h3><p>Someone who can spot a wrong answer, and time in their week to review, correct, and improve the assistant after launch.</p></div>
+        <div class="area"><h3>4. Governance and trust</h3><p>What happens when the assistant is wrong, and where your data goes when it runs.</p></div>
+        <div class="area"><h3>5. Technology and integration</h3><p>Whether the assistant can reach the systems it needs, and whether it works where your team already works.</p></div>
+        <div class="area"><h3>6. Change readiness</h3><p>Whether the team will stay with a pilot that is wrong half the time at first, and improve it, instead of walking away.</p></div>
+      </div>
+      <div class="startbox">
+        <h2>What you get in about five minutes</h2>
+        <p>Ten questions, one at a time. At the end you get a score out of 100, a red, amber, or green status for each of the six areas, your top three gaps to close, and recommended next steps.</p>
+        <ul>
+          <li>Readiness is not about the model. It is about the job, the data, the reviewer, and the plan for when the answer is wrong. A team that scores well here can start small and learn fast.</li>
+          <li>The result is a short list of fixes, ranked by risk, with an owner and a date for each one. Not fifty items. Five or six, the ones that matter most.</li>
+          <li>If you are not sure where to start, start with the use case. Name the one job, name the person who owns the outcome, and write down the number that says it worked.</li>
+        </ul>
+        <button class="btn" id="startbtn" type="button">Start the AI readiness assessment</button>
+        <p style="margin-top:14px;font-size:.9rem">Built from Janaki Gattu&rsquo;s article on harness engineering, the discipline that separates production AI agents from demos: the harness around an agent, what it has to do, and where the human stays in charge. Readiness is the same idea, asked before the build instead of after it.</p>
+      </div>
+    </div>
+
+    <div id="quiz" style="display:none">
+      <p class="progresstext" id="progresstext"></p>
+      <div class="progress"><i id="progbar"></i></div>
+      <div id="qbox"></div>
+    </div>
+
+    <div id="result" style="display:none"></div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>AI Readiness Assessment: a working assessment by <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Janaki Gattu</a>, Enterprise GIS Consultant &amp; GIS Solutions Architect. Grounded in her article <a href="https://www.linkedin.com/pulse/harness-engineering-discipline-separates-production-ai-janaki-gattu-jdcdc/" target="_blank" rel="noopener">Harness Engineering: the discipline that separates production AI agents from demos</a>. Questions about your own readiness? <a href="mailto:gjanaki360@gmail.com?subject=AI%20Readiness%20Assessment">Email gjanaki360@gmail.com</a> or <a href="https://janakigattu.github.io/">visit the portfolio</a>.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  var AREAS = [
+    {id:"value", name:"Use cases and value"},
+    {id:"data", name:"Data readiness"},
+    {id:"people", name:"People and skills"},
+    {id:"trust", name:"Governance and trust"},
+    {id:"tech", name:"Technology and integration"},
+    {id:"change", name:"Change readiness"}
+  ];
+
+  var QUESTIONS = [
+    {area:"value", q:"Can you name the one job an AI assistant would do first, and what success looks like in a number?",
+     sub:"A pilot without a number to hit is a demo, not a test. The number is what decides whether it worked.",
+     opts:[
+       {label:"Yes, one job named, and a number that says whether it worked", pts:10, fix:"Keep the job small and the number visible. One job done well beats five jobs half done."},
+       {label:"One job named, but no number for success yet", pts:6, fix:"Agree the number before you build. Hours saved, questions answered, or errors avoided, measured against today."},
+       {label:"Several ideas, none of them chosen", pts:3, fix:"Pick one job this week. The one the team repeats most, and the one a wrong answer would cost least."},
+       {label:"No, we are exploring AI in general", pts:0, fix:"Start with the work, not the tool. List the jobs the team repeats every week, and pick the one that hurts most."}
+     ]},
+    {area:"value", q:"Who asked for it, and do they own the outcome?",
+     sub:"A pilot with no business owner stalls the first time it needs a decision, a budget, or a defended result.",
+     opts:[
+       {label:"A business owner named, committed, and measured on the outcome", pts:10, fix:"Keep the owner close to the pilot. They decide what good looks like, and they defend the result."},
+       {label:"An owner named, but not yet committed", pts:6, fix:"Get the commitment in writing before you build: the job, the number, and the time they will spend reviewing it."},
+       {label:"IT is exploring, the business is not involved yet", pts:3, fix:"Bring the business owner in now. An assistant nobody asked for solves a problem nobody owns."},
+       {label:"Nobody in particular", pts:0, fix:"Find the owner first. Ask which team repeats the same questions or the same lookups every week, and start there."}
+     ]},
+    {area:"data", q:"Is the data the assistant needs in one place, current, and clean enough to answer from?",
+     sub:"An assistant answering from stale or scattered data will give confident answers that are wrong. That is worse than no answer.",
+     opts:[
+       {label:"Yes, one source, current, and checked for quality", pts:10, fix:"Keep the source current. Re-check it after any system change, and record the last update date."},
+       {label:"Mostly, with some known gaps", pts:6, fix:"Write the gaps down and fix the worst one first. A known gap is manageable. An unknown one is not."},
+       {label:"Scattered across systems, and some of it is stale", pts:3, fix:"Pick the one source the assistant will answer from, and clean that first. Do not let it answer from five copies."},
+       {label:"Not sure where it lives, or how current it is", pts:0, fix:"Find the source before you build anything. List what the assistant needs to answer from, and check each item."}
+     ]},
+    {area:"data", q:"Do you know which documents and records the assistant may use, and which it must never touch?",
+     sub:"An assistant that can see everything will eventually answer from something it should never have seen.",
+     opts:[
+       {label:"Yes, an allow list and a block list, both written down", pts:10, fix:"Keep both lists current. Review them when new documents arrive, and when access changes."},
+       {label:"The allow list is known, the block list is not written down", pts:6, fix:"Write the block list down this week. Start with personal data, drafts, and anything under a confidentiality rule."},
+       {label:"Roughly, but nothing is written down", pts:3, fix:"Write both lists down before the pilot starts. If it is not written down, the assistant cannot be told what to avoid."},
+       {label:"No, it would see everything it can reach", pts:0, fix:"Do not start the pilot until the lists exist. Decide what the assistant may use, and what it must never touch."}
+     ]},
+    {area:"people", q:"Does someone on the team know the work well enough to spot a wrong answer?",
+     sub:"An assistant is only as safe as the person checking it. Without a reviewer who knows the subject, wrong answers ship.",
+     opts:[
+       {label:"Yes, a named reviewer with the domain knowledge", pts:10, fix:"Keep the reviewer on the pilot. Their corrections are what make the assistant better, not a cost on top of it."},
+       {label:"Someone could learn it, but nobody is assigned yet", pts:6, fix:"Name the reviewer before the pilot starts, and give them time to review. A reviewer in name only is no reviewer."},
+       {label:"The vendor would handle that", pts:3, fix:"The vendor knows the tool, not your work. Name someone on your team who knows the subject and can say when an answer is wrong."},
+       {label:"No", pts:0, fix:"Find the reviewer first. Without someone who knows the subject, the pilot has no way to know when it is wrong."}
+     ]},
+    {area:"people", q:"Is there time in someone's week to review, correct, and improve the assistant after launch?",
+     sub:"An assistant launched and left alone gets stale, then wrong, then ignored. Improvement is the work after launch.",
+     opts:[
+       {label:"Yes, hours set aside every week", pts:10, fix:"Protect those hours. The weekly review is what keeps the assistant accurate and trusted."},
+       {label:"Ad hoc, when time allows", pts:5, fix:"Put the review on the calendar as a fixed slot. Time that is not scheduled does not happen."},
+       {label:"Only at launch, then it runs itself", pts:2, fix:"Plan for weekly review from the start. An assistant that nobody tends will drift, and nobody will notice until it matters."},
+       {label:"No time set aside", pts:0, fix:"Set the time before you launch. Even two hours a week, reviewing answers and correcting the worst mistakes, keeps it honest."}
+     ]},
+    {area:"trust", q:"What happens when the assistant gives a wrong answer?",
+     sub:"Every assistant will be wrong sometimes. The question is whether anyone notices, and whether the fix lasts.",
+     opts:[
+       {label:"It is logged, reviewed, corrected, and the fix is fed back", pts:10, fix:"Keep the loop running. A wrong answer that is logged and fixed makes the next answer better."},
+       {label:"Reported and fixed, case by case", pts:6, fix:"Add the log. When a wrong answer is fixed without a record, the same mistake comes back."},
+       {label:"Users notice, but there is no process", pts:2, fix:"Give users one place to report a wrong answer, and one person who owns the fix. Start with the log."},
+       {label:"Nothing, nobody checks", pts:0, fix:"Put a check in place before the pilot grows. Even a weekly review of a sample of answers is a start."}
+     ]},
+    {area:"trust", q:"Do you know where your data goes when the assistant runs, and who can see it?",
+     sub:"An assistant sends your data somewhere. If nobody can say where, the pilot is a risk the team has not agreed to.",
+     opts:[
+       {label:"Yes, documented, and reviewed with the data owner", pts:10, fix:"Keep the documentation current, and re-check it when the provider or the setup changes."},
+       {label:"Mostly, with some parts unclear", pts:6, fix:"Write down the unclear parts and ask the provider. Do not let the pilot grow past what you can describe."},
+       {label:"The vendor handles it, details unknown", pts:3, fix:"Ask the vendor in writing: where the data goes, how long it is kept, and who can see it. Then show the answer to the data owner."},
+       {label:"No", pts:0, fix:"Find out before the pilot starts. The data owner needs to know where the data goes and who can see it."}
+     ]},
+    {area:"tech", q:"Can the assistant reach the systems it needs, and does it work where your team already works?",
+     sub:"An assistant that needs new logins, new tools, or a new place to work will sit unused, however good its answers are.",
+     opts:[
+       {label:"Yes, access and integration tested", pts:10, fix:"Keep the access tested after each system change, so the assistant does not quietly lose its reach."},
+       {label:"Access agreed, but not yet tested", pts:6, fix:"Test the access before the pilot starts. An agreed connection that has never run is a guess."},
+       {label:"It would need new accounts or new tools", pts:3, fix:"List what it needs and get the access agreed before you build. A pilot that cannot reach its data cannot be judged."},
+       {label:"Not checked", pts:0, fix:"Check it this week. List the systems the assistant needs, and confirm it can reach each one."}
+     ]},
+    {area:"change", q:"If the first version is wrong half the time, does the team have the patience and the plan to keep going?",
+     sub:"The first version of any assistant is rough. Teams that expect it to work on day one give up on day two.",
+     opts:[
+       {label:"Yes, a pilot with a small group and a review date", pts:10, fix:"Keep the pilot small and the review date fixed. A small group that trusts the process will carry it further than a big launch."},
+       {label:"A pilot, but no review date", pts:6, fix:"Set the review date now. A pilot without a date to judge it drifts, and drift reads as failure."},
+       {label:"The team expects it to work the first time", pts:2, fix:"Set the expectation before launch: the first version will be wrong often, and the review is where it improves. Say it out loud."},
+       {label:"No pilot, a full rollout is planned", pts:0, fix:"Start with a pilot, not a rollout. One small group, one job, a review date, and a decision about what happens next."}
+     ]}
+  ];
+
+  var intro = document.getElementById("intro");
+  var quiz = document.getElementById("quiz");
+  var resultBox = document.getElementById("result");
+  var qbox = document.getElementById("qbox");
+  var progbar = document.getElementById("progbar");
+  var progtext = document.getElementById("progresstext");
+  var step = 0;
+  var answers = [];
+
+  function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  function areaName(id){
+    for(var i=0;i<AREAS.length;i++){ if(AREAS[i].id===id){ return AREAS[i].name; } }
+    return id;
+  }
+
+  function start(){
+    step = 0; answers = [];
+    intro.style.display = "none";
+    resultBox.style.display = "none";
+    quiz.style.display = "block";
+    renderQ();
+    window.scrollTo(0, 0);
+  }
+
+  function renderQ(){
+    var item = QUESTIONS[step];
+    progbar.style.width = Math.round(step / QUESTIONS.length * 100) + "%";
+    progtext.textContent = "Question " + (step + 1) + " of " + QUESTIONS.length + "  |  " + areaName(item.area);
+    var html = '<div class="qcard"><p class="qnum">' + esc(areaName(item.area)) + '</p><h2>' + esc(item.q) + '</h2><p>' + esc(item.sub) + '</p><div class="opts">';
+    item.opts.forEach(function(o, i){
+      html += '<button class="opt" type="button" data-i="' + i + '">' + esc(o.label) + '</button>';
+    });
+    html += '</div>';
+    if(step > 0){ html += '<button class="backbtn" type="button" id="qback">Back to the previous question</button>'; }
+    html += '</div>';
+    qbox.innerHTML = html;
+    var btns = qbox.querySelectorAll(".opt");
+    btns.forEach(function(b){
+      b.addEventListener("click", function(){
+        var o = item.opts[parseInt(b.getAttribute("data-i"), 10)];
+        answers[step] = {q:item.q, area:item.area, label:o.label, pts:o.pts, fix:o.fix};
+        step++;
+        if(step < QUESTIONS.length){ renderQ(); } else { renderResult(); }
+      });
+    });
+    var back = document.getElementById("qback");
+    if(back){
+      back.addEventListener("click", function(){
+        step--;
+        renderQ();
+      });
+    }
+  }
+
+  function statusFor(pct){
+    if(pct >= 75){ return {label:"Green", cls:"green"}; }
+    if(pct >= 50){ return {label:"Amber", cls:"amber"}; }
+    return {label:"Red", cls:"red"};
+  }
+
+  function renderResult(){
+    progbar.style.width = "100%";
+    progtext.textContent = "Complete";
+    var total = 0;
+    answers.forEach(function(a){ total += a.pts; });
+    var score = total;
+    var band, bandText, scoreCls;
+    if(score >= 75){
+      band = "Ready to build a pilot";
+      bandText = "Your team has a job, the data, a reviewer, and a plan for when the answer is wrong. Start small, one job, one group, a review date, and learn fast.";
+      scoreCls = "";
+    } else if(score >= 50){
+      band = "Close, with gaps to close first";
+      bandText = "Some areas are ready, others are not. Close the gaps below first, then start the pilot. A pilot built on an unready area will fail on that area, not on the model.";
+      scoreCls = "amber";
+    } else {
+      band = "Not ready yet, and that is useful to know";
+      bandText = "Too much of the work is missing: the job, the data, or the reviewer. Start with one area this week. Name the job, find the data, or name the reviewer, and check again next month.";
+      scoreCls = "red";
+    }
+
+    var areaScores = {};
+    AREAS.forEach(function(a){ areaScores[a.id] = {name:a.name, pts:0, max:0}; });
+    QUESTIONS.forEach(function(q, i){
+      areaScores[q.area].pts += answers[i].pts;
+      areaScores[q.area].max += 10;
+    });
+
+    var gaps = answers.slice().sort(function(a, b){ return a.pts - b.pts; }).filter(function(a){ return a.pts < 10; }).slice(0, 3);
+
+    var html = '<div class="result"><p class="score ' + scoreCls + '">' + score + ' / 100</p><h2>' + esc(band) + '</h2><p>' + esc(bandText) + '</p>';
+    html += '<h3>Your six areas</h3><div class="areagrid">';
+    AREAS.forEach(function(a){
+      var s = areaScores[a.id];
+      var pct = Math.round(s.pts / s.max * 100);
+      var st = statusFor(pct);
+      html += '<div class="arearesult"><span class="pill ' + st.cls + '">' + st.label + '</span><h4>' + esc(a.name) + '</h4><p>' + s.pts + ' of ' + s.max + ' points (' + pct + '%)</p></div>';
+    });
+    html += '</div>';
+
+    if(gaps.length){
+      html += '<h3>Top 3 gaps to close</h3><ol style="margin-left:20px;color:#d4d4d4">';
+      gaps.forEach(function(g, i){
+        html += '<li style="margin-bottom:10px"><b>' + (i+1) + '. ' + esc(g.q) + '</b><br>Your answer: ' + esc(g.label) + '.<br>' + esc(g.fix) + '</li>';
+      });
+      html += '</ol>';
+    } else {
+      html += '<h3>Top 3 gaps to close</h3><p>None. Every answer scored full marks. Keep the review going so the readiness stays that way when the pilot grows.</p>';
+    }
+
+    html += '<h3>Recommended next steps</h3><ul>';
+    html += '<li>Pick one area this week. If it is the use case, name the one job and the number that says it worked. If it is the data, write the allow list and the block list. If it is people, name the reviewer and set their weekly hours.</li>';
+    html += '<li>Turn the gaps above into a short list of fixes, ranked by risk, with an owner and a date for each one. Not fifty items. Five or six, the ones that matter most.</li>';
+    html += '<li>When the gaps are closed, start the pilot: one job, one small group, a review date, and a decision about what happens next. Judge it on the number you agreed, not on how impressive the demo looks.</li>';
+    html += '<li>Fix those items, then check again before the pilot grows. Readiness is not a one-time score. It is the habit of asking these questions before each new use case.</li>';
+    html += '</ul>';
+
+    html += '<h3>Your answers</h3><ul>';
+    answers.forEach(function(a){
+      html += '<li><b>' + esc(areaName(a.area)) + ':</b> ' + esc(a.q) + ': ' + esc(a.label) + ' (' + a.pts + ' points)</li>';
+    });
+    html += '</ul>';
+
+    html += '<div class="cta"><a class="btn-dark" href="mailto:gjanaki360@gmail.com?subject=AI%20Readiness%20Assessment%20score%20' + score + '">Email Janaki about my score</a><a class="btn-outline" href="https://janakigattu.github.io/#book">Book a Session</a></div>';
+    html += '<p style="margin-top:18px;font-size:.9rem">Want a second pair of eyes on the result? Email Janaki at <a href="mailto:gjanaki360@gmail.com">gjanaki360@gmail.com</a> with your score and your top gap, or <a href="https://janakigattu.github.io/#book">book a session</a>. This check is a starting point drawn from her harness engineering article. It does not replace testing in your own environment.</p>';
+    html += '<p style="margin-top:16px"><button class="btn" type="button" id="restartbtn">Restart the AI readiness assessment</button></p></div>';
+    resultBox.innerHTML = html;
+    resultBox.style.display = "block";
+    quiz.style.display = "none";
+    window.scrollTo(0, 0);
+    document.getElementById("restartbtn").addEventListener("click", start);
+  }
+
+  document.getElementById("startbtn").addEventListener("click", start);
+})();
+</script>
+</body>
+</html>
