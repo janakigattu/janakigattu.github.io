@@ -336,7 +336,9 @@ function applyEbFilter(){
   });
   renderEbList(filtered);
   drawEbMarkers(filtered);
-  document.getElementById("ebcount").textContent = filtered.length + " of " + incidents.length + " incidents shown";
+  var countEl = document.getElementById("ebcount");
+  countEl.textContent = filtered.length + " of " + incidents.length + " incidents shown";
+  countEl.style.color = "";
 }
 function renderEbList(list){
   var el = document.getElementById("eblist");
@@ -462,13 +464,15 @@ function buildChapters(){
 function showChapter(i){
   currentChapter = i;
   var c = chapters[i];
+  if (!c) return;
   document.querySelectorAll(".chap").forEach(function(n, j){ n.classList.toggle("active", j === i); });
-  if (storyMap){
-    // A hidden map has no size, so flying to a chapter while the tab is hidden
-    // breaks the animation. Set the view directly, and fly only when visible.
-    var panel = document.getElementById("panel-story");
-    if (panel && panel.classList.contains("active")) storyMap.flyTo([c.lat, c.lng], c.zoom, {duration: 1.2});
-    else storyMap.setView([c.lat, c.lng], c.zoom);
+  // The map and the scroll only move when the story tab is visible. Moving
+  // either one while the panel is hidden breaks in some browsers, and the
+  // chapters must render even before anyone opens the tab.
+  var panel = document.getElementById("panel-story");
+  var visible = panel && panel.classList.contains("active");
+  if (storyMap && visible){
+    storyMap.flyTo([c.lat, c.lng], c.zoom, {duration: 1.2});
     if (i > 0){
       setTimeout(function(){
         storyMarkers.forEach(function(m){
@@ -478,8 +482,10 @@ function showChapter(i){
       }, 1300);
     }
   }
-  var active = document.querySelector(".chap.active");
-  if (active) active.scrollIntoView({block: "nearest", behavior: "smooth"});
+  if (visible){
+    var active = document.querySelector(".chap.active");
+    if (active) active.scrollIntoView({block: "nearest", behavior: "smooth"});
+  }
 }
 function stepChapter(d){
   var next = currentChapter + d;
