@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArcGIS Enterprise Troubleshooting Agent: a working diagnostic by Janaki Gattu</title>
+<meta name="description" content="A working ArcGIS Enterprise Troubleshooting Agent by Janaki Gattu. Pick the symptom, answer three questions, and get the most likely cause, the checks that confirm it, and the fix. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  .symptoms{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:24px 0}
+  .symptom{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;text-align:left;color:var(--text);cursor:pointer;font-family:inherit}
+  .symptom:hover{border-color:var(--accent)}
+  .symptom h3{font-size:1.05rem;margin-bottom:4px}
+  .symptom p{color:var(--muted);font-size:.92rem}
+  .symptom .num{color:var(--accent);font-weight:800;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase}
+  .startbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px}
+  .startbox h2{font-size:1.35rem;margin-bottom:8px}
+  .startbox p{color:var(--muted);margin-bottom:14px}
+  .startbox ul{margin:0 0 20px 20px;color:#d4d4d4}
+  .startbox li{margin-bottom:6px}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer}
+  .btn-dark{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a}
+  .btn-outline{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;border:1px solid #525252;color:var(--text);margin-left:10px}
+  .progress{height:8px;background:var(--bg2);border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-bottom:22px}
+  .progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s ease}
+  .progresstext{color:var(--faint);font-size:.9rem;margin-bottom:8px}
+  .qcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px}
+  .qcard .qnum{color:var(--accent);font-weight:800;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase}
+  .qcard h2{font-size:1.35rem;margin:8px 0 6px;line-height:1.3}
+  .qcard p{color:var(--muted);margin-bottom:18px}
+  .opts{display:flex;flex-direction:column;gap:10px}
+  .opt{text-align:left;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:12px;padding:14px 18px;font-size:1rem;cursor:pointer}
+  .opt:hover{border-color:var(--accent)}
+  .backbtn{margin-top:16px;background:none;border:0;color:var(--muted);cursor:pointer;font-size:.95rem;text-decoration:underline}
+  .result{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px}
+  .result h2{font-size:1.4rem;margin:10px 0}
+  .result h3{margin:22px 0 8px;font-size:1.1rem}
+  .result p{color:var(--muted)}
+  .result ul,.result ol{margin-left:20px;color:#d4d4d4}
+  .result li{margin-bottom:6px}
+  .result .cta{margin-top:24px}
+  .cause{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-top:14px}
+  .cause h4{font-size:1.05rem;margin-bottom:4px}
+  .cause p{font-size:.95rem}
+  .pill{display:inline-block;font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:6px}
+  .pill.green{background:#14532d;color:#bbf7d0}
+  .pill.amber{background:#451a03;color:#fde68a}
+  .pill.red{background:#450a0a;color:#fecaca}
+  .sources{margin-top:26px;border-top:1px solid var(--line);padding-top:18px}
+  .sources p{font-size:.92rem}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+  @media (max-width:600px){.btn-outline{margin-left:0;margin-top:10px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu&rsquo;s portfolio</a>
+    <p class="eyebrow">Working diagnostic agent &middot; Live demo</p>
+    <h1>ArcGIS Enterprise Troubleshooting Agent</h1>
+    <p class="lede">The map stopped loading at 4:55 pm on a Friday. <b>This agent finds the cause before the phone starts ringing.</b> Pick the symptom, answer three questions, and get the most likely cause, the checks that confirm it, and the fix.</p>
+    <p class="honest"><b>How this agent works, honestly:</b> it runs entirely in your browser. There is no server, no API key, no account, and nothing you answer leaves this page. It is a decision tree built from Esri&rsquo;s own administration guidance and ten years of running these systems. It does not connect to your deployment, and it does not replace testing a fix in your own environment.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <div id="intro">
+      <div class="startbox">
+        <h2>Three questions solve most failures</h2>
+        <p>Before you open a case, or before you restart anything, answer these three. They narrow almost every Enterprise failure to one cause.</p>
+        <ul>
+          <li><b>What changed?</b> A certificate, a patch, an upgrade, a firewall rule, a password. Most failures start right after a change.</li>
+          <li><b>What do the logs say?</b> The Portal logs and the Server logs name the failing component. Guessing without them wastes the afternoon.</li>
+          <li><b>How much disk is free?</b> A full drive puts the relational Data Store in read-only mode, and that one condition breaks publishing, hosted layers, and backups at the same time.</li>
+        </ul>
+        <p>Pick the symptom below. Three questions, about two minutes, and you get a ranked cause with the checks and the fix.</p>
+      </div>
+      <div class="symptoms" id="symptoms"></div>
+    </div>
+
+    <div id="quiz" style="display:none">
+      <p class="progresstext" id="progresstext"></p>
+      <div class="progress"><i id="progbar"></i></div>
+      <div id="qbox"></div>
+    </div>
+
+    <div id="result" style="display:none"></div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>ArcGIS Enterprise Troubleshooting Agent, a working diagnostic by <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Janaki Gattu</a>, Enterprise GIS Consultant &amp; GIS Solutions Architect. Grounded in Esri&rsquo;s administration documentation and ten years administering ArcGIS Enterprise. Still stuck after the fix? <a href="mailto:gjanaki360@gmail.com?subject=ArcGIS%20Enterprise%20troubleshooting">Email gjanaki360@gmail.com</a> or <a href="https://janakigattu.github.io/">visit the portfolio</a>.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  var ESRI_COMMON = "https://enterprise.arcgis.com/en/portal/latest/administer/windows/common-problems-and-solutions.htm";
+  var ESRI_SUPPORT = "https://support.esri.com";
+  var MONITOR_GUIDE = "https://janakigattu.github.io/resources/arcgis-monitor-guide.pdf";
+
+  var SYMPTOMS = [
+    {
+      id:"start", num:"01", name:"Portal or Server will not start, or a service will not start",
+      desc:"The site is down, a service shows stopped or in error, or everything starts and then stops again.",
+      questions:[
+        {q:"What exactly will not start?",
+         sub:"The answer splits the causes fast. A hosted layer failing is a different problem from a site that will not come up.",
+         opts:[
+           {label:"The portal site itself will not come up", w:{cert:2, patch:2, crash:1}},
+           {label:"One service shows stopped or in error", w:{crash:2, disk:1}},
+           {label:"Everything starts, then stops again within minutes", w:{crash:2, disk:2}},
+           {label:"Publishing a hosted layer fails, but everything else runs", w:{disk:3}}
+         ]},
+        {q:"What changed most recently?",
+         sub:"Most failures start right after a change. If nothing changed, look at disk space and the logs first.",
+         opts:[
+           {label:"Nothing changed", w:{crash:2, disk:1}},
+           {label:"We changed the SSL certificate", w:{cert:3}},
+           {label:"We patched or upgraded", w:{patch:3}},
+           {label:"Disk space ran low, or a drive filled up", w:{disk:3}}
+         ]},
+        {q:"What do the logs say?",
+         sub:"The Portal logs and the Server logs name the failing component. If you have not looked, that is step one.",
+         opts:[
+           {label:"A message about disk space, or the relational store in read-only mode", w:{disk:3}},
+           {label:"A certificate error", w:{cert:3}},
+           {label:"The service failed to start, with no clear reason given", w:{crash:2, patch:1}},
+           {label:"We have not checked the logs yet", w:{}}
+         ]}
+      ],
+      causes:[
+        {id:"disk", name:"Relational Data Store in read-only mode from low disk space",
+         why:"When free disk space for the relational store drops below 1024 MB, Esri places the store in read-only mode. Publishing, hosted layers, and backups all fail at once, which is why this looks like several problems when it is one.",
+         checks:["Check the ArcGIS Data Store log for the message about disk space below 1024 MB and the store going read-only","Check free space on the drive that holds the Data Store","Check whether old backups or log files are filling the same drive"],
+         fix:["Free disk space on the Data Store drive: move old backups elsewhere and clear old logs","Place the relational store back in read-write mode","Publish the hosted layer again and confirm it succeeds","Set a disk-space alert so this is caught at 20 percent free, not at zero"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}},
+        {id:"cert", name:"SSL certificate changed or misconfigured",
+         why:"After a new custom SSL certificate is configured, the portal can become inaccessible if the certificate does not match the machine, is expired, or was imported with the wrong name or password. Esri documents this as a known recovery case.",
+         checks:["Did the problem start right after the certificate change","Check the certificate expiry date and the machine name it was issued for","Try the portal over its internal address to see whether the certificate or the site is the problem"],
+         fix:["Follow the certificate recovery steps in Esri's common administration questions","Re-import the certificate with the correct name, password, and machine name","Restart the portal and confirm the site answers over HTTPS","Record the expiry date and set a renewal reminder 30 days ahead"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}},
+        {id:"patch", name:"A component failed after a patch or upgrade",
+         why:"Upgrades run component by component, in a fixed order. If one component is on a different version from the rest, or an upgrade step was skipped, the site can fail to start.",
+         checks:["List the version of every component: Portal, Server, Data Store, Web Adaptor, and any federated servers","Check the upgrade log for the step that failed","Confirm the components were upgraded in Esri's order, not in parallel"],
+         fix:["Bring the failed component to the same version as the rest, following Esri's component order","If the deployment will not come up, restore the pre-upgrade WebGISDR backup to a test environment and plan the upgrade again","Test the next upgrade in a non-production environment first"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}},
+        {id:"crash", name:"A service crashed under load, or the machine ran out of memory",
+         why:"A service that needs restarting every week is not a healthy service. It is a symptom. Memory pressure, a runaway process, or too few instances for the load will stop a service and keep stopping it.",
+         checks:["Check memory and CPU on the machine at the time the service stopped","Check the Server logs for the service that stopped, and for the minutes before it stopped","Check whether the service restarts cleanly by hand, and how long it stays up"],
+         fix:["Restart the service from Server Manager and watch how long it stays up","If it crashes under load, raise the service instance count or the memory limit for that service","Find the cause in the logs instead of treating the restart as the fix","Set a Monitor alert on the service state so the next failure pages someone instead of waiting for a user to report it"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}}
+      ]
+    },
+    {
+      id:"slow", num:"02", name:"Maps and apps load slowly or time out",
+      desc:"Tiles draw one square at a time, queries time out, or the whole portal feels slow.",
+      questions:[
+        {q:"When is it slow?",
+         sub:"Always slow points at the data or the service. Slow only at busy times points at load or capacity.",
+         opts:[
+           {label:"All the time, even with one user", w:{query:2, build:1}},
+           {label:"Only at busy times of day", w:{load:2, capacity:2}},
+           {label:"Only one map or one service", w:{query:2, build:1}},
+           {label:"It started after a change", w:{build:2, query:1}}
+         ]},
+        {q:"What does the slow service depend on?",
+         sub:"A map is only as fast as its slowest dependency. Name the dependency before you tune anything.",
+         opts:[
+           {label:"A database", w:{query:3}},
+           {label:"Cached tiles", w:{build:2, load:1}},
+           {label:"An external service or feed", w:{capacity:1, load:1}},
+           {label:"Not sure", w:{}}
+         ]},
+        {q:"What do you see when it is slow?",
+         sub:"The symptom you see is the clue. Tiles drawing slowly and queries timing out are different failures.",
+         opts:[
+           {label:"Tiles draw one square at a time", w:{load:2, build:1}},
+           {label:"Queries time out", w:{query:2}},
+           {label:"The whole portal is slow, not just one map", w:{capacity:2, load:1}},
+           {label:"Only some users see it", w:{capacity:1, load:1}}
+         ]}
+      ],
+      causes:[
+        {id:"query", name:"Slow database query behind the service",
+         why:"A map service that joins a large table, filters on an unindexed field, or pulls every row before filtering will be slow for every user, at every hour.",
+         checks:["Run the query behind the slow layer directly in the database and time it","Check whether the fields the map filters on have an index","Check whether the layer joins a large table, or pulls in data it never draws"],
+         fix:["Add an index on the fields the map filters and joins on","Move the query into a materialised view, or publish a layer that holds only what the map needs","Retest the draw time with one user before calling it fixed"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}},
+        {id:"load", name:"Dynamic service drawing under load, with no cache",
+         why:"A dynamic service draws every tile on request. At busy times the same tiles are drawn again and again, and the queue grows faster than the service can clear it.",
+         checks:["Is the service cached, or does it draw on every request","Check request counts and draw times in ArcGIS Monitor for the busy hours","Check how many instances the service is allowed to run"],
+         fix:["Cache the service if it changes rarely, and build the cache outside working hours","Raise the instance count for the busy service so requests stop queueing","Use Monitor to find the busy hours, and schedule heavy work outside them"],
+         source:{label:"ArcGIS Monitor guide (Janaki Gattu)", url:MONITOR_GUIDE}},
+        {id:"build", name:"A cache build is still running",
+         why:"Esri notes that a map cache can take a long time to build. While it runs, tiles are drawn on demand, so the map feels slow even though nothing is broken.",
+         checks:["Check the cache status in Server Manager to see whether a build is running","Check whether the slow areas are the ones with no tiles built yet","Check when the cache build started, and at which scales"],
+         fix:["Let the build finish. Schedule cache builds outside working hours","Build at fewer scales first, and add the rest later","Do not restart the service mid-build. It restarts the work, not the wait"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}},
+        {id:"capacity", name:"The server machine is under-provisioned, or shared with other work",
+         why:"When the whole portal is slow, the problem is usually capacity, not one service. GIS machines that also run other software, or that were sized for a smaller team, run out of CPU or memory at busy times.",
+         checks:["Check CPU and memory on the GIS machines during the slow period","Check what else runs on the same machines","Check the number of service instances against the number of users at peak"],
+         fix:["Move heavy non-GIS work off the GIS machines","Raise instances for the services people use most, and retire services nobody opens","Use Monitor to record the busy hours, and size the next hardware change on those numbers, not on a guess"],
+         source:{label:"ArcGIS Monitor guide (Janaki Gattu)", url:MONITOR_GUIDE}}
+      ]
+    },
+    {
+      id:"signin", num:"03", name:"Users cannot sign in, or get access denied",
+      desc:"Sign-in fails for everyone, for one user, or only for users from one identity provider.",
+      questions:[
+        {q:"Who is affected?",
+         sub:"Everyone failing points at a setting. One user failing points at that account. One provider failing points at the identity store.",
+         opts:[
+           {label:"Everyone", w:{sso:2, store:1}},
+           {label:"One user, or a few", w:{store:2, account:2}},
+           {label:"Only users from one identity provider", w:{store:2, saml:1}},
+           {label:"Only after a change to the sign-in settings", w:{sso:3}}
+         ]},
+        {q:"How do your users sign in?",
+         sub:"The identity store decides which failure is possible. Built-in accounts, Active Directory, SAML, and OpenID Connect fail in different ways.",
+         opts:[
+           {label:"Built-in ArcGIS accounts", w:{sso:1, account:1}},
+           {label:"Active Directory or LDAP", w:{store:3}},
+           {label:"SAML", w:{saml:3}},
+           {label:"OpenID Connect", w:{sso:2}}
+         ]},
+        {q:"What happens when they try?",
+         sub:"The exact message is the diagnosis. Copy it word for word before you change anything.",
+         opts:[
+           {label:"The built-in sign-in button is gone", w:{sso:3}},
+           {label:"Invalid username or password", w:{account:2, store:1}},
+           {label:"The user is not found in the identity store", w:{store:3}},
+           {label:"They sign in, then lose their groups overnight", w:{saml:3}}
+         ]}
+      ],
+      causes:[
+        {id:"sso", name:"Built-in logins switched off when single sign-on was set to SSO-only",
+         why:"When sign-in is configured to use only OpenID Connect or only SAML, and built-in ArcGIS accounts are turned off, the built-in sign-in button disappears. Esri documents the recovery: the enableArcgisLogins script in the portal tools/security folder turns built-in logins back on.",
+         checks:["Was single sign-on set to SSO-only recently","Can anyone sign in with a built-in ArcGIS account","Does the sign-in page still show the built-in account button"],
+         fix:["Run the enableArcgisLogins script from the portal tools/security folder","Confirm the sign-in page shows both the identity provider button and the built-in account button","Decide in writing which accounts should use single sign-on and which stay built-in, and keep that list with the runbook"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}},
+        {id:"store", name:"Identity store out of date after an Active Directory or LDAP change",
+         why:"When a user is deleted from Active Directory or LDAP, the portal removes them from linked groups at the next identity store refresh, usually at midnight, but the member is not removed from the identity store. The administrator must reassign the items and delete the account. The same refresh removes members when a linked LDAP group is renamed or deleted.",
+         checks:["Is the user still in Active Directory or LDAP","When did the identity store last refresh","Does the user still show in the portal member list, and do they still own items"],
+         fix:["Wait for the next scheduled refresh, or trigger the identity store update","Reassign the items owned by the stale account, then delete the account to free the licence","Add a step to the leaver process: remove the account from the portal on the day the person leaves, not at the next quarterly review"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}},
+        {id:"saml", name:"SAML group membership removed overnight",
+         why:"Esri documents this exact case: after switching the security configuration to SAML, all SAML users are removed from their SAML-based groups every night. It is a group identity store setting, not a user error.",
+         checks:["Are SAML users losing group membership every night, on a schedule","Check the group identity store settings for the SAML configuration","Check whether the SAML groups are linked to the right portal groups"],
+         fix:["Follow the SAML group steps in Esri's common administration questions","Confirm the identity store is set to use SAML-based group membership","Reassign the affected users to their groups, then watch one overnight refresh before calling it fixed"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}},
+        {id:"account", name:"Account locked, expired, or password changed on the identity provider",
+         why:"The portal cannot sign in a user whose account is locked or expired on the identity provider. The portal is reporting the provider's answer, not making its own decision.",
+         checks:["Can the user sign in to another system with the same account","Has the password expired, or was it changed recently","Is the account locked in Active Directory or on the identity provider"],
+         fix:["Unlock the account, or reset the password, on the identity provider","Ask the user to sign in again and confirm it works","If one user keeps failing while others work, check that account specifically instead of changing the portal settings for everyone"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}}
+      ]
+    },
+    {
+      id:"federate", num:"04", name:"Federating a server fails, or the hosting server shows errors",
+      desc:"The Add ArcGIS Server dialog reports an error communicating with the server, or the credentials are rejected.",
+      questions:[
+        {q:"What error do you see?",
+         sub:"Copy the error word for word. Esri's guidance for this dialog is written around the exact message.",
+         opts:[
+           {label:"There was an error communicating with the server. Please check your URL and your credentials and try again.", w:{url:2, protocol:1, firewall:1}},
+           {label:"It worked before, and now it fails", w:{protocol:2, firewall:1}},
+           {label:"The credentials are rejected", w:{admin:3}},
+           {label:"The hosting server validates, then shows an error", w:{protocol:1, firewall:1}}
+         ]},
+        {q:"What did you enter as the Server URL?",
+         sub:"The Server URL must be the Web Adaptor address when a Web Adaptor is present, or the direct address when there is none. And it must use the fully qualified domain name.",
+         opts:[
+           {label:"The Web Adaptor address, with the fully qualified domain name", w:{}},
+           {label:"A direct address with port 6080", w:{url:1}},
+           {label:"A short machine name, with no domain", w:{url:3}},
+           {label:"Not sure", w:{url:1}}
+         ]},
+        {q:"What changed most recently?",
+         sub:"Federation breaks when the certificate, the protocol, or the firewall changes. It rarely breaks on its own.",
+         opts:[
+           {label:"Nothing changed", w:{firewall:1, admin:1}},
+           {label:"We changed the certificate", w:{protocol:1, url:1}},
+           {label:"We changed the communication protocol to HTTPS only", w:{protocol:3}},
+           {label:"A firewall rule changed", w:{firewall:3}}
+         ]}
+      ],
+      causes:[
+        {id:"url", name:"Wrong Server URL or Administrator URL, or no fully qualified domain name",
+         why:"Esri lists this first for the federation error: the Server URL or Administrator URL is incorrect or unreachable. When a Web Adaptor is present, the Server URL is the Web Adaptor address. When there is none, it is the same as the Administrator URL. The URL must include the fully qualified domain name.",
+         checks:["Is the Server URL the Web Adaptor address, or the direct 6080 address when there is no Web Adaptor","Does the URL include the fully qualified domain name","Can the portal machine reach that URL in a browser"],
+         fix:["Correct the Server URL and the Administrator URL, using the fully qualified domain name","If the site has a Web Adaptor, use the Web Adaptor address as the Server URL","Try the federation again, and copy the exact error if it still fails"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}},
+        {id:"protocol", name:"Communication protocol mismatch between Portal and Server",
+         why:"If the portal requires HTTPS for all communication, the server must also be configured as HTTPS only. If the portal does not require HTTPS, the server should be HTTP and HTTPS. And when a Web Adaptor is present, it must be reconfigured with the server after the protocol changes.",
+         checks:["Do the protocol settings match on Portal and on Server","Was the Web Adaptor reconfigured with the server after the protocol changed","Does the portal require HTTPS while the server still allows HTTP"],
+         fix:["Set both sides to the same protocol","Reconfigure the Web Adaptor with ArcGIS Server after changing the protocol","Try the federation again"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}},
+        {id:"firewall", name:"Firewall blocking traffic between Portal and Server",
+         why:"The portal and the server must be able to reach each other. Esri points to the ports used by Portal and by Server, and a firewall change is the usual reason a federation that worked yesterday fails today.",
+         checks:["Can the portal machine reach the server URL, and can the server reach the portal","Did a firewall rule change recently","Are the ports Esri lists for Portal and Server open between the machines"],
+         fix:["Open the ports Esri lists for Portal for ArcGIS and for ArcGIS Server between the two machines","Confirm the change with a connection test from each machine to the other","Record the ports in the runbook so the next firewall change does not break federation again"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}},
+        {id:"admin", name:"Wrong primary site administrator account",
+         why:"Federation needs the primary site administrator account, the one used to first sign in to ArcGIS Server Manager. No other account can be used. If that account was disabled, it must be re-enabled first.",
+         checks:["Is the account the primary site administrator account from the first Server Manager sign-in","Was that account disabled","Is the password the current one for that account"],
+         fix:["Use the primary site administrator account, with its current password","If it was disabled, re-enable it first","Keep the primary site administrator credentials in the password vault, not in one person's head"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}}
+      ]
+    },
+    {
+      id:"publish", num:"05", name:"Publishing a service fails",
+      desc:"A hosted feature layer fails with a database error, a geoprocessing service is restricted, or the published service never shows the update.",
+      questions:[
+        {q:"What are you publishing?",
+         sub:"The service type decides the failure. A hosted layer failing is a Data Store problem. A geoprocessing service failing is a restriction.",
+         opts:[
+           {label:"A hosted feature layer, and the error mentions a read-only transaction", w:{readonly:3}},
+           {label:"A geoprocessing service", w:{restricted:3}},
+           {label:"A map or feature service from Pro, referencing data in a file share", w:{share:3}},
+           {label:"An update to a service that already exists", w:{stale:2}}
+         ]},
+        {q:"When did it start failing?",
+         sub:"A failure that starts after a disk warning is a disk problem. A failure that has always happened for one service type is a setting.",
+         opts:[
+           {label:"After a disk-space warning", w:{readonly:3}},
+           {label:"It has always failed for this type of service", w:{restricted:2, share:1}},
+           {label:"After an upgrade or a move", w:{share:1, stale:1}},
+           {label:"It worked last week", w:{readonly:1, stale:1}}
+         ]},
+        {q:"What do the logs say?",
+         sub:"The Data Store log names the condition for a hosted layer failure. For other types, the publishing error itself is the clue.",
+         opts:[
+           {label:"Disk space below 1024 MB, or the store is read-only", w:{readonly:3}},
+           {label:"Publishing is restricted", w:{restricted:3}},
+           {label:"The data source cannot be reached", w:{share:3}},
+           {label:"Nothing checked yet", w:{}}
+         ]}
+      ],
+      causes:[
+        {id:"readonly", name:"Relational store in read-only mode from low disk space",
+         why:"Esri documents this exact error: publishing a hosted feature layer fails with Failed to create the service, Underlying DBMS error, cannot execute CREATE TABLE in a read-only transaction, and the Data Store log says available disk space for the relational store is less than 1024 MB. The store goes read-only to protect itself.",
+         checks:["Check the ArcGIS Data Store log for the disk space message","Check free space on the Data Store drive","Check whether the failure started after a disk-space warning"],
+         fix:["Free disk space on the Data Store drive","Place the relational store back in read-write mode","Publish the hosted layer again","Set a disk-space alert so this is caught at 20 percent free, not at zero"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}},
+        {id:"restricted", name:"Publishing of geoprocessing services is restricted",
+         why:"Esri documents this as a known case: publishing a geoprocessing service fails because the portal restricts it. It is a setting, not a broken service.",
+         checks:["Is the failing service a geoprocessing service","Check the portal settings for the publishing restriction","Check whether an administrator account can publish the same service"],
+         fix:["Lift the restriction in the portal settings, or publish with an administrator account","Confirm the service publishes, then decide in writing who should be allowed to publish geoprocessing services","Keep the restriction for other publishers if the team wants it, and give the publishing role to the right people"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}},
+        {id:"share", name:"Published data references a file share the server cannot reach",
+         why:"Esri documents this case: publishing from ArcGIS Pro fails when the resource references data in a file share. The server machine cannot see the share, or the folder is not registered with the server.",
+         checks:["Can the server machine open the file share","Is the folder registered with the server as a data store","Did the data move, or did the share path change"],
+         fix:["Register the folder with the server, or copy the data to a location the server can reach","Publish again from Pro, and confirm the service draws","Record the registered folders in the runbook so the next move does not break publishing"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}},
+        {id:"stale", name:"Stale cache, or the service was not restarted after the map changed",
+         why:"Esri documents this case: a map document is updated, the service is stopped and started, and the updates still do not show. The service is drawing the old cache, not the new map.",
+         checks:["Was the service restarted after the map changed","Is the service cached, and are the tiles from before the change","Does the map show the update in Pro, but not in the service"],
+         fix:["Restart the service after changing the map","Clear or rebuild the cache for the changed area","Confirm the update in the service before telling users it is live"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}}
+      ]
+    },
+    {
+      id:"webgisdr", num:"06", name:"A WebGISDR backup or restore fails, or never finishes",
+      desc:"The webgisdr utility never completes, a restore fails with a token error, or a backup fails on a missing item.",
+      questions:[
+        {q:"What fails?",
+         sub:"Backup and restore fail for different reasons. Name which one fails before you change anything.",
+         opts:[
+           {label:"The backup never finishes", w:{hangs:2, size:1}},
+           {label:"The restore fails with a token error", w:{token:3}},
+           {label:"The backup fails with an error about a missing item", w:{missing:3}},
+           {label:"Backups are eating the storage", w:{size:2}}
+         ]},
+        {q:"How big is the deployment?",
+         sub:"Large deployments fail differently from small ones. A token error on a restore is a large-deployment problem.",
+         opts:[
+           {label:"Small, a few hundred items", w:{hangs:1, missing:1}},
+           {label:"Large, content directory several gigabytes", w:{token:2, size:2}},
+           {label:"It grew a lot recently", w:{size:2, token:1}},
+           {label:"Not sure", w:{}}
+         ]},
+        {q:"What changed most recently?",
+         sub:"A backup that worked last month and fails now changed with the content, the storage, or the version.",
+         opts:[
+           {label:"Nothing changed", w:{hangs:1}},
+           {label:"We added a lot of content", w:{size:2}},
+           {label:"First backup after an upgrade", w:{token:1, missing:1}},
+           {label:"The backup location is nearly full", w:{size:1, hangs:1}}
+         ]}
+      ],
+      causes:[
+        {id:"token", name:"Large portal backup fails with a token error on restore",
+         why:"Esri documents this exact case: restoring a large portal backup fails with a token error. The restore outruns the token, not the data.",
+         checks:["How large is the portal content directory","Does the failure happen at restore, while the backup itself completes","Does the same backup restore in a test environment"],
+         fix:["Follow the large-restore steps in Esri's common administration questions","Restore in a test environment first, and time it","Record the working restore steps in the runbook, with the token setting that made it work"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}},
+        {id:"size", name:"Portal content directory grown to several gigabytes",
+         why:"Esri lists this as a known case: the portal content directory grows to several gigabytes, backups get slower and larger, and the backup drive fills up. Old content, not new work, is usually most of it.",
+         checks:["How large is the portal content directory, and how fast is it growing","How much of it is items nobody has opened in a year","How much free space is left on the backup location"],
+         fix:["Clean up the content directory: retire items nobody has opened in a year, and archive what must be kept","Move old backups off the backup drive","Set a size alert on the content directory so growth is noticed before the next backup fails"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}},
+        {id:"missing", name:"Missing item error during backup",
+         why:"Esri documents this case: a backup fails with an error about a missing item. One item in the portal points at something that is no longer there, and the backup stops on it.",
+         checks:["Which item does the error name","Is that item still in the portal, and does its data source still exist","When was the item last opened or changed"],
+         fix:["Remove or repair the named item, then run the backup again","Check for other items that point at missing data before the next backup","Add a content check to the quarterly routine so broken items are found before the backup finds them"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}},
+        {id:"hangs", name:"The webgisdr utility never completes",
+         why:"Esri documents this case: the webgisdr utility runs to create or restore a backup and never completes. It is usually still working, still waiting, or out of room, not crashed.",
+         checks:["Is the utility still running, or has it stopped","Check free space on the backup location","Check the utility log for the last step it reached"],
+         fix:["Check the log before stopping the utility. Stopping a running backup can leave a partial backup behind","Free space on the backup location and run the backup at a quiet time","If it still hangs, open a case with Esri Support and include the utility log and the version"],
+         source:{label:"Esri: Common administration questions", url:ESRI_COMMON}}
+      ]
+    }
+  ];
+
+  var intro = document.getElementById("intro");
+  var quiz = document.getElementById("quiz");
+  var resultBox = document.getElementById("result");
+  var qbox = document.getElementById("qbox");
+  var progbar = document.getElementById("progbar");
+  var progtext = document.getElementById("progresstext");
+  var symptomBox = document.getElementById("symptoms");
+  var symptom = null;
+  var step = 0;
+  var answers = [];
+  var scores = {};
+
+  function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  function renderSymptoms(){
+    var html = "";
+    SYMPTOMS.forEach(function(s, i){
+      html += '<button class="symptom" type="button" data-i="' + i + '"><span class="num">Symptom ' + s.num + '</span><h3>' + esc(s.name) + '</h3><p>' + esc(s.desc) + '</p></button>';
+    });
+    symptomBox.innerHTML = html;
+    var btns = symptomBox.querySelectorAll(".symptom");
+    btns.forEach(function(b){
+      b.addEventListener("click", function(){
+        symptom = SYMPTOMS[parseInt(b.getAttribute("data-i"), 10)];
+        start();
+      });
+    });
+  }
+
+  function start(){
+    step = 0; answers = []; scores = {};
+    intro.style.display = "none";
+    resultBox.style.display = "none";
+    quiz.style.display = "block";
+    renderQ();
+    window.scrollTo(0, 0);
+  }
+
+  function renderQ(){
+    var item = symptom.questions[step];
+    progbar.style.width = Math.round(step / symptom.questions.length * 100) + "%";
+    progtext.textContent = "Symptom: " + symptom.name + "  |  Question " + (step + 1) + " of " + symptom.questions.length;
+    var html = '<div class="qcard"><p class="qnum">' + esc(symptom.name) + '</p><h2>' + esc(item.q) + '</h2><p>' + esc(item.sub) + '</p><div class="opts">';
+    item.opts.forEach(function(o, i){
+      html += '<button class="opt" type="button" data-i="' + i + '">' + esc(o.label) + '</button>';
+    });
+    html += '</div>';
+    if(step > 0){ html += '<button class="backbtn" type="button" id="qback">Back to the previous question</button>'; }
+    else { html += '<button class="backbtn" type="button" id="qback">Back to the symptom list</button>'; }
+    html += '</div>';
+    qbox.innerHTML = html;
+    var btns = qbox.querySelectorAll(".opt");
+    btns.forEach(function(b){
+      b.addEventListener("click", function(){
+        var o = item.opts[parseInt(b.getAttribute("data-i"), 10)];
+        answers[step] = {q:item.q, label:o.label};
+        Object.keys(o.w).forEach(function(k){ scores[k] = (scores[k] || 0) + o.w[k]; });
+        step++;
+        if(step < symptom.questions.length){ renderQ(); } else { renderResult(); }
+      });
+    });
+    document.getElementById("qback").addEventListener("click", function(){
+      if(step > 0){ step--; renderQ(); }
+      else {
+        quiz.style.display = "none";
+        intro.style.display = "block";
+        window.scrollTo(0, 0);
+      }
+    });
+  }
+
+  function renderResult(){
+    progbar.style.width = "100%";
+    progtext.textContent = "Diagnosis complete";
+    var ranked = symptom.causes.slice().sort(function(a, b){
+      return (scores[b.id] || 0) - (scores[a.id] || 0);
+    });
+    var top = ranked[0];
+    var second = ranked[1];
+    var topScore = scores[top.id] || 0;
+
+    var html = '<div class="result">';
+    if(topScore === 0){
+      html += '<h2>Not enough signal yet</h2><p>Your answers did not point at one cause. That happens when the logs have not been checked yet, or when nothing changed recently. Run the three first checks below, then come back and answer again.</p>';
+      html += '<h3>Three first checks</h3><ol>';
+      html += '<li><b>Check the disk space</b> on every machine in the deployment, especially the Data Store drive. Below 1024 MB free for the relational store, it goes read-only.</li>';
+      html += '<li><b>Read the logs</b> from the time the problem started: the Portal logs and the Server logs. Copy the exact error text.</li>';
+      html += '<li><b>Ask what changed</b> in the last day: a certificate, a patch, an upgrade, a firewall rule, a password, a data move.</li>';
+      html += '</ol>';
+    } else {
+      html += '<span class="pill green">Most likely cause</span><h2>' + esc(top.name) + '</h2><p>' + esc(top.why) + '</p>';
+      html += '<div class="cause"><h4>Checks that confirm it</h4><ul>';
+      top.checks.forEach(function(c){ html += '<li>' + esc(c) + '</li>'; });
+      html += '</ul><h4 style="margin-top:14px">The fix</h4><ol>';
+      top.fix.forEach(function(f){ html += '<li>' + esc(f) + '</li>'; });
+      html += '</ol><p style="margin-top:12px;font-size:.92rem">Source: <a href="' + top.source.url + '" target="_blank" rel="noopener">' + esc(top.source.label) + '</a></p></div>';
+
+      if((scores[second.id] || 0) > 0){
+        html += '<h3>Also worth checking</h3><div class="cause"><h4>' + esc(second.name) + '</h4><p>' + esc(second.why) + '</p><p style="margin-top:10px"><b>First check:</b> ' + esc(second.checks[0]) + '</p><p style="margin-top:8px;font-size:.92rem">Source: <a href="' + second.source.url + '" target="_blank" rel="noopener">' + esc(second.source.label) + '</a></p></div>';
+      }
+
+      html += '<h3>When to open a case with Esri Support</h3><ul>';
+      html += '<li>If the fix above does not work, or the same failure returns within a week.</li>';
+      html += '<li>Send the symptom, the version of every component, the exact error text copied from the log, and what changed most recently. That is the whole case. Support will ask for those four things first.</li>';
+      html += '<li><a href="' + ESRI_SUPPORT + '" target="_blank" rel="noopener">Esri Support</a> is the route for a failure the documentation does not cover.</li>';
+      html += '</ul>';
+    }
+
+    html += '<h3>Your answers</h3><ul>';
+    html += '<li><b>Symptom:</b> ' + esc(symptom.name) + '</li>';
+    answers.forEach(function(a){
+      html += '<li><b>' + esc(a.q) + '</b> ' + esc(a.label) + '</li>';
+    });
+    html += '</ul>';
+
+    var mailSubject = encodeURIComponent("ArcGIS Enterprise troubleshooting: " + symptom.name);
+    html += '<div class="cta"><a class="btn-dark" href="mailto:gjanaki360@gmail.com?subject=' + mailSubject + '">Email Janaki about this symptom</a><a class="btn-outline" href="https://janakigattu.github.io/#book">Book a Session</a></div>';
+    html += '<p style="margin-top:18px;font-size:.9rem">Still stuck after the fix? Email Janaki at <a href="mailto:gjanaki360@gmail.com">gjanaki360@gmail.com</a> with the symptom, the diagnosis above, and the exact error text from your log. This agent is a starting point drawn from Esri&rsquo;s administration documentation. It does not replace testing a fix in your own environment.</p>';
+    html += '<p style="margin-top:16px"><button class="btn" type="button" id="restartbtn">Diagnose another symptom</button></p>';
+
+    html += '<div class="sources"><h3 style="margin-top:0">Sources</h3><p><a href="' + ESRI_COMMON + '" target="_blank" rel="noopener">Esri: Common administration questions</a> (ArcGIS Enterprise documentation, verified live 2026-11-25: federation errors, SSL certificate recovery, sign-in and identity store behaviour, Data Store read-only mode, publishing errors, WebGISDR failures). <a href="' + ESRI_SUPPORT + '" target="_blank" rel="noopener">Esri Support</a>. <a href="' + MONITOR_GUIDE + '" target="_blank" rel="noopener">ArcGIS Monitor guide</a> (Janaki Gattu, portfolio PDF).</p></div>';
+    html += '</div>';
+    resultBox.innerHTML = html;
+    resultBox.style.display = "block";
+    quiz.style.display = "none";
+    window.scrollTo(0, 0);
+    document.getElementById("restartbtn").addEventListener("click", function(){
+      resultBox.style.display = "none";
+      intro.style.display = "block";
+      window.scrollTo(0, 0);
+    });
+  }
+
+  renderSymptoms();
+})();
+</script>
+</body>
+</html>
