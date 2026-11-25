@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enterprise GIS Health Check — a working assessment by Janaki Gattu</title>
+<meta name="description" content="A working Enterprise GIS Health Check by Janaki Gattu. Answer 10 questions across 7 platform health areas and get a readiness score, a red, amber, or green status per area, and the top gaps to close. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  .areas{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:24px 0}
+  .area{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .area h3{font-size:1rem;margin-bottom:4px}
+  .area p{color:var(--muted);font-size:.92rem}
+  .startbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px}
+  .startbox h2{font-size:1.35rem;margin-bottom:8px}
+  .startbox p{color:var(--muted);margin-bottom:14px}
+  .startbox ul{margin:0 0 20px 20px;color:#d4d4d4}
+  .startbox li{margin-bottom:6px}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer}
+  .btn-dark{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a}
+  .btn-outline{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;border:1px solid #525252;color:var(--text);margin-left:10px}
+  .progress{height:8px;background:var(--bg2);border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-bottom:22px}
+  .progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s ease}
+  .progresstext{color:var(--faint);font-size:.9rem;margin-bottom:8px}
+  .qcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px}
+  .qcard .qnum{color:var(--accent);font-weight:800;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase}
+  .qcard h2{font-size:1.35rem;margin:8px 0 6px;line-height:1.3}
+  .qcard p{color:var(--muted);margin-bottom:18px}
+  .opts{display:flex;flex-direction:column;gap:10px}
+  .opt{text-align:left;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:12px;padding:14px 18px;font-size:1rem;cursor:pointer}
+  .opt:hover{border-color:var(--accent)}
+  .backbtn{margin-top:16px;background:none;border:0;color:var(--muted);cursor:pointer;font-size:.95rem;text-decoration:underline}
+  .result{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px}
+  .score{font-size:3rem;font-weight:800;line-height:1;color:var(--accent)}
+  .score.red{color:var(--red)}
+  .score.amber{color:var(--amber)}
+  .result h2{font-size:1.4rem;margin:10px 0}
+  .result h3{margin:22px 0 8px;font-size:1.1rem}
+  .result p{color:var(--muted)}
+  .result ul{margin-left:20px;color:#d4d4d4}
+  .result li{margin-bottom:6px}
+  .result .cta{margin-top:24px}
+  .areagrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:12px}
+  .arearesult{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .arearesult h4{font-size:.98rem;margin-bottom:2px}
+  .arearesult p{font-size:.9rem;color:var(--muted)}
+  .pill{display:inline-block;font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:6px}
+  .pill.green{background:#14532d;color:#bbf7d0}
+  .pill.amber{background:#451a03;color:#fde68a}
+  .pill.red{background:#450a0a;color:#fecaca}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+  @media (max-width:600px){.btn-outline{margin-left:0;margin-top:10px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu&rsquo;s portfolio</a>
+    <p class="eyebrow">Working assessment &middot; Live demo</p>
+    <h1>Enterprise GIS Health Check</h1>
+    <p class="lede">Most teams only check their ArcGIS Enterprise deployment after something breaks, usually on a Monday morning. <b>Take ten minutes now and find the cracks before they break.</b></p>
+    <p class="honest"><b>How this assessment works, honestly:</b> it runs entirely in your browser. There is no server, no API key, no account, and nothing you answer leaves this page. Your score is calculated here, on this device, and it is not stored or sent anywhere.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <div id="intro">
+      <div class="areas">
+        <div class="area"><h3>1. Uptime and monitoring</h3><p>Portal, Server, and the Data Store running and responding, with logs someone actually reads.</p></div>
+        <div class="area"><h3>2. Backups and disaster recovery</h3><p>Backups you have restored, not just backups you have taken.</p></div>
+        <div class="area"><h3>3. Security and access control</h3><p>Who has access, and to what. No accounts for people who left months ago.</p></div>
+        <div class="area"><h3>4. Data quality</h3><p>Broken layers and content nobody owns, found before a user finds them mid-task.</p></div>
+        <div class="area"><h3>5. Performance</h3><p>Which services are slow, and when. What people use, and what nobody has opened in a year.</p></div>
+        <div class="area"><h3>6. Upgrades and patches</h3><p>Patch lag closed before it becomes a support and security problem.</p></div>
+        <div class="area"><h3>7. Documentation and governance</h3><p>Runbooks, owners, and a short ranked list of fixes with a date for each one.</p></div>
+      </div>
+      <div class="startbox">
+        <h2>What you get in about five minutes</h2>
+        <p>Ten questions, one at a time. At the end you get a score out of 100, a red, amber, or green status for each of the seven areas, your top three gaps to close, and recommended next steps.</p>
+        <ul>
+          <li>A light check every quarter, and a deeper one once a year. That rhythm is the point.</li>
+          <li>The result is a short list of fixes, ranked by risk, with an owner and a date for each one. Not fifty items. Five or six, the ones that matter most.</li>
+          <li>If you are not sure where to start, start with one area this week. Pick the one that worries you most.</li>
+        </ul>
+        <button class="btn" id="startbtn" type="button">Start the health check</button>
+        <p style="margin-top:14px;font-size:.9rem">Built from the Enterprise GIS Weekly episode, ArcGIS Enterprise Health Check: Find the Cracks Before They Break, and Janaki Gattu&rsquo;s work administering ArcGIS Enterprise. A healthy system is not a lucky system. It is a checked system.</p>
+      </div>
+    </div>
+
+    <div id="quiz" style="display:none">
+      <p class="progresstext" id="progresstext"></p>
+      <div class="progress"><i id="progbar"></i></div>
+      <div id="qbox"></div>
+    </div>
+
+    <div id="result" style="display:none"></div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Enterprise GIS Health Check — a working assessment by <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Janaki Gattu</a>, Enterprise GIS Consultant &amp; GIS Solutions Architect. Grounded in the Enterprise GIS Weekly health check episode. Questions about your own platform? <a href="mailto:gjanaki360@gmail.com?subject=Enterprise%20GIS%20Health%20Check%20score">Email gjanaki360@gmail.com</a> or <a href="https://janakigattu.github.io/">visit the portfolio</a>.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  var AREAS = [
+    {id:"uptime", name:"Uptime and monitoring"},
+    {id:"backup", name:"Backups and disaster recovery"},
+    {id:"security", name:"Security and access control"},
+    {id:"data", name:"Data quality"},
+    {id:"performance", name:"Performance"},
+    {id:"upgrades", name:"Upgrades and patches"},
+    {id:"governance", name:"Documentation and governance"}
+  ];
+
+  var QUESTIONS = [
+    {area:"uptime", q:"How do you know Portal, Server, and the Data Store are healthy?",
+     sub:"A health check is a structured look at the whole deployment, not just whether the machines are running.",
+     opts:[
+       {label:"Monitoring and alerts watch them continuously, and someone reviews the logs on a schedule", pts:10, fix:"Keep the routine going. Review alert thresholds when usage changes so real problems still stand out."},
+       {label:"Someone checks them by hand every week or so", pts:6, fix:"Move the routine checks to monitoring with alerts, so a failure is caught before a user reports it."},
+       {label:"We usually find out when a user reports a problem", pts:2, fix:"Set up monitoring and alerts for Portal, Server, and the Data Store, and assign someone to review the logs each week."},
+       {label:"We do not check them unless something stops working", pts:0, fix:"Start this week: check that Portal, Server, and the Data Store are running and responding, check disk space, and read the recent logs for errors nobody has looked at."}
+     ]},
+    {area:"uptime", q:"How often does a service need restarting to work again?",
+     sub:"A service that needs restarting every week is not a healthy service. It is a symptom.",
+     opts:[
+       {label:"Almost never. Restarts are planned, not routine fixes", pts:10, fix:"Keep a note of any restart and its cause, so a pattern shows up early if one starts."},
+       {label:"About once a month", pts:6, fix:"Find the cause behind the monthly restart instead of treating the restart as the fix. Check the logs from the time it failed."},
+       {label:"Every week or so. Restarting has become the fix", pts:0, fix:"Treat this as a warning sign. Investigate the cause now: logs, disk space, memory, and the services that fail first."}
+     ]},
+    {area:"backup", q:"When was the last time your team actually restored a backup?",
+     sub:"Most teams know they take backups. Far fewer have actually restored one. A backup you have never restored is a hope, not a plan.",
+     opts:[
+       {label:"Within the last year, and the restore worked", pts:10, fix:"Keep the restore test on the annual schedule, and record how long it took."},
+       {label:"We take backups, but we have never restored one", pts:3, fix:"Run a restore test in a non-production environment this quarter. Until then, do not count the backup as a recovery plan."},
+       {label:"We are not sure backups are running, or when they last ran", pts:0, fix:"Check today that backups are running and completing. Then schedule a restore test and write down the result."}
+     ]},
+    {area:"backup", q:"If this system failed tonight, how long would it take to bring it back?",
+     sub:"A health check asks the uncomfortable question: how long would recovery take, and has anyone proved that recently?",
+     opts:[
+       {label:"We know, because we have tested it and timed it", pts:10, fix:"Keep the tested time current. Re-test after major changes to the deployment."},
+       {label:"We have a rough estimate, but it has never been proved", pts:5, fix:"Prove the estimate with a restore drill, and record the real time it takes."},
+       {label:"Nobody can say", pts:0, fix:"Make this the first gap to close. A restore drill gives you the answer, and it usually finds the missing steps before a real failure does."}
+     ]},
+    {area:"security", q:"How often do you review who has access, and to what?",
+     sub:"Permissions creep is quiet. Someone gets access for one project, and nobody ever takes it away.",
+     opts:[
+       {label:"On a schedule, at least quarterly, and accounts are closed promptly when people leave", pts:10, fix:"Keep the schedule. Check for accounts that have not signed in for a long time as part of each review."},
+       {label:"About once a year, or when someone asks", pts:6, fix:"Move the review to a quarterly rhythm, and close accounts for people who have left as soon as they leave."},
+       {label:"We do not review access on a schedule", pts:0, fix:"Pull the account list this week. Look for accounts for people who left months ago, and for access granted for a finished project."}
+     ]},
+    {area:"security", q:"What happens to access granted for one project when the project ends?",
+     sub:"Access for one project should end with that project.",
+     opts:[
+       {label:"It is removed as part of closing the project", pts:10, fix:"Keep that step in the project closeout checklist so it does not depend on one person remembering it."},
+       {label:"It usually stays. Removing it depends on someone remembering", pts:4, fix:"Add access removal to the project closeout checklist, and review project access in the next quarterly access review."},
+       {label:"Nobody owns that decision", pts:0, fix:"Name one owner for access reviews, and give them the account and permission lists to work from."}
+     ]},
+    {area:"data", q:"How do you find broken layers and content nobody owns any more?",
+     sub:"Every portal accumulates items. Some point at data sources that moved, or that no longer exist.",
+     opts:[
+       {label:"We check on a schedule, fix or retire broken items, and confirm an owner for each one", pts:10, fix:"Keep the schedule. A quarterly content check stops the portal slowly filling with items nobody can vouch for."},
+       {label:"We check now and then, when we have time", pts:6, fix:"Put the content check on the quarterly schedule: broken layers, items with no owner, and items nobody has opened in a year."},
+       {label:"Users find the broken layers in the middle of their work", pts:2, fix:"Pull a list of items that have not been opened in a year and items whose data source no longer responds, and work through it with owners."},
+       {label:"We have never checked", pts:0, fix:"Start with one list this week: items not opened in a year. Retire what is no longer needed and assign an owner to what remains."}
+     ]},
+    {area:"performance", q:"Do you know which services are slow, and when?",
+     sub:"Performance tells you where to spend your effort, and where you can stop spending it.",
+     opts:[
+       {label:"Yes. We track slow services and busy periods, and we act on what we find", pts:10, fix:"Keep tracking. Use the usage picture to retire what nobody opens and to focus effort where people actually work."},
+       {label:"We look into it when users complain", pts:5, fix:"Start tracking which services are slow and when, instead of waiting for complaints. The pattern usually points at the cause."},
+       {label:"Slow is normal here. We do not track it", pts:0, fix:"Pick the slowest service this week and check when it slows down and what it depends on. Slow services are a warning sign, not background noise."}
+     ]},
+    {area:"upgrades", q:"How far behind is your deployment on upgrades and patches?",
+     sub:"Patch lag is easy to defer when everything seems to be working, and costly when a fix you needed was in the release you skipped.",
+     opts:[
+       {label:"Current, or within one release, with patches applied on a schedule", pts:10, fix:"Keep the schedule, and test each upgrade in a non-production environment before production."},
+       {label:"One or two versions behind, with a plan to catch up", pts:6, fix:"Keep the catch-up plan on a date, not a wish list. Check what each skipped release changes before you move."},
+       {label:"Several versions behind, or patches applied only when something breaks", pts:0, fix:"Make a catch-up plan with a date. Start by listing what version each component runs and what the next supported step is."}
+     ]},
+    {area:"governance", q:"If the person who knows this system best left tomorrow, could the team keep it running?",
+     sub:"Governance is how you keep a system people depend on dependable. That means runbooks, owners, and a short list of fixes with a date for each one.",
+     opts:[
+       {label:"Yes. Runbooks are written and current, and fixes have an owner and a date", pts:10, fix:"Review the runbooks after each change, and keep the fix list short: five or six items, ranked by risk."},
+       {label:"Partly. Some steps are written down, but much of it is in one person's head", pts:5, fix:"Write down the steps for the most common failures first: a service that stops responding, a restore, and an access change."},
+       {label:"No. There are no runbooks, and the knowledge is not written down", pts:0, fix:"Start with one runbook this week: what to do when a service stops responding. Then add the restore steps and the access review."}
+     ]}
+  ];
+
+  var intro = document.getElementById("intro");
+  var quiz = document.getElementById("quiz");
+  var resultBox = document.getElementById("result");
+  var qbox = document.getElementById("qbox");
+  var progbar = document.getElementById("progbar");
+  var progtext = document.getElementById("progresstext");
+  var step = 0;
+  var answers = [];
+
+  function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  function areaName(id){
+    for(var i=0;i<AREAS.length;i++){ if(AREAS[i].id===id){ return AREAS[i].name; } }
+    return id;
+  }
+
+  function start(){
+    step = 0; answers = [];
+    intro.style.display = "none";
+    resultBox.style.display = "none";
+    quiz.style.display = "block";
+    renderQ();
+    window.scrollTo(0, 0);
+  }
+
+  function renderQ(){
+    var item = QUESTIONS[step];
+    progbar.style.width = Math.round(step / QUESTIONS.length * 100) + "%";
+    progtext.textContent = "Question " + (step + 1) + " of " + QUESTIONS.length + "  |  " + areaName(item.area);
+    var html = '<div class="qcard"><p class="qnum">' + esc(areaName(item.area)) + '</p><h2>' + esc(item.q) + '</h2><p>' + esc(item.sub) + '</p><div class="opts">';
+    item.opts.forEach(function(o, i){
+      html += '<button class="opt" type="button" data-i="' + i + '">' + esc(o.label) + '</button>';
+    });
+    html += '</div>';
+    if(step > 0){ html += '<button class="backbtn" type="button" id="qback">Back to the previous question</button>'; }
+    html += '</div>';
+    qbox.innerHTML = html;
+    var btns = qbox.querySelectorAll(".opt");
+    btns.forEach(function(b){
+      b.addEventListener("click", function(){
+        var o = item.opts[parseInt(b.getAttribute("data-i"), 10)];
+        answers[step] = {q:item.q, area:item.area, label:o.label, pts:o.pts, fix:o.fix};
+        step++;
+        if(step < QUESTIONS.length){ renderQ(); } else { renderResult(); }
+      });
+    });
+    var back = document.getElementById("qback");
+    if(back){
+      back.addEventListener("click", function(){
+        step--;
+        renderQ();
+      });
+    }
+  }
+
+  function statusFor(pct){
+    if(pct >= 75){ return {label:"Green", cls:"green"}; }
+    if(pct >= 50){ return {label:"Amber", cls:"amber"}; }
+    return {label:"Red", cls:"red"};
+  }
+
+  function renderResult(){
+    progbar.style.width = "100%";
+    progtext.textContent = "Complete";
+    var total = 0;
+    answers.forEach(function(a){ total += a.pts; });
+    var score = total;
+    var band, bandText, scoreCls;
+    if(score >= 75){
+      band = "Checked and holding up";
+      bandText = "Your platform is in good shape. The gaps below are small, so fix them, then keep the quarterly rhythm going. A light check every quarter, and a deeper one once a year.";
+      scoreCls = "";
+    } else if(score >= 50){
+      band = "Mostly healthy, with gaps to close";
+      bandText = "You can see where the platform stands, but a few areas need work before the next quarter. Close the gaps below first, then check again next quarter.";
+      scoreCls = "amber";
+    } else {
+      band = "Overdue for a health check";
+      bandText = "Two or more warning signs usually means the check is overdue. Start with one area this week, fix the few things that matter most, then set the quarterly rhythm.";
+      scoreCls = "red";
+    }
+
+    var areaScores = {};
+    AREAS.forEach(function(a){ areaScores[a.id] = {name:a.name, pts:0, max:0}; });
+    QUESTIONS.forEach(function(q, i){
+      areaScores[q.area].pts += answers[i].pts;
+      areaScores[q.area].max += 10;
+    });
+
+    var gaps = answers.slice().sort(function(a, b){ return a.pts - b.pts; }).filter(function(a){ return a.pts < 10; }).slice(0, 3);
+
+    var html = '<div class="result"><p class="score ' + scoreCls + '">' + score + ' / 100</p><h2>' + esc(band) + '</h2><p>' + esc(bandText) + '</p>';
+    html += '<h3>Your seven areas</h3><div class="areagrid">';
+    AREAS.forEach(function(a){
+      var s = areaScores[a.id];
+      var pct = Math.round(s.pts / s.max * 100);
+      var st = statusFor(pct);
+      html += '<div class="arearesult"><span class="pill ' + st.cls + '">' + st.label + '</span><h4>' + esc(a.name) + '</h4><p>' + s.pts + ' of ' + s.max + ' points (' + pct + '%)</p></div>';
+    });
+    html += '</div>';
+
+    if(gaps.length){
+      html += '<h3>Top 3 gaps to close</h3><ol style="margin-left:20px;color:#d4d4d4">';
+      gaps.forEach(function(g, i){
+        html += '<li style="margin-bottom:10px"><b>' + (i+1) + '. ' + esc(g.q) + '</b><br>Your answer: ' + esc(g.label) + '.<br>' + esc(g.fix) + '</li>';
+      });
+      html += '</ol>';
+    } else {
+      html += '<h3>Top 3 gaps to close</h3><p>None. Every answer scored full marks. Keep the quarterly check on the calendar so it stays that way.</p>';
+    }
+
+    html += '<h3>Recommended next steps</h3><ul>';
+    html += '<li>Pick one area this week. If it is backups, ask when the last restore test was. If it is content, pull a list of items that have not been opened in a year. If it is permissions, look for accounts that should have been closed.</li>';
+    html += '<li>Turn the gaps above into a short list of fixes, ranked by risk, with an owner and a date for each one. Not fifty items. Five or six, the ones that matter most.</li>';
+    html += '<li>Book the next check now: a light check every quarter covering the machines, the logs, the broken items, and the accounts, and a deeper one once a year covering the backups, the restore test, and whether the architecture still fits the way people work.</li>';
+    html += '<li>Fix those items, then check again next quarter. A healthy system is not a lucky system. It is a checked system.</li>';
+    html += '</ul>';
+
+    html += '<h3>Your answers</h3><ul>';
+    answers.forEach(function(a){
+      html += '<li><b>' + esc(areaName(a.area)) + ':</b> ' + esc(a.q) + ' — ' + esc(a.label) + ' (' + a.pts + ' points)</li>';
+    });
+    html += '</ul>';
+
+    html += '<div class="cta"><a class="btn-dark" href="mailto:gjanaki360@gmail.com?subject=Enterprise%20GIS%20Health%20Check%20score%20' + score + '%20—%20Enterprise%20GIS">Email Janaki about my score</a><a class="btn-outline" href="https://janakigattu.github.io/#book">Book a Session</a></div>';
+    html += '<p style="margin-top:18px;font-size:.9rem">Want a second pair of eyes on the result? Email Janaki at <a href="mailto:gjanaki360@gmail.com">gjanaki360@gmail.com</a> with your score and your top gap, or <a href="https://janakigattu.github.io/#book">book a session</a>. This check is a starting point drawn from the health check episode. It does not replace testing in your own environment.</p>';
+    html += '<p style="margin-top:16px"><button class="btn" type="button" id="restartbtn">Restart the health check</button></p></div>';
+    resultBox.innerHTML = html;
+    resultBox.style.display = "block";
+    quiz.style.display = "none";
+    window.scrollTo(0, 0);
+    document.getElementById("restartbtn").addEventListener("click", start);
+  }
+
+  document.getElementById("startbtn").addEventListener("click", start);
+})();
+</script>
+</body>
+</html>
