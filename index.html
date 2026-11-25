@@ -86,19 +86,9 @@
   .section-cta a{color:var(--accent);font-weight:700;text-decoration:none}
   .section-cta a:hover{text-decoration:underline}
   /* Services */
-  .tracks{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:36px}
-  @media(max-width:760px){.tracks{grid-template-columns:1fr}}
-  .track{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
-  .track:hover{transform:translateY(-3px);border-color:#3f3f3f;box-shadow:0 14px 34px rgba(0,0,0,.45)}
-  .track::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),rgba(74,222,128,0))}
-  .track.ai::before{background:linear-gradient(90deg,var(--amber),rgba(251,191,36,0))}
-  .track h3{font-size:1.05rem;margin:6px 0 10px}
-  .track ul{list-style:none;margin-top:16px}
-  .track li{padding:9px 0;border-top:1px solid var(--line);color:#d4d4d4}
-  .track li:first-child{border-top:0}
-  .track li b{color:var(--text)}
-  .track .mini-cta{margin-top:20px}
-  .track .mini-cta a{color:var(--accent);font-weight:700;text-decoration:none}
+  .mini-cta{margin-top:20px}
+  .mini-cta a{color:var(--accent);font-weight:700;text-decoration:none}
+  .mini-cta a:hover{text-decoration:underline}
   /* Projects */
   .projects{margin-top:36px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
   @media(max-width:900px){.projects{grid-template-columns:repeat(2,1fr)}}
@@ -164,7 +154,7 @@
   .articles{margin-top:36px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
   @media(max-width:760px){.articles{grid-template-columns:1fr}}
   .article{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px;display:flex;flex-direction:column}
-  .article .num{color:var(--faint);font-weight:800;font-size:.85rem;letter-spacing:.1em}
+  .article .num{color:var(--amber);font-weight:700;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase}
   .article h3{font-size:1.2rem;margin:10px 0 8px;line-height:1.3}
   .article p{color:var(--muted);flex:1}
   .article a{margin-top:18px;color:var(--accent);font-weight:700;text-decoration:none}
@@ -239,39 +229,95 @@
     <p class="kicker">What I do</p>
     <h2>Enterprise GIS Services and AI Services. Two tracks, one standard: work that holds up in production.</h2>
     <p class="hook">Most engagements sell you a report. I work inside your systems, fix what is broken, and leave your team with something that keeps working after I leave, whether that system is an enterprise GIS platform or a business workflow that needs an agent.</p>
-    <div class="tracks">
-      <div class="track reveal">
-        <p class="theme">Track 01</p>
+    <h3 class="subhead">GIS Services</h3>
+    <p class="subcopy">Enterprise GIS that is governed, secure, and actually used, including the AI agents built for GIS teams.</p>
+    <div class="projects">
+      <div class="project reveal">
+        <p class="theme">GIS Services</p>
         <p class="gnum">01</p>
-        <h3>GIS Services</h3>
-        <p class="gdesc">Enterprise GIS that is governed, secure, and actually used, including the AI agents built for GIS teams.</p>
-        <ul>
-          <li><b>ArcGIS Enterprise architecture</b> — design, upgrade, and modernisation of Enterprise and Portal deployments</li>
-          <li><b>Migration</b> — ArcGIS Enterprise to Enterprise, Enterprise to ArcGIS Online, and back, with a readiness check first</li>
-          <li><b>Governance and security</b> — administration, access control, and platform standards your team can follow</li>
-          <li><b>Automation</b> — Python, ArcPy, and ArcGIS Notebooks replacing manual, repeatable work</li>
-          <li><b>Utility Network</b> — implementation and working practices for utility GIS teams</li>
-          <li><b>Enterprise GIS Health Check agent</b> — a guided assessment that produces a readiness report for your platform</li>
-          <li><b>Migration Readiness agent</b> — checks all four migration directions and flags the gaps before you commit</li>
-          <li><b>GeoAI workflows</b> — land-cover and imagery analysis tied to operational decisions</li>
-          <li><b>AI assistants for GIS teams</b> — practical agents built around your data and your workflows</li>
-        </ul>
-        <p class="mini-cta"><a href="mailto:gjanaki360@gmail.com?subject=GIS%20Services%20enquiry">Ask about a GIS Services engagement &rarr;</a></p>
+        <h3>ArcGIS Enterprise architecture</h3>
+        <p class="gdesc">design, upgrade, and modernisation of Enterprise and Portal deployments</p>
       </div>
-      <div class="track ai reveal">
-        <p class="theme">Track 02</p>
+      <div class="project reveal">
+        <p class="theme">GIS Services</p>
         <p class="gnum">02</p>
-        <h3>AI Services</h3>
-        <p class="gdesc">AI for the rest of the business: agents and automation that do real work, with the same production discipline as the GIS track.</p>
-        <ul>
-          <li><b>Custom AI agents for business workflows</b> — an agent that takes on one defined task, with the guardrails that keep it reliable in production</li>
-          <li><b>Business process automation with AI</b> — remove the manual steps in routine work so a small team gets more done without hiring</li>
-          <li><b>AI assistants and chatbots for teams</b> — answers from your own documents and data, with a human in the loop where it matters</li>
-          <li><b>AI adoption guidance for small businesses</b> — a plain-language plan for what to automate first, what to leave alone, and what it will cost</li>
-        </ul>
-        <p class="mini-cta"><a href="mailto:gjanaki360@gmail.com?subject=AI%20Services%20enquiry">Ask about an AI Services engagement &rarr;</a></p>
+        <h3>Migration</h3>
+        <p class="gdesc">ArcGIS Enterprise to Enterprise, Enterprise to ArcGIS Online, and back, with a readiness check first</p>
+      </div>
+      <div class="project reveal">
+        <p class="theme">GIS Services</p>
+        <p class="gnum">03</p>
+        <h3>Governance and security</h3>
+        <p class="gdesc">administration, access control, and platform standards your team can follow</p>
+      </div>
+      <div class="project reveal">
+        <p class="theme">GIS Services</p>
+        <p class="gnum">04</p>
+        <h3>Automation</h3>
+        <p class="gdesc">Python, ArcPy, and ArcGIS Notebooks replacing manual, repeatable work</p>
+      </div>
+      <div class="project reveal">
+        <p class="theme">GIS Services</p>
+        <p class="gnum">05</p>
+        <h3>Utility Network</h3>
+        <p class="gdesc">implementation and working practices for utility GIS teams</p>
+      </div>
+      <div class="project reveal">
+        <p class="theme">GIS Services</p>
+        <p class="gnum">06</p>
+        <h3>Enterprise GIS Health Check agent</h3>
+        <p class="gdesc">a guided assessment that produces a readiness report for your platform</p>
+      </div>
+      <div class="project reveal">
+        <p class="theme">GIS Services</p>
+        <p class="gnum">07</p>
+        <h3>Migration Readiness agent</h3>
+        <p class="gdesc">checks all four migration directions and flags the gaps before you commit</p>
+      </div>
+      <div class="project reveal">
+        <p class="theme">GIS Services</p>
+        <p class="gnum">08</p>
+        <h3>GeoAI workflows</h3>
+        <p class="gdesc">land-cover and imagery analysis tied to operational decisions</p>
+      </div>
+      <div class="project reveal">
+        <p class="theme">GIS Services</p>
+        <p class="gnum">09</p>
+        <h3>AI assistants for GIS teams</h3>
+        <p class="gdesc">practical agents built around your data and your workflows</p>
       </div>
     </div>
+    <p class="mini-cta"><a href="mailto:gjanaki360@gmail.com?subject=GIS%20Services%20enquiry">Ask about a GIS Services engagement &rarr;</a></p>
+
+    <h3 class="subhead">AI Services</h3>
+    <p class="subcopy">AI for the rest of the business: agents and automation that do real work, with the same production discipline as the GIS track.</p>
+    <div class="projects">
+      <div class="project reveal">
+        <p class="theme">AI Services</p>
+        <p class="gnum">01</p>
+        <h3>Custom AI agents for business workflows</h3>
+        <p class="gdesc">an agent that takes on one defined task, with the guardrails that keep it reliable in production</p>
+      </div>
+      <div class="project reveal">
+        <p class="theme">AI Services</p>
+        <p class="gnum">02</p>
+        <h3>Business process automation with AI</h3>
+        <p class="gdesc">remove the manual steps in routine work so a small team gets more done without hiring</p>
+      </div>
+      <div class="project reveal">
+        <p class="theme">AI Services</p>
+        <p class="gnum">03</p>
+        <h3>AI assistants and chatbots for teams</h3>
+        <p class="gdesc">answers from your own documents and data, with a human in the loop where it matters</p>
+      </div>
+      <div class="project reveal">
+        <p class="theme">AI Services</p>
+        <p class="gnum">04</p>
+        <h3>AI adoption guidance for small businesses</h3>
+        <p class="gdesc">a plain-language plan for what to automate first, what to leave alone, and what it will cost</p>
+      </div>
+    </div>
+    <p class="mini-cta"><a href="mailto:gjanaki360@gmail.com?subject=AI%20Services%20enquiry">Ask about an AI Services engagement &rarr;</a></p>
     <p class="section-cta">Not sure which track fits? Book a session below and we will work it out in one conversation. <a href="#book">Book a Session &rarr;</a></p>
   </div>
 </section>
