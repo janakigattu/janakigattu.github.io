@@ -111,25 +111,15 @@
   .project .go:hover{text-decoration:underline}
   .subhead{font-size:1.35rem;margin-top:46px;margin-bottom:6px}
   .subcopy{color:var(--muted);max-width:760px;margin-bottom:20px}
-  /* Carousel */
-  .carousel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
-  .slide{display:none}
-  .slide.active{display:block}
-  .slide .stopic{color:var(--amber);font-weight:700;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase}
-  .slide h3{font-size:1.05rem;margin:6px 0 10px;line-height:1.3}
-  .slide .shook{font-size:.92rem;color:#d4d4d4;margin-bottom:14px}
-  .slide ul{list-style:none}
-  .slide li{padding:8px 0;border-top:1px solid var(--line);color:#d4d4d4}
-  .slide li:first-child{border-top:0}
-  .slide .slinks{margin-top:18px;display:flex;gap:20px;flex-wrap:wrap}
-  .slide .slinks a{color:var(--accent);font-weight:700;text-decoration:none}
-  .slide .slinks a:hover{text-decoration:underline}
-  .carousel-nav{display:flex;align-items:center;gap:16px;margin-top:22px}
-  .car-btn{background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:50%;width:42px;height:42px;font-size:1.1rem;cursor:pointer;flex:none}
-  .car-btn:hover{border-color:var(--accent)}
-  .dots{display:flex;gap:8px}
-  .dot{width:10px;height:10px;border-radius:50%;background:#404040;border:0;cursor:pointer;padding:0}
-  .dot.active{background:var(--accent)}
+  /* Topics */
+  .topics{margin-top:36px;display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  @media(max-width:760px){.topics{grid-template-columns:1fr}}
+  .project ul{list-style:none}
+  .project li{padding:8px 0;border-top:1px solid var(--line);color:#d4d4d4}
+  .project li:first-child{border-top:0}
+  .project .slinks{margin-top:auto;padding-top:18px;display:flex;gap:20px;flex-wrap:wrap}
+  .project .slinks a{color:var(--accent);font-weight:700;text-decoration:none}
+  .project .slinks a:hover{text-decoration:underline}
   /* Resources */
   .resources{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
   @media(max-width:900px){.resources{grid-template-columns:repeat(2,1fr)}}
@@ -335,63 +325,60 @@
 <section id="topics">
   <div class="wrap">
     <p class="kicker">Four Topics</p>
-    <h2>Four topics, one carousel.</h2>
-    <p class="hook">The four subjects teams ask Janaki about most, each on one screen. Use the arrows or the dots.</p>
-    <div class="carousel reveal" id="carousel">
-      <div class="slides">
-        <div class="slide active">
-          <p class="stopic">Topic 01 &middot; AI Assistants in GIS</p>
-          <h3>Twelve assistants already live inside ArcGIS. Three are ready for everyone.</h3>
-          <p class="shook">The skill to build now is knowing which routine tasks to hand to an assistant, and how to validate what comes back.</p>
-          <ul>
-            <li>Three are generally available at no extra cost: Survey123, Business Analyst, and Translation.</li>
-            <li>The rest are in beta or preview, including the Pro, Notebooks, and Arcade assistants.</li>
-            <li>Most value today arrives through ArcGIS Online. The Item details assistant is the only one in Enterprise, and only in 12.0.</li>
-            <li>Access is governed at the organisation level. An administrator must opt in to AI features.</li>
-          </ul>
-          <div class="slinks"><a href="https://www.esri.com/arcgis-blog/products/arcgis-online/geoai/whats-new-in-ai-assistants-june-2026" target="_blank" rel="noopener">Esri: What&rsquo;s new in AI assistants &rarr;</a><a href="resources/ai-assistants-in-gis.pdf">Download the guide (PDF) &rarr;</a></div>
-        </div>
-        <div class="slide">
-          <p class="stopic">Topic 02 &middot; Migration in ArcGIS Enterprise</p>
-          <h3>Start with scope, not the tool.</h3>
-          <p class="shook">Migration is rarely one kind of job. Name the move first, and the tool choice gets easier.</p>
-          <ul>
-            <li>Three kinds of move: a full environment, selected content, or a change of product or platform.</li>
-            <li>Six approaches, compared honestly: WebGISDR, Join Site, group export and import, distributed collaboration, scripting, and rebuild.</li>
-            <li>Eight questions to answer in writing before you choose an approach.</li>
-            <li>Build the target, test it with real users, and keep a rollback route you have actually practised.</li>
-          </ul>
-          <div class="slinks"><a href="https://www.linkedin.com/pulse/arcgis-enterprise-migration-start-scope-tool-janaki-gattu-g8xnc/" target="_blank" rel="noopener">Read the LinkedIn article &rarr;</a><a href="#podcast">Listen to Episode 1 &rarr;</a></div>
-        </div>
-        <div class="slide">
-          <p class="stopic">Topic 03 &middot; Migration in ArcGIS Online</p>
-          <h3>Online and Enterprise are not two copies of the same system.</h3>
-          <p class="shook">The move between them needs its own scope: users, licences, content, and what gets rebuilt.</p>
-          <ul>
-            <li>Distributed collaboration shares Enterprise content to Online, as a reference or as a copy.</li>
-            <li>Partnered collaboration is the mechanism built for Online-to-Online sharing.</li>
-            <li>Scripted moves use clone_items() or OfflineContentManager in the ArcGIS API for Python.</li>
-            <li>Group export and import is Enterprise only. Maps and apps still point at the source layer URLs until you update them.</li>
-          </ul>
-          <div class="slinks"><a href="https://www.esri.com/arcgis-blog/products/arcgis-enterprise/administration/collaborate-between-arcgis-enterprise-online-and-field-maps" target="_blank" rel="noopener">Esri: Collaborate between Enterprise, Online and Field Maps &rarr;</a><a href="resources/migration-arcgis-online.pdf">Download the guide (PDF) &rarr;</a></div>
-        </div>
-        <div class="slide">
-          <p class="stopic">Topic 04 &middot; ArcGIS Monitor</p>
-          <h3>Find the problem before your users do.</h3>
-          <p class="shook">Monitor turns system health, usage, and performance into numbers you can act on, before the phone rings.</p>
-          <ul>
-            <li>Three components: Monitor Server, Monitor Agent, and the database repository.</li>
-            <li>Metrics with alert rules on every component, from request rate to CPU and disk.</li>
-            <li>Eight statuses, from nominal to critical, set by the most severe metric.</li>
-            <li>As of Enterprise 12.2, Monitor also covers ArcGIS Velocity.</li>
-          </ul>
-          <div class="slinks"><a href="https://doc.arcgis.com/en/monitor/2024.0/get-started/windows/introduction-to-arcgis-monitor.htm" target="_blank" rel="noopener">Esri documentation: Introduction to ArcGIS Monitor &rarr;</a><a href="resources/arcgis-monitor-guide.pdf">Download the guide (PDF) &rarr;</a></div>
-        </div>
+    <h2>Four topics, each on its own card.</h2>
+    <p class="hook">The four subjects teams ask Janaki about most, each on its own card.</p>
+    <div class="topics">
+      <div class="project reveal">
+        <p class="theme">Topic 01 &middot; AI Assistants in GIS</p>
+        <p class="gnum">01</p>
+        <h3>Twelve assistants already live inside ArcGIS. Three are ready for everyone.</h3>
+        <p class="gdesc">The skill to build now is knowing which routine tasks to hand to an assistant, and how to validate what comes back.</p>
+        <ul>
+          <li>Three are generally available at no extra cost: Survey123, Business Analyst, and Translation.</li>
+          <li>The rest are in beta or preview, including the Pro, Notebooks, and Arcade assistants.</li>
+          <li>Most value today arrives through ArcGIS Online. The Item details assistant is the only one in Enterprise, and only in 12.0.</li>
+          <li>Access is governed at the organisation level. An administrator must opt in to AI features.</li>
+        </ul>
+        <div class="slinks"><a href="https://www.esri.com/arcgis-blog/products/arcgis-online/geoai/whats-new-in-ai-assistants-june-2026" target="_blank" rel="noopener">Esri: What&rsquo;s new in AI assistants &rarr;</a><a href="resources/ai-assistants-in-gis.pdf">Download the guide (PDF) &rarr;</a></div>
       </div>
-      <div class="carousel-nav">
-        <button class="car-btn" id="car-prev" type="button" aria-label="Previous slide">&larr;</button>
-        <div class="dots" id="car-dots"></div>
-        <button class="car-btn" id="car-next" type="button" aria-label="Next slide">&rarr;</button>
+      <div class="project reveal">
+        <p class="theme">Topic 02 &middot; Migration in ArcGIS Enterprise</p>
+        <p class="gnum">02</p>
+        <h3>Start with scope, not the tool.</h3>
+        <p class="gdesc">Migration is rarely one kind of job. Name the move first, and the tool choice gets easier.</p>
+        <ul>
+          <li>Three kinds of move: a full environment, selected content, or a change of product or platform.</li>
+          <li>Six approaches, compared honestly: WebGISDR, Join Site, group export and import, distributed collaboration, scripting, and rebuild.</li>
+          <li>Eight questions to answer in writing before you choose an approach.</li>
+          <li>Build the target, test it with real users, and keep a rollback route you have actually practised.</li>
+        </ul>
+        <div class="slinks"><a href="https://www.linkedin.com/pulse/arcgis-enterprise-migration-start-scope-tool-janaki-gattu-g8xnc/" target="_blank" rel="noopener">Read the LinkedIn article &rarr;</a><a href="#podcast">Listen to Episode 1 &rarr;</a></div>
+      </div>
+      <div class="project reveal">
+        <p class="theme">Topic 03 &middot; Migration in ArcGIS Online</p>
+        <p class="gnum">03</p>
+        <h3>Online and Enterprise are not two copies of the same system.</h3>
+        <p class="gdesc">The move between them needs its own scope: users, licences, content, and what gets rebuilt.</p>
+        <ul>
+          <li>Distributed collaboration shares Enterprise content to Online, as a reference or as a copy.</li>
+          <li>Partnered collaboration is the mechanism built for Online-to-Online sharing.</li>
+          <li>Scripted moves use clone_items() or OfflineContentManager in the ArcGIS API for Python.</li>
+          <li>Group export and import is Enterprise only. Maps and apps still point at the source layer URLs until you update them.</li>
+        </ul>
+        <div class="slinks"><a href="https://www.esri.com/arcgis-blog/products/arcgis-enterprise/administration/collaborate-between-arcgis-enterprise-online-and-field-maps" target="_blank" rel="noopener">Esri: Collaborate between Enterprise, Online and Field Maps &rarr;</a><a href="resources/migration-arcgis-online.pdf">Download the guide (PDF) &rarr;</a></div>
+      </div>
+      <div class="project reveal">
+        <p class="theme">Topic 04 &middot; ArcGIS Monitor</p>
+        <p class="gnum">04</p>
+        <h3>Find the problem before your users do.</h3>
+        <p class="gdesc">Monitor turns system health, usage, and performance into numbers you can act on, before the phone rings.</p>
+        <ul>
+          <li>Three components: Monitor Server, Monitor Agent, and the database repository.</li>
+          <li>Metrics with alert rules on every component, from request rate to CPU and disk.</li>
+          <li>Eight statuses, from nominal to critical, set by the most severe metric.</li>
+          <li>As of Enterprise 12.2, Monitor also covers ArcGIS Velocity.</li>
+        </ul>
+        <div class="slinks"><a href="https://doc.arcgis.com/en/monitor/2024.0/get-started/windows/introduction-to-arcgis-monitor.htm" target="_blank" rel="noopener">Esri documentation: Introduction to ArcGIS Monitor &rarr;</a><a href="resources/arcgis-monitor-guide.pdf">Download the guide (PDF) &rarr;</a></div>
       </div>
     </div>
 
@@ -678,28 +665,6 @@
 </footer>
 
 <script>
-  // Carousel (manual advance: arrows and dots only)
-  (function(){
-    var slides = document.querySelectorAll('#carousel .slide');
-    var dotsBox = document.getElementById('car-dots');
-    var idx = 0;
-    if(!slides.length || !dotsBox){ return; }
-    slides.forEach(function(_, i){
-      var d = document.createElement('button');
-      d.className = 'dot' + (i === 0 ? ' active' : '');
-      d.type = 'button';
-      d.setAttribute('aria-label', 'Go to slide ' + (i + 1));
-      d.addEventListener('click', function(){ show(i); });
-      dotsBox.appendChild(d);
-    });
-    function show(i){
-      idx = (i + slides.length) % slides.length;
-      slides.forEach(function(s, j){ s.classList.toggle('active', j === idx); });
-      dotsBox.querySelectorAll('.dot').forEach(function(d, j){ d.classList.toggle('active', j === idx); });
-    }
-    document.getElementById('car-prev').addEventListener('click', function(){ show(idx - 1); });
-    document.getElementById('car-next').addEventListener('click', function(){ show(idx + 1); });
-  })();
   // Reveal sections on scroll
   (function(){
     var els = document.querySelectorAll('.reveal');
