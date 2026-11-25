@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enterprise GIS Governance Scorecard: a working assessment by Janaki Gattu</title>
+<meta name="description" content="A working Enterprise GIS Governance Scorecard by Janaki Gattu. Answer 10 questions across 7 governance areas and get a score, a red, amber, or green status per area, and the top gaps to close. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  .areas{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:24px 0}
+  .area{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .area h3{font-size:1rem;margin-bottom:4px}
+  .area p{color:var(--muted);font-size:.92rem}
+  .startbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px}
+  .startbox h2{font-size:1.35rem;margin-bottom:8px}
+  .startbox p{color:var(--muted);margin-bottom:14px}
+  .startbox ul{margin:0 0 20px 20px;color:#d4d4d4}
+  .startbox li{margin-bottom:6px}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer}
+  .btn-dark{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a}
+  .btn-outline{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;border:1px solid #525252;color:var(--text);margin-left:10px}
+  .progress{height:8px;background:var(--bg2);border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-bottom:22px}
+  .progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s ease}
+  .progresstext{color:var(--faint);font-size:.9rem;margin-bottom:8px}
+  .qcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px}
+  .qcard .qnum{color:var(--accent);font-weight:800;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase}
+  .qcard h2{font-size:1.35rem;margin:8px 0 6px;line-height:1.3}
+  .qcard p{color:var(--muted);margin-bottom:18px}
+  .opts{display:flex;flex-direction:column;gap:10px}
+  .opt{text-align:left;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:12px;padding:14px 18px;font-size:1rem;cursor:pointer}
+  .opt:hover{border-color:var(--accent)}
+  .backbtn{margin-top:16px;background:none;border:0;color:var(--muted);cursor:pointer;font-size:.95rem;text-decoration:underline}
+  .result{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px}
+  .score{font-size:3rem;font-weight:800;line-height:1;color:var(--accent)}
+  .score.red{color:var(--red)}
+  .score.amber{color:var(--amber)}
+  .result h2{font-size:1.4rem;margin:10px 0}
+  .result h3{margin:22px 0 8px;font-size:1.1rem}
+  .result p{color:var(--muted)}
+  .result ul{margin-left:20px;color:#d4d4d4}
+  .result li{margin-bottom:6px}
+  .result .cta{margin-top:24px}
+  .areagrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:12px}
+  .arearesult{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .arearesult h4{font-size:.98rem;margin-bottom:2px}
+  .arearesult p{font-size:.9rem;color:var(--muted)}
+  .pill{display:inline-block;font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:6px}
+  .pill.green{background:#14532d;color:#bbf7d0}
+  .pill.amber{background:#451a03;color:#fde68a}
+  .pill.red{background:#450a0a;color:#fecaca}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+  @media (max-width:600px){.btn-outline{margin-left:0;margin-top:10px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu&rsquo;s portfolio</a>
+    <p class="eyebrow">Working assessment &middot; Live demo</p>
+    <h1>Enterprise GIS Governance Scorecard</h1>
+    <p class="lede">Governance is invisible when it works, and expensive when it does not. <b>Ten questions show which one you have.</b></p>
+    <p class="honest"><b>How this assessment works, honestly:</b> it runs entirely in your browser. There is no server, no API key, no account, and nothing you answer leaves this page. Your score is calculated here, on this device, and it is not stored or sent anywhere.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <div id="intro">
+      <div class="areas">
+        <div class="area"><h3>1. Roles and ownership</h3><p>A named owner for the platform, the data, and the content, and a deputy for each one.</p></div>
+        <div class="area"><h3>2. Access and sharing</h3><p>Who can see what, decided by role and group, and reviewed on a schedule.</p></div>
+        <div class="area"><h3>3. Standards and naming</h3><p>How items are named, what metadata they carry, and who checks new items against the standard.</p></div>
+        <div class="area"><h3>4. Data lifecycle</h3><p>One authoritative source per dataset, update dates, and retirement for what nobody uses.</p></div>
+        <div class="area"><h3>5. Content management</h3><p>Portal content reviewed every quarter: stale items, broken layers, missing owners.</p></div>
+        <div class="area"><h3>6. Change control</h3><p>Changes tested before production, logged, and reversible.</p></div>
+        <div class="area"><h3>7. Audit and compliance</h3><p>Logs that show who changed what and when, and licence use someone reviews.</p></div>
+      </div>
+      <div class="startbox">
+        <h2>What you get in about five minutes</h2>
+        <p>Ten questions, one at a time. At the end you get a score out of 100, a red, amber, or green status for each of the seven areas, your top three gaps to close, and recommended next steps.</p>
+        <ul>
+          <li>Governance is the part of enterprise GIS nobody sees until it is missing. Owners, access rules, standards, and a paper trail are what keep a platform dependable when the people change.</li>
+          <li>The result is a short list of fixes, ranked by risk, with an owner and a date for each one. Not fifty items. Five or six, the ones that matter most.</li>
+          <li>If you are not sure where to start, start with ownership. Name one owner for the platform and one for each core dataset, and write it down where the team can find it.</li>
+        </ul>
+        <button class="btn" id="startbtn" type="button">Start the governance scorecard</button>
+        <p style="margin-top:14px;font-size:.9rem">Built from Janaki Gattu&rsquo;s work administering ArcGIS Enterprise and her article on migration, which starts with scope, owners, and the questions to answer in writing before you choose a tool. Governance is what makes a migration, and a platform, hold up after go-live.</p>
+      </div>
+    </div>
+
+    <div id="quiz" style="display:none">
+      <p class="progresstext" id="progresstext"></p>
+      <div class="progress"><i id="progbar"></i></div>
+      <div id="qbox"></div>
+    </div>
+
+    <div id="result" style="display:none"></div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Enterprise GIS Governance Scorecard: a working assessment by <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Janaki Gattu</a>, Enterprise GIS Consultant &amp; GIS Solutions Architect. Grounded in her migration article and Esri&rsquo;s administration guidance on roles and groups: <a href="https://doc.arcgis.com/en/arcgis-online/administer/configure-roles.htm" target="_blank" rel="noopener">Configure member roles</a> and <a href="https://doc.arcgis.com/en/arcgis-online/administer/manage-groups.htm" target="_blank" rel="noopener">Manage groups</a>. Questions about your own platform? <a href="mailto:gjanaki360@gmail.com?subject=Enterprise%20GIS%20Governance%20Scorecard">Email gjanaki360@gmail.com</a> or <a href="https://janakigattu.github.io/">visit the portfolio</a>.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  var AREAS = [
+    {id:"roles", name:"Roles and ownership"},
+    {id:"access", name:"Access and sharing"},
+    {id:"standards", name:"Standards and naming"},
+    {id:"data", name:"Data lifecycle"},
+    {id:"content", name:"Content management"},
+    {id:"change", name:"Change control"},
+    {id:"audit", name:"Audit and compliance"}
+  ];
+
+  var QUESTIONS = [
+    {area:"roles", q:"If the platform stopped working on a Monday morning, who is the first call, and is that written down anywhere?",
+     sub:"A platform with no named owner depends on whoever happens to remember how it works.",
+     opts:[
+       {label:"A named owner and a deputy, written down where the team can find it", pts:10, fix:"Keep the owner list current. Review it when roles change, so the first call is never a guess."},
+       {label:"A named owner, but no deputy and nothing written down", pts:6, fix:"Write the owner and the deputy down, and put the list where the team can find it. One person holding all the knowledge is a risk, not a plan."},
+       {label:"Everyone knows who to call, but it is not written down", pts:3, fix:"Name the owner and the deputy in writing this week. If the knowledge lives in one person's head, it leaves with them."},
+       {label:"Nobody owns it, or nobody is sure who does", pts:0, fix:"Name one owner for the platform this week, and a deputy. That is the first governance fix, and it costs nothing."}
+     ]},
+    {area:"roles", q:"Does every core dataset and service have a named owner who can say whether it is still needed?",
+     sub:"Ownership is the question that decides whether stale data gets retired or stays published forever.",
+     opts:[
+       {label:"Yes, every one, and the list is kept current", pts:10, fix:"Keep the list current. Check it in the quarterly content review."},
+       {label:"Most of them, but the list is not written down", pts:6, fix:"Write the owner list down, then work through the datasets with no owner and assign one."},
+       {label:"Some, informally, for the datasets people ask about", pts:3, fix:"List the core datasets and assign an owner to each one. Start with the ones other teams depend on."},
+       {label:"No, owners are not tracked", pts:0, fix:"Start with a list of core datasets and one owner per dataset. Retire what nobody owns and nobody uses."}
+     ]},
+    {area:"access", q:"How is access to sensitive layers and apps decided?",
+     sub:"Least privilege is a habit, not a setting. It means people see what their work needs, and nothing more.",
+     opts:[
+       {label:"By role and group, with least privilege, and the decisions are reviewed", pts:10, fix:"Keep the review on the quarterly schedule, and check that group membership still matches the work."},
+       {label:"By group, but membership is rarely reviewed", pts:6, fix:"Put group membership on the quarterly review. Groups grow quietly, and old members keep access they no longer need."},
+       {label:"By individual sharing, decided case by case", pts:3, fix:"Move the common cases to groups with named roles. Individual sharing is hard to review and harder to audit."},
+       {label:"Most people with a login can see most things", pts:0, fix:"Start with the sensitive layers. Restrict them to a group, name the group owner, and review membership each quarter."}
+     ]},
+    {area:"access", q:"When someone leaves the organisation, how fast is their access closed?",
+     sub:"Accounts for people who left months ago are the most common finding in an access review.",
+     opts:[
+       {label:"Same day, as part of offboarding", pts:10, fix:"Keep offboarding tied to account closure, and check for dormant accounts in each quarterly review."},
+       {label:"Within a week", pts:6, fix:"Tie account closure to the offboarding checklist so it happens the same day, not the same week."},
+       {label:"When someone notices", pts:2, fix:"Add account closure to the offboarding checklist, and pull a list of accounts that have not signed in for months."},
+       {label:"Accounts linger for months, or nobody checks", pts:0, fix:"Pull the account list this week. Close accounts for people who left, and add closure to the offboarding checklist."}
+     ]},
+    {area:"standards", q:"Is there a naming and metadata standard, and does anyone check new items against it?",
+     sub:"A portal without naming and metadata standards becomes a place where nobody can find anything, including the people who made it.",
+     opts:[
+       {label:"A written standard, checked when items are published", pts:10, fix:"Keep the standard short and keep checking new items against it. A standard nobody enforces is decoration."},
+       {label:"A written standard, checked only sometimes", pts:6, fix:"Make the check part of publishing, not an afterthought. Check new items against the standard every time."},
+       {label:"Informal conventions, not written down", pts:3, fix:"Write the conventions down as a short standard, and agree who checks new items against it."},
+       {label:"No standard", pts:0, fix:"Write a short standard this week: how items are named, what metadata each one carries, and who checks new items."}
+     ]},
+    {area:"data", q:"Can you name the authoritative source for each core dataset, and when it was last updated?",
+     sub:"Two copies of the same dataset with different answers is a governance failure, not a data problem.",
+     opts:[
+       {label:"Yes, documented, with the last update date for each one", pts:10, fix:"Keep the source list current. Re-check it after any migration or system change."},
+       {label:"Mostly, but it is not written down", pts:6, fix:"Write the authoritative source and the last update date down for each core dataset, and keep the list where the team can find it."},
+       {label:"For some datasets, not for all", pts:3, fix:"List the core datasets, name the authoritative source for each, and retire the copies that are not authoritative."},
+       {label:"No", pts:0, fix:"Start with the five datasets other teams depend on most. Name the authoritative source for each, and retire the duplicates."}
+     ]},
+    {area:"data", q:"What happens to data and services nobody uses any more?",
+     sub:"A platform that never retires anything slowly fills with content nobody can vouch for.",
+     opts:[
+       {label:"Retired on a schedule, with owners notified first", pts:10, fix:"Keep the retirement schedule, and record what was retired and when, so the history is there if someone asks."},
+       {label:"Retired when someone asks for it", pts:6, fix:"Put retirement on the quarterly schedule. Usage reports show what nobody has opened in a year."},
+       {label:"They stay published indefinitely", pts:0, fix:"Pull a list of items nobody has opened in a year, and work through it with owners. Retire what is no longer needed."}
+     ]},
+    {area:"content", q:"How often is portal content reviewed for stale items, broken layers, and missing owners?",
+     sub:"Every portal accumulates items. Some point at data sources that moved, or that no longer exist.",
+     opts:[
+       {label:"Every quarter, with fixes tracked to an owner and a date", pts:10, fix:"Keep the quarterly review. A portal that is checked stays trustworthy."},
+       {label:"About once a year", pts:6, fix:"Move the review to every quarter. A year is long enough for broken layers to become normal."},
+       {label:"When a user reports a problem", pts:2, fix:"Put the content review on the quarterly schedule: broken layers, items with no owner, and items nobody has opened in a year."},
+       {label:"Never", pts:0, fix:"Start with one list this week: items not opened in a year. Retire what is no longer needed and assign an owner to what remains."}
+     ]},
+    {area:"change", q:"Before a change reaches production, what happens?",
+     sub:"A change made straight in production is a change nobody can undo cleanly.",
+     opts:[
+       {label:"Tested in a non-production environment, change logged, rollback ready", pts:10, fix:"Keep the routine. Log every change, and test the rollback before you need it for real."},
+       {label:"Tested, but there is no rollback plan and no change log", pts:6, fix:"Add two steps: log every change, and write down how to undo it before you make it."},
+       {label:"Changed directly in production", pts:0, fix:"Stop making changes directly in production. Test in a non-production environment first, and log the change and the rollback steps."}
+     ]},
+    {area:"audit", q:"Could you show, from logs, who changed what and when, and how licences are being used?",
+     sub:"An audit is a question asked after the fact. The answer depends on what was recorded at the time.",
+     opts:[
+       {label:"Yes, logs and licence use are reviewed on a schedule", pts:10, fix:"Keep the review on the schedule, and keep the logs long enough to answer questions about past changes."},
+       {label:"Logs exist, but nobody reviews them", pts:5, fix:"Put log review on the quarterly schedule. Logs nobody reads are storage, not evidence."},
+       {label:"We would struggle to show it", pts:0, fix:"Check what your logs record today, and how long they are kept. Then put a quarterly review on the calendar."}
+     ]}
+  ];
+
+  var intro = document.getElementById("intro");
+  var quiz = document.getElementById("quiz");
+  var resultBox = document.getElementById("result");
+  var qbox = document.getElementById("qbox");
+  var progbar = document.getElementById("progbar");
+  var progtext = document.getElementById("progresstext");
+  var step = 0;
+  var answers = [];
+
+  function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  function areaName(id){
+    for(var i=0;i<AREAS.length;i++){ if(AREAS[i].id===id){ return AREAS[i].name; } }
+    return id;
+  }
+
+  function start(){
+    step = 0; answers = [];
+    intro.style.display = "none";
+    resultBox.style.display = "none";
+    quiz.style.display = "block";
+    renderQ();
+    window.scrollTo(0, 0);
+  }
+
+  function renderQ(){
+    var item = QUESTIONS[step];
+    progbar.style.width = Math.round(step / QUESTIONS.length * 100) + "%";
+    progtext.textContent = "Question " + (step + 1) + " of " + QUESTIONS.length + "  |  " + areaName(item.area);
+    var html = '<div class="qcard"><p class="qnum">' + esc(areaName(item.area)) + '</p><h2>' + esc(item.q) + '</h2><p>' + esc(item.sub) + '</p><div class="opts">';
+    item.opts.forEach(function(o, i){
+      html += '<button class="opt" type="button" data-i="' + i + '">' + esc(o.label) + '</button>';
+    });
+    html += '</div>';
+    if(step > 0){ html += '<button class="backbtn" type="button" id="qback">Back to the previous question</button>'; }
+    html += '</div>';
+    qbox.innerHTML = html;
+    var btns = qbox.querySelectorAll(".opt");
+    btns.forEach(function(b){
+      b.addEventListener("click", function(){
+        var o = item.opts[parseInt(b.getAttribute("data-i"), 10)];
+        answers[step] = {q:item.q, area:item.area, label:o.label, pts:o.pts, fix:o.fix};
+        step++;
+        if(step < QUESTIONS.length){ renderQ(); } else { renderResult(); }
+      });
+    });
+    var back = document.getElementById("qback");
+    if(back){
+      back.addEventListener("click", function(){
+        step--;
+        renderQ();
+      });
+    }
+  }
+
+  function statusFor(pct){
+    if(pct >= 75){ return {label:"Green", cls:"green"}; }
+    if(pct >= 50){ return {label:"Amber", cls:"amber"}; }
+    return {label:"Red", cls:"red"};
+  }
+
+  function renderResult(){
+    progbar.style.width = "100%";
+    progtext.textContent = "Complete";
+    var total = 0;
+    answers.forEach(function(a){ total += a.pts; });
+    var score = total;
+    var band, bandText, scoreCls;
+    if(score >= 75){
+      band = "Governed, and holding up";
+      bandText = "Your platform has owners, rules, and a paper trail. Keep the quarterly review going, and revisit the standards after any major change, so the governance keeps up with the platform.";
+      scoreCls = "";
+    } else if(score >= 50){
+      band = "Governed in parts, with gaps to close";
+      bandText = "Some areas have owners and rules, others run on habit. Close the gaps below first, then put the review on a quarterly rhythm.";
+      scoreCls = "amber";
+    } else {
+      band = "Running on habit, not governance";
+      bandText = "Too much of the platform depends on memory and goodwill. Start with one area this week: name an owner, write one rule down, and set a date to review it.";
+      scoreCls = "red";
+    }
+
+    var areaScores = {};
+    AREAS.forEach(function(a){ areaScores[a.id] = {name:a.name, pts:0, max:0}; });
+    QUESTIONS.forEach(function(q, i){
+      areaScores[q.area].pts += answers[i].pts;
+      areaScores[q.area].max += 10;
+    });
+
+    var gaps = answers.slice().sort(function(a, b){ return a.pts - b.pts; }).filter(function(a){ return a.pts < 10; }).slice(0, 3);
+
+    var html = '<div class="result"><p class="score ' + scoreCls + '">' + score + ' / 100</p><h2>' + esc(band) + '</h2><p>' + esc(bandText) + '</p>';
+    html += '<h3>Your seven areas</h3><div class="areagrid">';
+    AREAS.forEach(function(a){
+      var s = areaScores[a.id];
+      var pct = Math.round(s.pts / s.max * 100);
+      var st = statusFor(pct);
+      html += '<div class="arearesult"><span class="pill ' + st.cls + '">' + st.label + '</span><h4>' + esc(a.name) + '</h4><p>' + s.pts + ' of ' + s.max + ' points (' + pct + '%)</p></div>';
+    });
+    html += '</div>';
+
+    if(gaps.length){
+      html += '<h3>Top 3 gaps to close</h3><ol style="margin-left:20px;color:#d4d4d4">';
+      gaps.forEach(function(g, i){
+        html += '<li style="margin-bottom:10px"><b>' + (i+1) + '. ' + esc(g.q) + '</b><br>Your answer: ' + esc(g.label) + '.<br>' + esc(g.fix) + '</li>';
+      });
+      html += '</ol>';
+    } else {
+      html += '<h3>Top 3 gaps to close</h3><p>None. Every answer scored full marks. Keep the quarterly review on the calendar so it stays that way.</p>';
+    }
+
+    html += '<h3>Recommended next steps</h3><ul>';
+    html += '<li>Pick one area this week. If it is ownership, name an owner for the platform and one for each core dataset. If it is access, pull the account list and look for people who left. If it is content, list items with no owner.</li>';
+    html += '<li>Turn the gaps above into a short list of fixes, ranked by risk, with an owner and a date for each one. Not fifty items. Five or six, the ones that matter most.</li>';
+    html += '<li>Book the review now: a light review every quarter covering owners, access, stale content, and the change log, and a deeper one once a year covering standards, the data lifecycle, and whether the governance still fits the way people work.</li>';
+    html += '<li>Fix those items, then check again next quarter. Governance is not paperwork. It is how a platform stays dependable when the people change.</li>';
+    html += '</ul>';
+
+    html += '<h3>Your answers</h3><ul>';
+    answers.forEach(function(a){
+      html += '<li><b>' + esc(areaName(a.area)) + ':</b> ' + esc(a.q) + ': ' + esc(a.label) + ' (' + a.pts + ' points)</li>';
+    });
+    html += '</ul>';
+
+    html += '<div class="cta"><a class="btn-dark" href="mailto:gjanaki360@gmail.com?subject=Enterprise%20GIS%20Governance%20Scorecard%20score%20' + score + '">Email Janaki about my score</a><a class="btn-outline" href="https://janakigattu.github.io/#book">Book a Session</a></div>';
+    html += '<p style="margin-top:18px;font-size:.9rem">Want a second pair of eyes on the result? Email Janaki at <a href="mailto:gjanaki360@gmail.com">gjanaki360@gmail.com</a> with your score and your top gap, or <a href="https://janakigattu.github.io/#book">book a session</a>. This check is a starting point drawn from her migration article and Esri&rsquo;s administration guidance. It does not replace testing in your own environment.</p>';
+    html += '<p style="margin-top:16px"><button class="btn" type="button" id="restartbtn">Restart the governance scorecard</button></p></div>';
+    resultBox.innerHTML = html;
+    resultBox.style.display = "block";
+    quiz.style.display = "none";
+    window.scrollTo(0, 0);
+    document.getElementById("restartbtn").addEventListener("click", start);
+  }
+
+  document.getElementById("startbtn").addEventListener("click", start);
+})();
+</script>
+</body>
+</html>
