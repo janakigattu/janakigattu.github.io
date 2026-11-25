@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArcGIS Online Credit Estimator: price the month before you spend it, by Janaki Gattu</title>
+<meta name="description" content="A working ArcGIS Online Credit Estimator by Janaki Gattu. Enter your monthly storage and transactions and get the credit cost at Esri's published rates, the biggest cost driver, and the fixes that bring the bill down. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 6px}
+  h2:first-child{margin-top:0}
+  .secnote{color:var(--muted);margin-bottom:16px}
+  .presets{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+  .preset{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:10px 18px;color:var(--text);cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700}
+  .preset:hover{border-color:var(--accent)}
+  .preset.active{border-color:var(--accent);background:#052e16}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .field{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .field label{display:block;font-weight:700;font-size:1rem;margin-bottom:2px}
+  .field .hint{color:var(--muted);font-size:.88rem;margin-bottom:10px}
+  .field .hint b{color:#d4d4d4}
+  .field input{width:100%;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:8px;padding:10px 12px;font-size:1rem;font-family:inherit}
+  .field input:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+  .field .rate{color:var(--faint);font-size:.85rem;margin-top:8px}
+  .actions{margin-top:26px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer}
+  .btn-dark{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a;border:0;cursor:pointer}
+  .btn-outline{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;border:1px solid #525252;color:var(--text);background:none;cursor:pointer}
+  .result{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px;margin-top:28px}
+  .result h2{margin-top:0}
+  .pill{display:inline-block;font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:6px}
+  .pill.green{background:#14532d;color:#bbf7d0}
+  .pill.amber{background:#451a03;color:#fde68a}
+  .pill.red{background:#450a0a;color:#fecaca}
+  .big{font-size:2.2rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+  .big small{font-size:1rem;color:var(--muted);font-weight:600}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:18px 0 6px}
+  .stat{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .stat .k{color:var(--faint);font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .stat .v{font-size:1.35rem;font-weight:800;margin-top:2px}
+  .stat .s{color:var(--muted);font-size:.88rem}
+  table{width:100%;border-collapse:collapse;margin-top:14px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);font-size:.95rem}
+  th{color:var(--faint);text-transform:uppercase;letter-spacing:.06em;font-size:.8rem}
+  td.num,th.num{text-align:right;white-space:nowrap}
+  tr.top td{color:#fff;font-weight:700}
+  .driver{color:var(--amber);font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+  .result h3{margin:24px 0 8px;font-size:1.1rem}
+  .result p{color:var(--muted)}
+  .result ul,.result ol{margin-left:20px;color:#d4d4d4}
+  .result li{margin-bottom:6px}
+  .result .cta{margin-top:24px}
+  .sources{margin-top:26px;border-top:1px solid var(--line);padding-top:18px}
+  .sources p{font-size:.92rem}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+  @media print{
+    body{background:#fff;color:#000}
+    .noprint{display:none !important}
+    .result,.field,.stat{background:#fff;border-color:#ccc;color:#000}
+    .result p,.secnote,.lede{color:#333}
+    a{color:#000}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu&rsquo;s portfolio</a>
+    <p class="eyebrow">Working estimator &middot; Live demo</p>
+    <h1>ArcGIS Online Credit Estimator</h1>
+    <p class="lede">Most ArcGIS Online bills are a surprise because nobody added up the credits first. <b>Add up the month before you spend it.</b> Enter your storage and your transactions, and this estimator prices them at Esri&rsquo;s published credit rates, names the biggest cost driver, and tells you how to bring the bill down.</p>
+    <p class="honest"><b>How this estimator works, honestly:</b> it runs entirely in your browser. There is no server, no API key, no account, and nothing you enter leaves this page. Every rate is Esri&rsquo;s published rate from the <a href="https://doc.esri.com/en/arcgis-online/latest/administer/credits.html" target="_blank" rel="noopener">Understand credits</a> documentation, checked 25 November 2026. Esri can change the rates, and your real usage is on the organisation status dashboard, so treat this as a planning estimate, not a bill.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <h2>Start from a preset, or enter your own numbers</h2>
+    <p class="secnote">The presets are typical months, not promises. Change any number and the estimate follows.</p>
+    <div class="presets noprint">
+      <button type="button" class="preset" id="preset-small">Small team</button>
+      <button type="button" class="preset" id="preset-field">Field data collection</button>
+      <button type="button" class="preset" id="preset-routing">Routing-heavy operations</button>
+      <button type="button" class="preset" id="preset-clear">Clear all</button>
+    </div>
+
+    <h2>Storage, per month</h2>
+    <p class="secnote">Storage is charged for the whole month, calculated hourly. Feature storage is the expensive one, and the one most teams underestimate.</p>
+    <div class="grid">
+      <div class="field">
+        <label for="featureMB">Hosted feature storage</label>
+        <p class="hint">Size of your hosted feature layers, in <b>MB</b>. Check the Storage tab on the status dashboard.</p>
+        <input type="number" id="featureMB" min="0" step="any" value="0">
+        <p class="rate">2.4 credits per 10 MB stored per month</p>
+      </div>
+      <div class="field">
+        <label for="fileGB">File storage</label>
+        <p class="hint">Attachments, PDFs, images, tile packages, scene layer packages, and other files, in <b>GB</b>.</p>
+        <input type="number" id="fileGB" min="0" step="any" value="0">
+        <p class="rate">1.2 credits per 1 GB stored per month</p>
+      </div>
+      <div class="field">
+        <label for="imageryGB">Imagery and tile storage</label>
+        <p class="hint">Tiled imagery layers and map tile data, in <b>GB</b>.</p>
+        <input type="number" id="imageryGB" min="0" step="any" value="0">
+        <p class="rate">1.2 credits per 1 GB stored per month</p>
+      </div>
+      <div class="field">
+        <label for="notebookGB">Notebook workspace storage</label>
+        <p class="hint">Files stored in ArcGIS Notebooks workspaces, in <b>GB</b>, and the number of <b>users</b> with workspaces.</p>
+        <input type="number" id="notebookGB" min="0" step="any" value="0" aria-label="Notebook workspace storage in GB">
+        <input type="number" id="notebookUsers" min="0" step="1" value="1" aria-label="Number of users with notebook workspaces" style="margin-top:8px">
+        <p class="rate">12 credits per 1 GB stored per month, per user</p>
+      </div>
+    </div>
+
+    <h2>Transactions, per month</h2>
+    <p class="secnote">Charged per job, per record, or per route. The small numbers are the trap: a half credit times ten thousand routes is a real bill.</p>
+    <div class="grid">
+      <div class="field">
+        <label for="geocodes">Geocodes</label>
+        <p class="hint">Addresses matched with the ArcGIS World Geocoding Service, for example when publishing a spreadsheet as a hosted feature layer.</p>
+        <input type="number" id="geocodes" min="0" step="any" value="0">
+        <p class="rate">40 credits per 1,000 geocodes</p>
+      </div>
+      <div class="field">
+        <label for="simpleRoutes">Simple routes</label>
+        <p class="hint">Directions in Map Viewer, one origin to one destination.</p>
+        <input type="number" id="simpleRoutes" min="0" step="any" value="0">
+        <p class="rate">0.005 credits per simple route</p>
+      </div>
+      <div class="field">
+        <label for="optimizedRoutes">Optimised routes</label>
+        <p class="hint">Directions with the stop order optimised.</p>
+        <input type="number" id="optimizedRoutes" min="0" step="any" value="0">
+        <p class="rate">0.5 credits per optimised route</p>
+      </div>
+      <div class="field">
+        <label for="driveTime">Drive-time areas</label>
+        <p class="hint">Service areas, also called travel areas. One request for eight places at three distances is 24 areas, not one.</p>
+        <input type="number" id="driveTime" min="0" step="any" value="0">
+        <p class="rate">0.5 credits per drive-time area</p>
+      </div>
+      <div class="field">
+        <label for="closestFacility">Closest facility routes</label>
+        <p class="hint">Find Nearest routes, one per facility found.</p>
+        <input type="number" id="closestFacility" min="0" step="any" value="0">
+        <p class="rate">0.5 credits per closest facility route</p>
+      </div>
+      <div class="field">
+        <label for="multiVehicle">Multi-vehicle routes</label>
+        <p class="hint">Plan Routes jobs, one per vehicle route.</p>
+        <input type="number" id="multiVehicle" min="0" step="any" value="0">
+        <p class="rate">1 credit per vehicle route</p>
+      </div>
+      <div class="field">
+        <label for="geoAttrs">GeoEnrichment attributes</label>
+        <p class="hint">Data variables multiplied by feature records. Enriching 1,000 records with 4 variables is 4,000 attributes.</p>
+        <input type="number" id="geoAttrs" min="0" step="any" value="0">
+        <p class="rate">10 credits per 1,000 attributes</p>
+      </div>
+      <div class="field">
+        <label for="spatialFeatures">Spatial analysis features</label>
+        <p class="hint">Features analysed by feature analysis tools in Map Viewer, for example Aggregate Points or Join Features.</p>
+        <input type="number" id="spatialFeatures" min="0" step="any" value="0">
+        <p class="rate">1 credit per 1,000 features</p>
+      </div>
+      <div class="field">
+        <label for="tiles">Tiles generated</label>
+        <p class="hint">Tiles built for a tile cache with ArcGIS Online.</p>
+        <input type="number" id="tiles" min="0" step="any" value="0">
+        <p class="rate">1 credit per 10,000 tiles generated</p>
+      </div>
+      <div class="field">
+        <label for="demographicRequests">Demographic map requests</label>
+        <p class="hint">Pan, zoom, and identify requests on maps with Esri demographic data.</p>
+        <input type="number" id="demographicRequests" min="0" step="any" value="0">
+        <p class="rate">10 credits per 1,000 map requests</p>
+      </div>
+      <div class="field">
+        <label for="infographicViews">Infographic views</label>
+        <p class="hint">Infographics viewed in Business Analyst, Experience Builder, ArcGIS Pro, and other supported apps.</p>
+        <input type="number" id="infographicViews" min="0" step="any" value="0">
+        <p class="rate">10 credits per 1,000 views</p>
+      </div>
+      <div class="field">
+        <label for="printJobs">Custom layout prints</label>
+        <p class="hint">Maps printed from custom layout templates in Map Viewer. Standard prints do not consume credits.</p>
+        <input type="number" id="printJobs" min="0" step="any" value="0">
+        <p class="rate">5 credits per print job</p>
+      </div>
+      <div class="field">
+        <label for="modelBuilderHours">ModelBuilder hours</label>
+        <p class="hint">Hours connected to a ModelBuilder analysis session. Charged per hour with a 10 minute minimum.</p>
+        <input type="number" id="modelBuilderHours" min="0" step="any" value="0">
+        <p class="rate">50 credits per hour</p>
+      </div>
+      <div class="field">
+        <label for="imageAnalysis">AI image analysis images</label>
+        <p class="hint">Images analysed with AI, for example with analyze_image in the ArcGIS API for Python.</p>
+        <input type="number" id="imageAnalysis" min="0" step="any" value="0">
+        <p class="rate">1 credit per 5 images</p>
+      </div>
+      <div class="field">
+        <label for="translationChars">AI text translation characters</label>
+        <p class="hint">Characters translated with AI, for example with translate in the ArcGIS API for Python or TranslateText in Arcade.</p>
+        <input type="number" id="translationChars" min="0" step="any" value="0">
+        <p class="rate">1 credit per 1,000 characters</p>
+      </div>
+    </div>
+
+    <h2>Your subscription</h2>
+    <p class="secnote">Credits included with your annual subscription depend on the user types you buy. A Creator user type includes 500 credits, a Contributor 250. Additional credits can be bought in blocks of 1,000.</p>
+    <div class="grid">
+      <div class="field">
+        <label for="annualCredits">Credits included per year</label>
+        <p class="hint">Total credits your annual subscription includes. Find it on your organisation status dashboard.</p>
+        <input type="number" id="annualCredits" min="0" step="any" value="2500">
+        <p class="rate">Unused subscription credits expire at the end of the subscription period.</p>
+      </div>
+      <div class="field">
+        <label>What does not cost credits</label>
+        <p class="hint">Using Living Atlas basemaps and imagery, creating and sharing maps and apps, managing data, exporting data, and single-address or place searches. Most of what a team does every day is free.</p>
+        <p class="rate">Source: Esri, Understand credits</p>
+      </div>
+    </div>
+
+    <div class="actions noprint">
+      <button type="button" class="btn" id="calcBtn">Estimate my credits</button>
+      <button type="button" class="btn-dark" id="printBtn">Print this estimate</button>
+      <button type="button" class="btn-outline" id="resetBtn">Start over</button>
+    </div>
+
+    <div id="result" class="result" style="display:none"></div>
+
+    <div class="sources">
+      <h2>Sources</h2>
+      <p>Rates are Esri&rsquo;s published rates from <a href="https://doc.esri.com/en/arcgis-online/latest/administer/credits.html" target="_blank" rel="noopener">Understand credits, ArcGIS Online documentation</a>, checked 25 November 2026. Credit counts per user type and the 1,000-credit purchase block are from Esri&rsquo;s guidance on monitoring credits in ArcGIS Online. Service area, closest facility, multi-vehicle route, GeoEnrichment, location-allocation, origin destination cost matrix, and spatial analysis rates are from Esri&rsquo;s published credits by capability table. If a rate here disagrees with the documentation, the documentation wins.</p>
+      <p style="margin-top:8px">Two numbers worth remembering from that same page: it costs fewer than 5 credits to geocode 125 addresses, and fewer than 5 credits to store 2 GB of map tile data. The bill only becomes a problem when the small numbers repeat every day.</p>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>ArcGIS Online Credit Estimator, a working tool by <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Janaki Gattu</a>, Enterprise GIS Consultant &amp; GIS Solutions Architect. Still unsure what your credits should cost? <a href="mailto:gjanaki360@gmail.com?subject=ArcGIS%20Online%20credits%20estimate">Email gjanaki360@gmail.com</a> with your estimate, or <a href="https://janakigattu.github.io/#book">book a session</a> and bring the numbers from your status dashboard.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  var ITEMS = [
+    {id:"featureMB", label:"Hosted feature storage", rate:0.24, tip:"Feature storage is the usual suspect. Archive or delete hosted layers nobody opens, turn off Enable Sync and Keep track of changes where you do not need them, and check the Storage tab on the status dashboard for the layers using the most credits."},
+    {id:"fileGB", label:"File storage", rate:1.2, tip:"File storage adds up quietly. Remove old tile packages, scene layer packages, and service definition files, and clear attachments from retired layers."},
+    {id:"imageryGB", label:"Imagery and tile storage", rate:1.2, tip:"Imagery storage is charged on the size of the files. Keep only the imagery you serve, and publish tiled imagery at the resolution your maps actually need."},
+    {id:"notebookGB", label:"Notebook workspace storage", rate:12, perUser:true, tip:"Notebook workspace storage is charged per user, per gigabyte. Clear old notebooks and data files from workspaces, and keep shared data in hosted layers instead."},
+    {id:"geocodes", label:"Geocoding", rate:0.04, tip:"Geocoding is 40 credits per 1,000 addresses. Batch geocode once and store the result, and use a local locator for work that never leaves your own data."},
+    {id:"simpleRoutes", label:"Simple routes", rate:0.005, tip:"Routes are cheap one at a time and expensive at volume. Cache directions for repeated origins and destinations instead of routing the same trip twice."},
+    {id:"optimizedRoutes", label:"Optimised routes", rate:0.5, tip:"Optimised routes cost 0.5 credits each. Keep the stop list tight and only re-optimise when the stops change."},
+    {id:"driveTime", label:"Drive-time areas", rate:0.5, tip:"Each drive-time area costs 0.5 credits, and one request for eight places at three distances is 24 areas. Generate the areas once and reuse them."},
+    {id:"closestFacility", label:"Closest facility routes", rate:0.5, tip:"Closest facility routes cost 0.5 credits each. Narrow the candidate facilities first, then route, instead of routing against the full list."},
+    {id:"multiVehicle", label:"Multi-vehicle routes", rate:1, tip:"Plan Routes costs 1 credit per vehicle route. Keep the stop list tight and re-plan only when the stops change."},
+    {id:"geoAttrs", label:"GeoEnrichment attributes", rate:0.01, tip:"Enrichment is charged per attribute, per record. Pick the variables you will actually use before you enrich, not after."},
+    {id:"spatialFeatures", label:"Spatial analysis features", rate:0.001, tip:"Analysis is charged per 1,000 features. Filter to the study area first, then analyse, instead of analysing the whole layer."},
+    {id:"tiles", label:"Tiles generated", rate:0.0001, tip:"Tile generation is 1 credit per 10,000 tiles. Generate the cache once at the levels you need, and do not rebuild it on a schedule."},
+    {id:"demographicRequests", label:"Demographic map requests", rate:0.01, tip:"Demographic maps cost 10 credits per 1,000 map requests. Use them in the apps that need them, not as a basemap on every map."},
+    {id:"infographicViews", label:"Infographic views", rate:0.01, tip:"Infographics cost 10 credits per 1,000 views. Put them where people read them, and export once instead of once per meeting."},
+    {id:"printJobs", label:"Custom layout prints", rate:5, tip:"Custom layout prints cost 5 credits each. Use the standard print for routine maps and save the custom template for the ones that leave the office."},
+    {id:"modelBuilderHours", label:"ModelBuilder hours", rate:50, tip:"ModelBuilder sessions cost 50 credits per hour. Keep the session open only while you are working, and run the finished model as a scheduled notebook instead."},
+    {id:"imageAnalysis", label:"AI image analysis images", rate:0.2, tip:"AI image analysis costs 1 credit per 5 images. Send only the images that need analysis, not the whole folder."},
+    {id:"translationChars", label:"AI text translation characters", rate:0.001, tip:"AI translation costs 1 credit per 1,000 characters. Translate the strings your app shows, not the whole document."}
+  ];
+
+  var PRESETS = {
+    small: {featureMB:250, fileGB:5, imageryGB:0, notebookGB:0, notebookUsers:1, geocodes:500, simpleRoutes:200, optimizedRoutes:0, driveTime:0, closestFacility:0, multiVehicle:0, geoAttrs:0, spatialFeatures:0, tiles:0, demographicRequests:0, infographicViews:0, printJobs:0, modelBuilderHours:0, imageAnalysis:0, translationChars:0, annualCredits:2500},
+    field: {featureMB:2000, fileGB:20, imageryGB:0, notebookGB:0, notebookUsers:1, geocodes:5000, simpleRoutes:1000, optimizedRoutes:100, driveTime:0, closestFacility:0, multiVehicle:0, geoAttrs:0, spatialFeatures:10000, tiles:50000, demographicRequests:0, infographicViews:0, printJobs:0, modelBuilderHours:0, imageAnalysis:0, translationChars:0, annualCredits:5000},
+    routing: {featureMB:100, fileGB:2, imageryGB:0, notebookGB:0, notebookUsers:1, geocodes:0, simpleRoutes:5000, optimizedRoutes:2000, driveTime:400, closestFacility:300, multiVehicle:100, geoAttrs:20000, spatialFeatures:0, tiles:0, demographicRequests:2000, infographicViews:0, printJobs:0, modelBuilderHours:0, imageAnalysis:0, translationChars:0, annualCredits:5000}
+  };
+
+  function val(id){
+    var el = document.getElementById(id);
+    var n = parseFloat(el.value);
+    return (isNaN(n) || n < 0) ? 0 : n;
+  }
+
+  function fmt(n){
+    var r = Math.round(n * 100) / 100;
+    return r.toLocaleString("en-US", {maximumFractionDigits: 2});
+  }
+
+  function esc(s){
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function compute(){
+    var rows = [];
+    var total = 0;
+    ITEMS.forEach(function(it){
+      var amount = val(it.id);
+      var credits = it.perUser ? amount * val("notebookUsers") * it.rate : amount * it.rate;
+      if (amount > 0 && credits > 0){
+        rows.push({label: it.label, amount: amount, credits: credits, tip: it.tip, perUser: !!it.perUser});
+        total += credits;
+      }
+    });
+    rows.sort(function(a, b){ return b.credits - a.credits; });
+    return {rows: rows, total: total};
+  }
+
+  function calculate(){
+    var res = compute();
+    var annual = val("annualCredits");
+    var monthlyAllowance = annual / 12;
+    var annualProjection = res.total * 12;
+    var monthsCovered = res.total > 0 ? annual / res.total : Infinity;
+    var box = document.getElementById("result");
+
+    var pill, verdict;
+    if (res.total === 0){
+      pill = '<span class="pill green">No credits used yet</span>';
+      verdict = "Enter your storage and transactions above and the estimate will appear here. Nothing you entered uses credits yet.";
+    } else if (res.total <= monthlyAllowance){
+      pill = '<span class="pill green">Within your annual credits</span>';
+      verdict = "At this rate your annual credits last the full year, with " + fmt(annual - annualProjection) + " credits to spare. The estimate below shows where they go, so you can keep it that way.";
+    } else if (monthsCovered >= 6){
+      pill = '<span class="pill amber">Tight: credits run out in ' + Math.floor(monthsCovered) + ' months</span>';
+      verdict = "At this rate your annual credits run out after about " + fmt(monthsCovered) + " months, and the year needs " + fmt(annualProjection - annual) + " more credits than you have. The fixes below are the cheapest way to close that gap.";
+    } else {
+      pill = '<span class="pill red">Over budget: credits run out in ' + Math.floor(monthsCovered) + ' months</span>';
+      verdict = "At this rate your annual credits run out after about " + fmt(monthsCovered) + " months, and the year needs " + fmt(annualProjection - annual) + " more credits than you have. Either buy credits in blocks of 1,000 or cut the biggest cost driver below.";
+    }
+
+    var html = "<h2>Your estimate</h2>" + pill;
+    html += '<p class="big">' + fmt(res.total) + ' <small>credits per month</small></p>';
+    html += '<div class="stats">';
+    html += '<div class="stat"><div class="k">Annual projection</div><div class="v">' + fmt(annualProjection) + '</div><div class="s">credits over 12 months at this rate</div></div>';
+    html += '<div class="stat"><div class="k">Monthly allowance</div><div class="v">' + fmt(monthlyAllowance) + '</div><div class="s">credits per month from your annual pool</div></div>';
+    html += '<div class="stat"><div class="k">Annual credits</div><div class="v">' + fmt(annual) + '</div><div class="s">' + (annualProjection > annual ? fmt(annualProjection - annual) + " credits short for the year" : fmt(annual - annualProjection) + " credits spare for the year") + '</div></div>';
+    html += "</div>";
+    html += "<p>" + verdict + "</p>";
+
+    if (res.rows.length){
+      html += "<h3>Where the credits go</h3>";
+      html += '<table><thead><tr><th>What</th><th class="num">Amount</th><th class="num">Credits / month</th></tr></thead><tbody>';
+      res.rows.forEach(function(r, i){
+        html += '<tr' + (i === 0 ? ' class="top"' : "") + '><td>' + esc(r.label) + (i === 0 ? ' <span class="driver">Biggest cost driver</span>' : "") + '</td><td class="num">' + fmt(r.amount) + (r.perUser ? " GB x " + fmt(val("notebookUsers")) + " users" : "") + '</td><td class="num">' + fmt(r.credits) + '</td></tr>';
+      });
+      html += "</tbody></table>";
+      html += "<h3>How to bring the bill down</h3><ul>";
+      res.rows.slice(0, 2).forEach(function(r){
+        html += "<li><b>" + esc(r.label) + " (" + fmt(r.credits) + " credits a month):</b> " + esc(r.tip) + "</li>";
+      });
+      html += "<li><b>Watch it in the open:</b> turn on credit budgeting and assign a credit limit to the members who run the heavy tools, so one job cannot spend the month in an afternoon. Check the status dashboard every month and compare it with this estimate.</li></ul>";
+    }
+
+    html += '<div class="cta noprint"><a class="btn" href="mailto:gjanaki360@gmail.com?subject=ArcGIS%20Online%20credits%20estimate">Email Janaki my estimate</a> <a class="btn-dark" href="https://janakigattu.github.io/#book">Book a session</a></div>';
+    html += '<p style="margin-top:14px">Email Janaki with your monthly total and your biggest cost driver, and she will tell you whether the fix is a setting, a workflow change, or a different place to keep the data.</p>';
+    box.innerHTML = html;
+    box.style.display = "block";
+    box.scrollIntoView({behavior: "smooth", block: "start"});
+  }
+
+  function applyPreset(name){
+    var p = PRESETS[name];
+    if (!p) return;
+    Object.keys(p).forEach(function(k){
+      var el = document.getElementById(k);
+      if (el) el.value = p[k];
+    });
+    document.querySelectorAll(".preset").forEach(function(b){ b.classList.remove("active"); });
+    var btn = document.getElementById("preset-" + name);
+    if (btn) btn.classList.add("active");
+    calculate();
+  }
+
+  function clearAll(){
+    ITEMS.forEach(function(it){
+      var el = document.getElementById(it.id);
+      if (el) el.value = 0;
+    });
+    document.getElementById("notebookUsers").value = 1;
+    document.getElementById("annualCredits").value = 2500;
+    document.querySelectorAll(".preset").forEach(function(b){ b.classList.remove("active"); });
+    var box = document.getElementById("result");
+    box.style.display = "none";
+    box.innerHTML = "";
+    window.scrollTo({top: 0, behavior: "smooth"});
+  }
+
+  document.getElementById("calcBtn").addEventListener("click", calculate);
+  document.getElementById("printBtn").addEventListener("click", function(){ calculate(); window.print(); });
+  document.getElementById("resetBtn").addEventListener("click", clearAll);
+  document.getElementById("preset-small").addEventListener("click", function(){ applyPreset("small"); });
+  document.getElementById("preset-field").addEventListener("click", function(){ applyPreset("field"); });
+  document.getElementById("preset-routing").addEventListener("click", function(){ applyPreset("routing"); });
+  document.getElementById("preset-clear").addEventListener("click", clearAll);
+})();
+</script>
+</body>
+</html>
