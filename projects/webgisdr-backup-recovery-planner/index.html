@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebGISDR Backup and Recovery Planner, a working planner by Janaki Gattu</title>
+<meta name="description" content="A working WebGISDR Backup and Recovery Planner by Janaki Gattu. Answer a few questions about your ArcGIS Enterprise deployment and get a backup schedule, a readiness score, the gaps WebGISDR does not cover, and a printable restore checklist. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  .areas{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:24px 0}
+  .area{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .area h3{font-size:1rem;margin-bottom:4px}
+  .area p{color:var(--muted);font-size:.92rem}
+  .formbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px}
+  .formbox h2{font-size:1.35rem;margin-bottom:6px}
+  .formbox .intro{color:var(--muted);margin-bottom:22px}
+  fieldset{border:0;margin-bottom:26px}
+  legend{font-weight:800;font-size:1.05rem;margin-bottom:4px}
+  .fhelp{color:var(--muted);font-size:.92rem;margin-bottom:12px}
+  .opts{display:flex;flex-direction:column;gap:10px}
+  .opt{display:flex;gap:10px;align-items:flex-start;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:12px;padding:13px 16px;font-size:1rem;cursor:pointer}
+  .opt:hover{border-color:var(--accent)}
+  .opt input{margin-top:5px;accent-color:var(--accent)}
+  .opt b{display:block}
+  .opt span{color:var(--muted);font-size:.92rem}
+  .optrow{display:flex;flex-wrap:wrap;gap:10px}
+  .optrow .opt{flex:1 1 200px}
+  select{background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:10px;padding:12px 14px;font-size:1rem;width:100%;max-width:320px}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer}
+  .btn-dark{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a;border:0;cursor:pointer}
+  .btn-outline{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;border:1px solid #525252;color:var(--text);background:none;cursor:pointer;margin-left:10px}
+  .result{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px}
+  .score{font-size:3rem;font-weight:800;line-height:1;color:var(--accent)}
+  .score.red{color:var(--red)}
+  .score.amber{color:var(--amber)}
+  .result h2{font-size:1.4rem;margin:10px 0}
+  .result h3{margin:22px 0 8px;font-size:1.1rem}
+  .result p{color:var(--muted)}
+  .result ul,.result ol{margin-left:20px;color:#d4d4d4}
+  .result li{margin-bottom:6px}
+  .result .cta{margin-top:24px}
+  .pill{display:inline-block;font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:6px}
+  .pill.green{background:#14532d;color:#bbf7d0}
+  .pill.amber{background:#451a03;color:#fde68a}
+  .pill.red{background:#450a0a;color:#fecaca}
+  .warn{background:#1c0a0a;border:1px solid #7f1d1d;border-radius:12px;padding:14px 18px;color:#fecaca;margin-top:14px}
+  .warn b{color:#fff}
+  .gap{border-left:3px solid var(--amber);padding:10px 14px;margin:10px 0;background:var(--bg2);border-radius:0 10px 10px 0}
+  .gap b{color:var(--text)}
+  .gap p{color:var(--muted);font-size:.95rem}
+  .covered{border-left:3px solid var(--accent);padding:10px 14px;margin:10px 0;background:var(--bg2);border-radius:0 10px 10px 0}
+  .covered b{color:var(--text)}
+  .covered p{color:var(--muted);font-size:.95rem}
+  pre{background:#000;border:1px solid var(--line);border-radius:12px;padding:16px 18px;overflow-x:auto;color:#d4d4d4;font-size:.88rem;line-height:1.5;margin-top:10px;white-space:pre-wrap}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:.95rem}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-size:.85rem;text-transform:uppercase;letter-spacing:.06em}
+  td{color:#d4d4d4}
+  .breakdown{color:var(--muted);font-size:.95rem}
+  .breakdown b{color:#d4d4d4}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+  @media (max-width:600px){.btn-outline{margin-left:0;margin-top:10px}}
+  @media print{body{background:#fff;color:#000}header,.back,.btn,.btn-dark,.btn-outline,footer{display:none}.result,.formbox{border:1px solid #999}.result p,.result li,.breakdown{color:#333}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu&rsquo;s portfolio</a>
+    <p class="eyebrow">Working planner &middot; Live demo</p>
+    <h1>WebGISDR Backup and Recovery Planner</h1>
+    <p class="lede">Your last good backup is the only version of your organisation you can get back. <b>This planner shows whether that backup actually exists, what it does not cover, and how to restore it when the day comes.</b></p>
+    <p class="honest"><b>How this planner works, honestly:</b> it runs entirely in your browser. There is no server, no API key, no account, and nothing you answer leaves this page. The schedule and score are calculated here, on this device, and they are not stored or sent anywhere. The times it gives you are planning figures from Esri&rsquo;s published guidance. Your real recovery time is the one you measure in a restore test.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <div id="intro">
+      <div class="areas">
+        <div class="area"><h3>1. Your deployment</h3><p>Pattern and version. They decide which backup modes exist and what WebGISDR covers.</p></div>
+        <div class="area"><h3>2. What else lives there</h3><p>Caches, referenced data, extra data stores, federated servers. WebGISDR does not back up all of it.</p></div>
+        <div class="area"><h3>3. Your schedule</h3><p>How fast content changes sets how often a full backup runs and how often incrementals run between them.</p></div>
+        <div class="area"><h3>4. Your restore</h3><p>A readiness score, the gaps to close, a properties file starter, and a checklist you can print and run.</p></div>
+      </div>
+    </div>
+
+    <div class="formbox" id="planner">
+      <h2>Build your backup plan</h2>
+      <p class="intro">Five short sections. About three minutes. If you do not know an answer, pick your best guess and treat the result as the list of things to confirm with your admin team.</p>
+
+      <fieldset>
+        <legend>1. Your deployment</legend>
+        <p class="fhelp">Pattern first. A replicated standby changes the schedule, because exports on the primary have to be imported on the standby.</p>
+        <div class="opts" id="patternopts">
+          <label class="opt"><input type="radio" name="pattern" value="single" checked><span><b>Single machine</b><span>Portal, Server, and the Data Store on one machine.</span></span></label>
+          <label class="opt"><input type="radio" name="pattern" value="base"><span><b>Base deployment</b><span>Portal, a hosting server, and the Data Store on separate machines, no high availability.</span></span></label>
+          <label class="opt"><input type="radio" name="pattern" value="ha"><span><b>Highly available</b><span>Portal and the Data Store with high availability, and a load balancer in front.</span></span></label>
+          <label class="opt"><input type="radio" name="pattern" value="replicated"><span><b>Primary plus standby (replicated)</b><span>A second deployment kept in step with the primary using WebGISDR exports and imports.</span></span></label>
+        </div>
+        <p class="fhelp" style="margin-top:14px">ArcGIS Enterprise version</p>
+        <select id="version" aria-label="ArcGIS Enterprise version">
+          <option value="10.9.1">10.9.1</option>
+          <option value="11.0">11.0</option>
+          <option value="11.1">11.1</option>
+          <option value="11.2">11.2</option>
+          <option value="11.3">11.3</option>
+          <option value="11.4" selected>11.4</option>
+          <option value="11.5">11.5</option>
+          <option value="12.0">12.0</option>
+        </select>
+      </fieldset>
+
+      <fieldset>
+        <legend>2. What else lives in your deployment</legend>
+        <p class="fhelp">Tick everything you have. WebGISDR backs up portal items and settings, GIS services and settings, service webhooks, and the relational, object, tile cache, and graph data stores. Everything below needs its own backup, or it is not backed up at all.</p>
+        <div class="opts" id="compopts">
+          <label class="opt"><input type="checkbox" value="tilecaches"><span><b>Hosted tile layer caches or map service caches</b><span>Cache tiles are not in a WebGISDR backup. The arcgiscache directories have to be copied separately.</span></span></label>
+          <label class="opt"><input type="checkbox" value="filedata"><span><b>Referenced file data</b><span>File-based data that services point at, rather than data copied into the site when published.</span></span></label>
+          <label class="opt"><input type="checkbox" value="gdb"><span><b>Enterprise geodatabases</b><span>Data in SQL Server, PostgreSQL, or Oracle that services reference.</span></span></label>
+          <label class="opt"><input type="checkbox" value="bigdata"><span><b>Spatiotemporal big data store</b><span>Registered with the hosting server for GeoEvent or GeoAnalytics work.</span></span></label>
+          <label class="opt"><input type="checkbox" value="graph"><span><b>Graph store</b><span>Registered with the hosting server for knowledge graph work.</span></span></label>
+          <label class="opt"><input type="checkbox" value="object"><span><b>Object store</b><span>Registered with the hosting server, used by hosted feature layers at 11.0 and later.</span></span></label>
+          <label class="opt"><input type="checkbox" value="notebook"><span><b>Federated ArcGIS Notebook Server</b><span>Site settings, services, and webhooks are in the backup. The workspace directory is not.</span></span></label>
+          <label class="opt"><input type="checkbox" value="geoevent"><span><b>Federated ArcGIS GeoEvent Server</b><span>The site configuration is not in a WebGISDR backup.</span></span></label>
+          <label class="opt"><input type="checkbox" value="mission"><span><b>Federated ArcGIS Mission Server</b><span>Needs its own backup, following the Mission Server documentation.</span></span></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>3. How fast does your content change?</legend>
+        <p class="fhelp">This sets the rhythm. Full backups every night and incrementals through the day is the pattern Esri documents: a full backup at midnight, then incrementals at 10:00 a.m., 2:00 p.m., and 6:00 p.m.</p>
+        <div class="opts" id="changeopts">
+          <label class="opt"><input type="radio" name="change" value="light" checked><span><b>Light</b><span>A few edits a week. Content is mostly stable.</span></span></label>
+          <label class="opt"><input type="radio" name="change" value="moderate"><span><b>Moderate</b><span>Daily edits and new items, but nothing that cannot wait a day.</span></span></label>
+          <label class="opt"><input type="radio" name="change" value="heavy"><span><b>Heavy</b><span>Content changes all day, every day. Losing a day of edits would hurt.</span></span></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>4. Where do the backup files go?</legend>
+        <p class="fhelp">Backups that sit on the same machines as the deployment do not survive the failure they are meant to cover.</p>
+        <div class="opts" id="storeopts">
+          <label class="opt"><input type="radio" name="store" value="same" checked><span><b>A file share on the deployment machines</b><span>Backup files live on the same machines they back up.</span></span></label>
+          <label class="opt"><input type="radio" name="store" value="nas"><span><b>A separate file server or NAS</b><span>Backup files live off the deployment, on your own storage.</span></span></label>
+          <label class="opt"><input type="radio" name="store" value="s3"><span><b>Amazon S3</b><span>WebGISDR writes the backup to an S3 bucket.</span></span></label>
+          <label class="opt"><input type="radio" name="store" value="azure"><span><b>Azure Blob Storage</b><span>WebGISDR writes the backup to an Azure blob container.</span></span></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>5. Five readiness questions</legend>
+        <p class="fhelp">Answer honestly. These five decide most of the score, because they are the five things that decide whether a restore works when it matters.</p>
+        <div id="readiness"></div>
+      </fieldset>
+
+      <button class="btn" id="buildbtn" type="button">Build my backup plan</button>
+      <p class="intro" style="margin-top:14px;margin-bottom:0">Built from Esri&rsquo;s published WebGISDR documentation and Janaki Gattu&rsquo;s work administering ArcGIS Enterprise. A backup nobody has restored is a hope, not a plan.</p>
+    </div>
+
+    <div id="result" style="display:none"></div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>WebGISDR Backup and Recovery Planner, a working planner by <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Janaki Gattu</a>, Enterprise GIS Consultant &amp; GIS Solutions Architect. Grounded in Esri&rsquo;s <a href="https://enterprise.arcgis.com/en/portal/12.0/administer/linux/overview-backup-restore-web-gis.htm" target="_blank" rel="noopener">ArcGIS Enterprise backups</a> and <a href="https://enterprise.arcgis.com/en/portal/11.1/administer/linux/automate-replicated-deployment.htm" target="_blank" rel="noopener">automated replication</a> documentation. Questions about your own deployment? <a href="mailto:gjanaki360@gmail.com?subject=WebGISDR%20backup%20and%20recovery%20plan">Email gjanaki360@gmail.com</a> or <a href="https://janakigattu.github.io/">visit the portfolio</a>.</p>
+  </div>
+</footer>
+<script>
+var READINESS = [
+  {id:"pit", q:"Point-in-time recovery is enabled on the relational data store.", help:"Incremental backups need it. Without it, the WebGISDR tool fails on an incremental export."},
+  {id:"tested", q:"A restore has been tested in the last 6 months.", help:"A restore test, on a target, with someone watching the clock. Not a backup that ran without errors."},
+  {id:"owner", q:"One named person owns the backup schedule, and the runbook is written down.", help:"If the owner leaves and the schedule lives in their head, the backups stop."},
+  {id:"target", q:"A restore target exists, on the same version, with matching URLs.", help:"A restore needs somewhere to go. Same ArcGIS Enterprise version, same public portal and services URLs."},
+  {id:"timed", q:"A full export has been timed end to end.", help:"Until you have timed one, your recovery time is a guess. Time the export and the import."}
+];
+
+var COMPONENTS = {
+  tilecaches:{title:"Hosted tile layer caches and map service caches", action:"Copy the whole arcgiscache directories, including the tiling scheme file conf.xml and status.gdb, and put them back in the same place after a restore. WebGISDR does not back up cache tiles."},
+  filedata:{title:"Referenced file data", action:"Make backup copies of the files themselves. WebGISDR does not back up referenced data sources."},
+  gdb:{title:"Enterprise geodatabases", action:"Back up each enterprise geodatabase with your database management system tools. WebGISDR does not back up referenced data."},
+  bigdata:{title:"Spatiotemporal big data store", action:"Back it up with the ArcGIS Data Store backupdatastore utility. WebGISDR does not cover it."},
+  graph:{title:"Graph store", action:"At 12.0 the graph store is included in the WebGISDR backup. On earlier versions, back it up with the ArcGIS Data Store backupdatastore utility."},
+  object:{title:"Object store", action:"At 12.0 the object store is included in the WebGISDR backup. On earlier versions, back it up with the ArcGIS Data Store backupdatastore utility."},
+  notebook:{title:"Federated Notebook Server workspace directory", action:"WebGISDR backs up the Notebook Server site settings, services, and webhooks. Back up the workspace directory separately, on its own schedule."},
+  geoevent:{title:"Federated GeoEvent Server site configuration", action:"Back it up following the GeoEvent Server documentation. WebGISDR does not cover it."},
+  mission:{title:"Federated Mission Server site", action:"Back it up following the Mission Server documentation. WebGISDR does not cover it, and the restore follows the same documentation."}
+};
+
+function vnum(v){ return parseFloat(v); }
+
+function computePlan(s){
+  var patternPts = {single:5, base:10, ha:15, replicated:20}[s.pattern] || 0;
+  var storePts = {same:0, nas:12, s3:15, azure:15}[s.store] || 0;
+  var readyPts = 0;
+  READINESS.forEach(function(r){ if(s.answers[r.id] === "yes"){ readyPts += 8; } });
+  var ver = vnum(s.version);
+  var gaps = [];
+  var covered = [];
+  s.components.forEach(function(c){
+    if((c === "graph" || c === "object") && ver >= 12.0){
+      covered.push({title:COMPONENTS[c].title, note:"Included in the WebGISDR backup at ArcGIS Enterprise 12.0."});
+    } else {
+      gaps.push({id:c, title:COMPONENTS[c].title, action:COMPONENTS[c].action});
+    }
+  });
+  var coverPts = Math.max(0, 25 - gaps.length * 5);
+  var score = patternPts + storePts + readyPts + coverPts;
+  var status, cls;
+  if(score >= 80){ status = "Recoverable"; cls = "green"; }
+  else if(score >= 50){ status = "Partly covered"; cls = "amber"; }
+  else { status = "At risk"; cls = "red"; }
+
+  var schedule;
+  if(s.change === "light"){
+    schedule = {full:"Weekly, Sunday 00:00", incr:"None needed at this change rate", rpo:"Up to 7 days of edits"};
+  } else if(s.change === "moderate"){
+    schedule = {full:"Nightly, 00:00", incr:"Once a day, 12:00", rpo:"About 12 hours of edits"};
+  } else {
+    schedule = {full:"Nightly, 00:00", incr:"Three times a day, 10:00, 14:00, and 18:00", rpo:"About 4 hours of edits"};
+  }
+
+  var warnings = [];
+  if(s.answers.pit !== "yes" && s.change !== "light"){
+    warnings.push("Your schedule uses incremental backups, but point-in-time recovery is not enabled on the relational data store. Incremental exports will fail until you enable it.");
+  }
+  if(ver < 10.9){
+    warnings.push("Backup mode was introduced at 10.9, so on " + s.version + " you use full mode. Plan for the larger backup files that come with it.");
+  }
+  if(s.store === "same"){
+    warnings.push("Your backup files sit on the same machines as the deployment. A failure that takes the deployment down can take the backups with it. Move them off the deployment.");
+  }
+  if(s.pattern === "replicated"){
+    warnings.push("Replication needs four properties files and four scripts: export full, export incremental, import full, import incremental, run by cron or Task Scheduler. Allow a 30 to 60 minute buffer between an export and its import, so the copy has time to finish.");
+  }
+
+  var provider = (s.store === "s3") ? "AmazonS3" : (s.store === "azure") ? "AzureBlob" : "FileSystem";
+  var props = "# webgisdr.properties starter, generated for your deployment\n";
+  props += "PORTAL_URL=https://your-portal.example.com/portal\n";
+  props += "ADMIN_USERNAME=portaladmin\n";
+  props += "ADMIN_PASSWORD=<enter at run time, do not store it in a shared copy>\n";
+  props += "BACKUP_RESTORE_MODE=full\n";
+  props += "BACKUP_STORE_PROVIDER=" + provider + "\n";
+  if(provider === "FileSystem"){
+    props += "SHARED_LOCATION=\\\\backup-server\\webgisdr\n";
+  } else {
+    props += "# Set the bucket or container in the properties file, following the Esri documentation.\n";
+  }
+  if(s.change !== "light"){
+    props += "\n# For incrementals, copy this file to expincremental.properties and change one line:\n# BACKUP_RESTORE_MODE=incremental\n";
+  }
+  if(ver >= 10.9){
+    props += "\n# Backup mode (BACKUP_RESTORE_MODE=backup) is available from 10.9. It backs up the state of the organisation, including portal content, published services, and the relational and tile cache data stores.\n";
+  }
+
+  var checklist = [];
+  checklist.push("Confirm the target runs the same ArcGIS Enterprise version and the same public portal and services URLs as the source.");
+  checklist.push("Set the target's Server site configuration store and directory paths, and the portal content directory path or bucket, before restoring. A restore keeps the target's values for these, it does not bring the source's.");
+  checklist.push("Copy the backup files to the target.");
+  checklist.push("Run the WebGISDR tool to import the full backup, then each incremental backup in order.");
+  if(s.components.indexOf("tilecaches") >= 0){ checklist.push("Copy the cache tiles back into the arcgiscache directories."); }
+  if(s.components.indexOf("filedata") >= 0){ checklist.push("Restore the referenced files to their original paths."); }
+  if(s.components.indexOf("gdb") >= 0){ checklist.push("Restore each enterprise geodatabase from its database backup."); }
+  if(s.components.indexOf("bigdata") >= 0 || ((s.components.indexOf("graph") >= 0 || s.components.indexOf("object") >= 0) && ver < 12.0)){ checklist.push("Restore the data stores WebGISDR does not cover, using the ArcGIS Data Store backupdatastore utility."); }
+  if(s.components.indexOf("notebook") >= 0){ checklist.push("Restore the Notebook Server workspace directory."); }
+  if(s.components.indexOf("geoevent") >= 0){ checklist.push("Restore the GeoEvent Server site configuration."); }
+  if(s.components.indexOf("mission") >= 0){ checklist.push("Restore the Mission Server site, following the Mission Server documentation."); }
+  checklist.push("Sign in, open the items people use most, and check that services answer.");
+  checklist.push("Record how long the restore took. That is your real recovery time.");
+
+  var rto = (s.answers.timed === "yes")
+    ? "You have timed a full export, so your recovery time has a measured starting point. Add the import time, the copy time, and a 30 to 60 minute buffer. Time a full restore the same way, and the number stops being a guess."
+    : "Your recovery time is a guess until you time one full export and one full import. Do that before you need it, and add a 30 to 60 minute buffer for the copy between export and import.";
+
+  return {
+    score:score, status:status, cls:cls,
+    breakdown:{pattern:patternPts, store:storePts, readiness:readyPts, coverage:coverPts},
+    schedule:schedule, rpo:schedule.rpo, rto:rto,
+    gaps:gaps, covered:covered, warnings:warnings, props:props, checklist:checklist
+  };
+}
+
+function esc(t){ return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+if(typeof window !== "undefined" && typeof document !== "undefined"){
+  (function(){
+    var rbox = document.getElementById("readiness");
+    READINESS.forEach(function(r){
+      var fs = document.createElement("div");
+      fs.style.marginBottom = "14px";
+      fs.innerHTML = "<p style=\"font-weight:700\">" + esc(r.q) + "</p><p class=\"fhelp\">" + esc(r.help) + "</p>" +
+        "<div class=\"optrow\"><label class=\"opt\"><input type=\"radio\" name=\"" + r.id + "\" value=\"yes\"><span><b>Yes</b></span></label>" +
+        "<label class=\"opt\"><input type=\"radio\" name=\"" + r.id + "\" value=\"no\" checked><span><b>No</b></span></label></div>";
+      rbox.appendChild(fs);
+    });
+
+    function val(name){
+      var el = document.querySelector("input[name=\"" + name + "\"]:checked");
+      return el ? el.value : null;
+    }
+    function collect(){
+      var comps = [];
+      document.querySelectorAll("#compopts input[type=\"checkbox\"]:checked").forEach(function(c){ comps.push(c.value); });
+      var answers = {};
+      READINESS.forEach(function(r){ answers[r.id] = val(r.id); });
+      return {pattern:val("pattern"), version:document.getElementById("version").value, components:comps, change:val("change"), store:val("store"), answers:answers};
+    }
+
+    document.getElementById("buildbtn").addEventListener("click", function(){
+      var s = collect();
+      var p = computePlan(s);
+      var h = "<div class=\"result\">";
+      h += "<p class=\"pill " + p.cls + "\">" + esc(p.status) + "</p>";
+      h += "<div class=\"score " + (p.cls === "green" ? "" : p.cls) + "\">" + p.score + " / 100</div>";
+      h += "<h2>Your backup readiness: " + esc(p.status.toLowerCase()) + "</h2>";
+      h += "<p class=\"breakdown\">Deployment pattern <b>" + p.breakdown.pattern + " / 20</b> &middot; Backup storage <b>" + p.breakdown.store + " / 15</b> &middot; Readiness answers <b>" + p.breakdown.readiness + " / 40</b> &middot; Coverage of what you run <b>" + p.breakdown.coverage + " / 25</b></p>";
+      if(p.status === "Recoverable"){
+        h += "<p style=\"margin-top:10px\">Your plan has the pieces in place. The work now is keeping it tested: restore on a schedule, and re-time the export when the content grows.</p>";
+      } else if(p.status === "Partly covered"){
+        h += "<p style=\"margin-top:10px\">You have a backup, but parts of your deployment are not in it, or the restore has never been proven. Close the gaps below before the next change window.</p>";
+      } else {
+        h += "<p style=\"margin-top:10px\">Right now a bad day could cost you content you cannot get back. Start with the first gap below, then test a restore. That one test moves the score more than anything else.</p>";
+      }
+      if(p.warnings.length){
+        p.warnings.forEach(function(w){ h += "<div class=\"warn\"><b>Watch out:</b> " + esc(w) + "</div>"; });
+      }
+      h += "<h3>Your recommended schedule</h3>";
+      h += "<table><tr><th>Backup</th><th>When</th></tr>";
+      h += "<tr><td>Full backup</td><td>" + esc(p.schedule.full) + "</td></tr>";
+      h += "<tr><td>Incremental backup</td><td>" + esc(p.schedule.incr) + "</td></tr></table>";
+      h += "<p style=\"margin-top:10px\">Recovery point objective: <b style=\"color:#d4d4d4\">" + esc(p.rpo) + "</b>. That is the most work you can lose. " + esc(p.rto) + "</p>";
+      h += "<h3>What WebGISDR covers, and what it does not</h3>";
+      h += "<div class=\"covered\"><b>Covered by WebGISDR:</b><p>Portal items and settings, GIS services and settings, service webhooks, and the relational, tile cache" + (vnum(s.version) >= 12.0 ? ", object, and graph" : "") + " data stores.</p></div>";
+      p.covered.forEach(function(c){ h += "<div class=\"covered\"><b>" + esc(c.title) + "</b><p>" + esc(c.note) + "</p></div>"; });
+      if(p.gaps.length){
+        h += "<h3>Close these gaps first</h3>";
+        p.gaps.slice(0,3).forEach(function(g,i){ h += "<div class=\"gap\"><b>" + (i+1) + ". " + esc(g.title) + "</b><p>" + esc(g.action) + "</p></div>"; });
+        p.gaps.slice(3).forEach(function(g){ h += "<div class=\"gap\"><b>" + esc(g.title) + "</b><p>" + esc(g.action) + "</p></div>"; });
+      } else {
+        h += "<p style=\"margin-top:10px\">Nothing in your deployment sits outside the WebGISDR backup. That is the position to be in.</p>";
+      }
+      h += "<h3>Your webgisdr.properties starter</h3>";
+      h += "<p>Copy this into a file in the webgisdr tools folder, fill in your own portal URL, and protect the file. It is a starting point, not a finished configuration. Check the Esri documentation for the full property list.</p>";
+      h += "<pre>" + esc(p.props) + "</pre>";
+      h += "<h3>Restore checklist</h3>";
+      h += "<ol>";
+      p.checklist.forEach(function(c){ h += "<li>" + esc(c) + "</li>"; });
+      h += "</ol>";
+      h += "<div class=\"cta\"><button class=\"btn-dark\" type=\"button\" onclick=\"window.print()\">Print this plan</button> <button class=\"btn-outline\" type=\"button\" onclick=\"document.getElementById('result').style.display='none';document.getElementById('planner').scrollIntoView()\">Change my answers</button></div>";
+      h += "<p style=\"margin-top:18px\">A plan on paper is worth less than one restore test. <a href=\"mailto:gjanaki360@gmail.com?subject=WebGISDR%20backup%20and%20recovery%20plan%20(score%20" + p.score + ")\">Email Janaki with your score</a> and she will help you set the schedule up, test the restore, and close the gaps.</p>";
+      h += "</div>";
+      var r = document.getElementById("result");
+      r.innerHTML = h;
+      r.style.display = "block";
+      r.scrollIntoView();
+    });
+  })();
+}
+</script>
+</body>
+</html>
