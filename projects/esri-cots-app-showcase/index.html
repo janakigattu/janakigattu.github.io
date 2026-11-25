@@ -150,7 +150,7 @@
   <div class="tabs" role="tablist">
     <button class="tab active" type="button" data-tab="eb" role="tab">Pattern 1: Experience Builder<small>Map, list, search, and filter on live data</small></button>
     <button class="tab" type="button" data-tab="dash" role="tab">Pattern 2: Dashboards<small>Indicators and a chart, computed from the same data</small></button>
-    <button class="tab" type="button" data-tab="story" role="tab">Pattern 3: StoryMaps<small>Five fires, five chapters, one season</small></button>
+    <button class="tab" type="button" data-tab="story" role="tab">Pattern 3: StoryMaps<small>Six chapters, one season, built from the live data</small></button>
   </div>
 
   <div class="panel active" id="panel-eb">
@@ -194,8 +194,8 @@
 
   <div class="panel" id="panel-story">
     <div class="panelhead">
-      <h3>StoryMaps pattern: the season in five fires</h3>
-      <p>Five chapters, each one a real fire from the live data. Step through them and the map moves with the story. This is the shape of a StoryMaps sidecar: a short text panel, a map that follows it, and the numbers that make each chapter concrete.</p>
+      <h3>StoryMaps pattern: the season in six chapters</h3>
+      <p>Six chapters: an overview, then one chapter per fire, each one a real fire from the live data. Step through them and the map moves with the story. This is the shape of a StoryMaps sidecar: a short text panel, a map that follows it, and the numbers that make each chapter concrete.</p>
       <p class="cots"><b>In ArcGIS Online or Enterprise:</b> ArcGIS StoryMaps, Sidecar block, with a map action per chapter. The chapters below are generated from the five largest fires in the live data, so the story updates when the season does.</p>
     </div>
     <div class="story">
@@ -464,7 +464,11 @@ function showChapter(i){
   var c = chapters[i];
   document.querySelectorAll(".chap").forEach(function(n, j){ n.classList.toggle("active", j === i); });
   if (storyMap){
-    storyMap.flyTo([c.lat, c.lng], c.zoom, {duration: 1.2});
+    // A hidden map has no size, so flying to a chapter while the tab is hidden
+    // breaks the animation. Set the view directly, and fly only when visible.
+    var panel = document.getElementById("panel-story");
+    if (panel && panel.classList.contains("active")) storyMap.flyTo([c.lat, c.lng], c.zoom, {duration: 1.2});
+    else storyMap.setView([c.lat, c.lng], c.zoom);
     if (i > 0){
       setTimeout(function(){
         storyMarkers.forEach(function(m){
@@ -486,8 +490,12 @@ function stepChapter(d){
 
 function loadData(isRefresh){
   var url = SERVICE + "?where=1%3D1&outFields=IncidentNa,IncidentTy,DailyAcres,PercentCon,POOState,POOCounty,FireCause&orderByFields=DailyAcres%20DESC&resultRecordCount=1000&returnGeometry=true&outSR=4326&f=json";
-  fetch(url).then(function(r){ return r.json(); }).then(function(data){
+  fetch(url).then(function(r){
+    if (!r.ok) { throw new Error("The service answered HTTP " + r.status); }
+    return r.json();
+  }).then(function(data){
     incidents = (data.features || []).filter(function(f){ return f.geometry && f.attributes && f.attributes.IncidentNa; });
+    if (incidents.length === 0) { throw new Error("The service returned no incidents"); }
     var states = {};
     incidents.forEach(function(f){ states[f.attributes.POOState] = true; });
     var sel = document.getElementById("state");
@@ -496,16 +504,37 @@ function loadData(isRefresh){
       return "<option value=\"" + s + "\">" + stateName(s) + "</option>";
     }).join("");
     sel.value = cur;
-    initEbMap();
-    applyEbFilter();
-    renderDashboard();
-    if (!isRefresh || !storyMap) { initStoryMap(); buildChapters(); }
-  }).catch(function(){
-    document.getElementById("ebcount").textContent = "The Living Atlas service did not answer. The map and list cannot load without it.";
-    document.getElementById("ebcount").className = "count";
-    document.getElementById("ebcount").style.color = "#f87171";
-    document.getElementById("dashbody").innerHTML = "<p class=\"status err\">The Living Atlas service did not answer. The indicators cannot be computed from data that never arrived. Try the refresh button, or come back in a few minutes.</p>";
-    document.getElementById("chaplist").innerHTML = "<p class=\"status err\">The story needs the live data. The service did not answer, so there are no chapters to show yet.</p>";
+    // Each panel renders on its own. A failure in one panel must not wipe the
+    // panels that already rendered, and a successful refresh must rebuild all
+    // of them, including the story chapters.
+    try { initEbMap(); applyEbFilter(); }
+    catch(e){
+      console.error(e);
+      document.getElementById("ebcount").textContent = "The incident list could not be built from the data that arrived. Try the refresh button." + ((e && e.message) ? " (" + e.message + ")" : "");
+      document.getElementById("ebcount").style.color = "#f87171";
+    }
+    try { renderDashboard(); }
+    catch(e){
+      console.error(e);
+      document.getElementById("dashbody").innerHTML = "<p class=\"status err\">The indicators could not be computed from the data that arrived. Try the refresh button." + ((e && e.message) ? " (" + e.message + ")" : "") + "</p>";
+    }
+    try { initStoryMap(); buildChapters(); }
+    catch(e){
+      console.error(e);
+      document.getElementById("chaplist").innerHTML = "<p class=\"status err\">The chapters could not be built from the data that arrived. Try the refresh button." + ((e && e.message) ? " (" + e.message + ")" : "") + "</p>";
+    }
+  }).catch(function(e){
+    console.error(e);
+    // Only claim the service did not answer when no data arrived at all.
+    // If data arrived and a panel failed, that panel already said so above.
+    if (incidents.length === 0){
+      var why = (e && e.message) ? " (" + e.message + ")" : "";
+      document.getElementById("ebcount").textContent = "The Living Atlas service did not answer. The map and list cannot load without it." + why;
+      document.getElementById("ebcount").className = "count";
+      document.getElementById("ebcount").style.color = "#f87171";
+      document.getElementById("dashbody").innerHTML = "<p class=\"status err\">The Living Atlas service did not answer. The indicators cannot be computed from data that never arrived. Try the refresh button, or come back in a few minutes." + why + "</p>";
+      document.getElementById("chaplist").innerHTML = "<p class=\"status err\">The story needs the live data. The service did not answer, so there are no chapters to show yet." + why + "</p>";
+    }
   });
 }
 
@@ -517,7 +546,7 @@ document.querySelectorAll(".tab").forEach(function(btn){
     var panel = document.getElementById("panel-" + btn.getAttribute("data-tab"));
     panel.classList.add("active");
     if (btn.getAttribute("data-tab") === "eb" && ebMap) setTimeout(function(){ ebMap.invalidateSize(); }, 50);
-    if (btn.getAttribute("data-tab") === "story" && storyMap) setTimeout(function(){ storyMap.invalidateSize(); }, 50);
+    if (btn.getAttribute("data-tab") === "story" && storyMap) setTimeout(function(){ storyMap.invalidateSize(); if (chapters.length) showChapter(currentChapter); }, 60);
   });
 });
 document.getElementById("q").addEventListener("input", applyEbFilter);
