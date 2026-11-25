@@ -39,6 +39,10 @@
   .btn-solid{background:var(--text);color:#0a0a0a}
   .btn-outline{border:1px solid #525252;color:var(--text)}
   .btn-green{background:var(--accent);color:#052e16}
+  /* Hero portrait */
+  .hero-top{display:flex;gap:28px;align-items:flex-start}
+  .portrait{width:132px;height:132px;border-radius:50%;object-fit:cover;border:2px solid var(--line);flex:none;margin-top:8px}
+  @media(max-width:760px){.hero-top{flex-direction:column;gap:18px}.portrait{margin-top:0}}
   /* Stats */
   .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:56px}
   .stat{background:var(--bg2);padding:26px 22px}
@@ -113,6 +117,9 @@
   .article p{color:var(--muted);flex:1}
   .article a{margin-top:18px;color:var(--accent);font-weight:700;text-decoration:none}
   .article a:hover{text-decoration:underline}
+  /* Podcast episodes */
+  .episode .ep-meta{flex:none;color:var(--faint);font-size:.88rem;margin-top:12px}
+  .episode audio{width:100%;margin-top:14px;flex:none}
   /* Book a session */
   .book{background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:44px 36px;text-align:center}
   .book h2{margin-bottom:10px}
@@ -141,6 +148,8 @@
       <a href="#certifications">Certifications</a>
       <a href="#experience">Experience</a>
       <a href="#articles">Articles</a>
+      <a href="#youtube">YouTube</a>
+      <a href="#podcast">Podcast</a>
       <a href="https://github.com/janakigattu" target="_blank" rel="noopener">GitHub</a>
       <a class="nav-cta" href="#book">Book a Session</a>
     </div>
@@ -149,9 +158,14 @@
 
 <header class="hero" id="top">
   <div class="wrap">
-    <p class="eyebrow">Enterprise GIS &middot; AI Agents for GIS</p>
-    <h1>Janaki Gattu</h1>
-    <p class="position">Enterprise GIS Consultant &amp; GIS Solutions Architect</p>
+    <div class="hero-top">
+      <img class="portrait" src="images/janaki.jpg" alt="Portrait of Janaki Gattu" width="132" height="132">
+      <div>
+        <p class="eyebrow">Enterprise GIS &middot; AI Agents for GIS</p>
+        <h1>Janaki Gattu</h1>
+        <p class="position">Enterprise GIS Consultant &amp; GIS Solutions Architect</p>
+      </div>
+    </div>
     <p class="hero-sub">Your enterprise GIS is holding your organisation back, and you know it. I modernise ArcGIS Enterprise environments, automate the work your team does by hand, and build AI agents that make GIS teams faster, so the system stops being a bottleneck and starts delivering.</p>
     <div class="cta-row">
       <a class="btn btn-solid" href="mailto:gjanaki360@gmail.com">Get in Touch</a>
@@ -370,6 +384,64 @@
   </div>
 </section>
 
+<!-- YOUTUBE -->
+<section id="youtube">
+  <div class="wrap">
+    <p class="kicker">YouTube</p>
+    <h2>Watch the work, not just read about it.</h2>
+    <p class="hook">The channel is new and the first videos are on their way. Video versions of the podcast and GIS demos will land here, so you can see the work running instead of taking my word for it.</p>
+    <div class="articles">
+      <div class="article reveal">
+        <p class="num">Channel</p>
+        <h3>Janaki Gattu — @janakigattu-y1t</h3>
+        <p>Enterprise GIS and AI agents for GIS, in video. A new channel, created November 2026, for the people who would rather watch a demo than read a slide deck.</p>
+        <a href="https://www.youtube.com/@janakigattu-y1t" target="_blank" rel="noopener">Visit the channel &rarr;</a>
+      </div>
+    </div>
+    <p class="section-cta">Subscribe to hear when the first videos land. If you want a demo built on your own system, <a href="mailto:gjanaki360@gmail.com?subject=GIS%20demo">start the conversation &rarr;</a></p>
+  </div>
+</section>
+
+<!-- PODCAST -->
+<section id="podcast">
+  <div class="wrap">
+    <p class="kicker">Podcast</p>
+    <h2>Enterprise GIS Weekly — the platform, out loud.</h2>
+    <p class="hook">A weekly conversation about the enterprise GIS work that actually matters: migrations, health checks, Utility Network, and AI agents that do real work. Hosted by Laddu and Alex, about five minutes each. Press play and listen.</p>
+    <div class="articles">
+      <div class="article episode reveal">
+        <p class="num">Episode 01</p>
+        <h3>ArcGIS Enterprise Migration: Start With Scope, Not the Tool</h3>
+        <p>What a migration actually involves, the four directions it can take, and the readiness checks that stop a migration from becoming a rescue.</p>
+        <p class="ep-meta">4 min 56 sec &middot; Nov 8, 2026</p>
+        <audio controls preload="none" src="podcast/ep1-migration.mp3"></audio>
+      </div>
+      <div class="article episode reveal">
+        <p class="num">Episode 02</p>
+        <h3>ArcGIS Enterprise Health Check: Find the Cracks Before They Break</h3>
+        <p>Find the cracks before they break — a guided check of the platform, the data, and the habits that keep an ArcGIS Enterprise deployment healthy.</p>
+        <p class="ep-meta">4 min 42 sec &middot; Nov 9, 2026</p>
+        <audio controls preload="none" src="podcast/ep2-health-check.mp3"></audio>
+      </div>
+      <div class="article episode reveal">
+        <p class="num">Episode 03</p>
+        <h3>Utility Network: Modernise the Model Before You Migrate the Data</h3>
+        <p>Modernise the model before you migrate the data — what Utility Network asks of a team before a single feature moves.</p>
+        <p class="ep-meta">4 min 57 sec &middot; Nov 16, 2026</p>
+        <audio controls preload="none" src="podcast/ep3-utility-network.mp3"></audio>
+      </div>
+      <div class="article episode reveal">
+        <p class="num">Episode 04</p>
+        <h3>Harness Engineering: The Discipline That Separates Production AI Agents From Demos</h3>
+        <p>The discipline that separates production AI agents from demos — what a harness around an agent has to do, and where the human stays in charge.</p>
+        <p class="ep-meta">5 min 38 sec &middot; Nov 25, 2026</p>
+        <audio controls preload="none" src="podcast/ep4-harness-engineering.mp3"></audio>
+      </div>
+    </div>
+    <p class="section-cta">New episodes land every Monday. If an episode raises a question about your own platform, <a href="mailto:gjanaki360@gmail.com?subject=Podcast%20question">ask it directly &rarr;</a></p>
+  </div>
+</section>
+
 <!-- BOOK A SESSION -->
 <section id="book">
   <div class="wrap">
@@ -390,7 +462,7 @@
 <footer>
   <div class="wrap">
     <p>&copy; 2026 Janaki Gattu — Enterprise GIS Consultant &amp; GIS Solutions Architect</p>
-    <p><a href="https://github.com/janakigattu" target="_blank" rel="noopener">GitHub</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">LinkedIn</a> &nbsp;·&nbsp; <a href="mailto:gjanaki360@gmail.com">gjanaki360@gmail.com</a></p>
+    <p><a href="https://github.com/janakigattu" target="_blank" rel="noopener">GitHub</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">LinkedIn</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/@janakigattu-y1t" target="_blank" rel="noopener">YouTube</a> &nbsp;·&nbsp; <a href="mailto:gjanaki360@gmail.com">gjanaki360@gmail.com</a></p>
   </div>
 </footer>
 
