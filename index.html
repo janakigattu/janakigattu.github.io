@@ -86,18 +86,13 @@
   .section-cta a{color:var(--accent);font-weight:700;text-decoration:none}
   .section-cta a:hover{text-decoration:underline}
   /* Services */
-  .tracks{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:36px}
+  .tracks{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:36px}
   @media(max-width:760px){.tracks{grid-template-columns:1fr}}
-  .track{position:relative;overflow:hidden;background:linear-gradient(180deg,#171717,#141414);border:1px solid var(--line);border-radius:16px;padding:34px 30px 30px;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+  .track{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
   .track:hover{transform:translateY(-3px);border-color:#3f3f3f;box-shadow:0 14px 34px rgba(0,0,0,.45)}
   .track::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),rgba(74,222,128,0))}
   .track.ai::before{background:linear-gradient(90deg,var(--amber),rgba(251,191,36,0))}
-  .track-icon{position:absolute;top:28px;right:28px;width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--bg2);display:flex;align-items:center;justify-content:center;color:var(--accent)}
-  .track.ai .track-icon{color:var(--amber)}
-  .track-icon svg{width:24px;height:24px}
-  .track h3{padding-right:56px}
-  .track h3{font-size:1.35rem;margin-bottom:6px}
-  .track .tag{display:inline-block;font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:12px}
+  .track h3{font-size:1.35rem;margin:6px 0 10px}
   .track ul{list-style:none;margin-top:16px}
   .track li{padding:9px 0;border-top:1px solid var(--line);color:#d4d4d4}
   .track li:first-child{border-top:0}
@@ -105,28 +100,23 @@
   .track .mini-cta{margin-top:20px}
   .track .mini-cta a{color:var(--accent);font-weight:700;text-decoration:none}
   /* Projects */
-  .projects{margin-top:36px;display:flex;flex-direction:column;gap:18px}
-  .project{display:grid;grid-template-columns:64px 1fr auto;gap:20px;align-items:start;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px}
-  @media(max-width:760px){.project{grid-template-columns:1fr}.project .num{font-size:1.4rem}}
-  .project .num{font-size:2rem;font-weight:800;color:var(--faint);line-height:1}
-  .project h3{font-size:1.3rem;margin-bottom:6px}
-  .project p{color:var(--muted);max-width:640px}
-  .project .meta{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+  .projects{margin-top:36px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:900px){.projects{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:560px){.projects{grid-template-columns:1fr}}
+  .project{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
+  .project h3{font-size:1.05rem;margin:6px 0 10px}
   .pill{font-size:.8rem;border:1px solid #404040;border-radius:999px;padding:4px 11px;color:#d4d4d4}
-  .project .go{white-space:nowrap;font-weight:700;color:var(--accent);text-decoration:none}
+  .project .go{display:block;margin-top:auto;padding-top:16px;font-weight:700;color:var(--accent);text-decoration:none}
   .project .go:hover{text-decoration:underline}
-  .status-live{color:var(--accent);font-weight:700;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase}
-  .status-soon{color:var(--amber);font-weight:700;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase}
-  .project.feature{border-color:#2f6b45;background:linear-gradient(180deg,#14211a,#161616)}
   .subhead{font-size:1.35rem;margin-top:46px;margin-bottom:6px}
   .subcopy{color:var(--muted);max-width:760px;margin-bottom:20px}
   /* Carousel */
-  .carousel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:30px}
+  .carousel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
   .slide{display:none}
   .slide.active{display:block}
-  .slide .stopic{color:var(--accent);font-weight:700;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase}
-  .slide h3{font-size:1.4rem;margin:10px 0 8px;line-height:1.3}
-  .slide .shook{font-size:1.08rem;color:#d4d4d4;margin-bottom:14px}
+  .slide .stopic{color:var(--amber);font-weight:700;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase}
+  .slide h3{font-size:1.05rem;margin:6px 0 10px;line-height:1.3}
+  .slide .shook{font-size:.92rem;color:#d4d4d4;margin-bottom:14px}
   .slide ul{list-style:none}
   .slide li{padding:8px 0;border-top:1px solid var(--line);color:#d4d4d4}
   .slide li:first-child{border-top:0}
@@ -140,12 +130,12 @@
   .dot{width:10px;height:10px;border-radius:50%;background:#404040;border:0;cursor:pointer;padding:0}
   .dot.active{background:var(--accent)}
   /* Resources */
-  .resources{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
-  @media(max-width:760px){.resources{grid-template-columns:1fr}}
-  .resource{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px}
-  .resource h4{font-size:1.12rem;margin-bottom:6px;line-height:1.35}
-  .resource p{color:var(--muted);font-size:.95rem}
-  .resource .dl{margin-top:14px;display:flex;gap:18px;flex-wrap:wrap}
+  .resources{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:900px){.resources{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:560px){.resources{grid-template-columns:1fr}}
+  .resource{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
+  .resource h3{font-size:1.05rem;margin:6px 0 10px;line-height:1.35}
+  .resource .dl{margin-top:auto;padding-top:14px;display:flex;gap:18px;flex-wrap:wrap}
   .resource .dl a{color:var(--accent);font-weight:700;text-decoration:none;font-size:.95rem}
   .resource .dl a:hover{text-decoration:underline}
   .resource .dl span{color:var(--faint);font-size:.85rem}
@@ -154,8 +144,8 @@
   @media(max-width:900px){.certs{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:560px){.certs{grid-template-columns:1fr}}
   .cert{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
-  .cert h3{font-size:1.02rem;line-height:1.35;margin-bottom:6px}
-  .cert p{color:var(--muted);font-size:.9rem}
+  .cert h3{font-size:1.05rem;line-height:1.35;margin:6px 0 10px}
+  .cert p{color:var(--muted);font-size:.92rem}
   .cert .expired{color:#f87171;font-weight:700}
   .cert .renewed{color:#4ade80;font-weight:700}
   /* Skills */
@@ -163,12 +153,12 @@
   @media(max-width:900px){.skill-groups{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:560px){.skill-groups{grid-template-columns:1fr}}
   .skill-group{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
-  .skill-group .gnum{color:var(--faint);font-weight:800;font-size:.85rem;letter-spacing:.1em}
   .skill-group h3{font-size:1.05rem;margin:6px 0 10px}
   .skill-group p{color:var(--muted);font-size:.92rem}
-  .skill-group .theme{color:var(--amber);font-weight:700;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase}
-  .skill-group .gdesc{color:var(--muted);font-size:.92rem;margin-bottom:14px}
-  .skill-group .pills{display:flex;flex-wrap:wrap;gap:8px}
+  .theme{color:var(--amber);font-weight:700;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase}
+  .gnum{color:var(--faint);font-weight:800;font-size:.85rem;letter-spacing:.1em}
+  .gdesc{color:var(--muted);font-size:.92rem;margin-bottom:14px}
+  .pills{display:flex;flex-wrap:wrap;gap:8px}
   /* Experience */
   .jobs{margin-top:36px}
   .job{display:grid;grid-template-columns:200px 1fr;gap:20px;padding:24px 0;border-top:1px solid var(--line)}
@@ -259,10 +249,10 @@
     <p class="hook">Most engagements sell you a report. I work inside your systems, fix what is broken, and leave your team with something that keeps working after I leave, whether that system is an enterprise GIS platform or a business workflow that needs an agent.</p>
     <div class="tracks">
       <div class="track reveal">
-        <span class="track-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3.2 3.6 3.2 14.4 0 18M12 3c-3.2 3.6-3.2 14.4 0 18"/></svg></span>
-        <span class="tag">Track 01</span>
+        <p class="theme">Track 01</p>
+        <p class="gnum">01</p>
         <h3>GIS Services</h3>
-        <p style="color:var(--muted)">Enterprise GIS that is governed, secure, and actually used, including the AI agents built for GIS teams.</p>
+        <p class="gdesc">Enterprise GIS that is governed, secure, and actually used, including the AI agents built for GIS teams.</p>
         <ul>
           <li><b>ArcGIS Enterprise architecture</b> — design, upgrade, and modernisation of Enterprise and Portal deployments</li>
           <li><b>Migration</b> — ArcGIS Enterprise to Enterprise, Enterprise to ArcGIS Online, and back, with a readiness check first</li>
@@ -277,10 +267,10 @@
         <p class="mini-cta"><a href="mailto:gjanaki360@gmail.com?subject=GIS%20Services%20enquiry">Ask about a GIS Services engagement &rarr;</a></p>
       </div>
       <div class="track ai reveal">
-        <span class="track-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.5 7.1L22 11.5l-7.5 2.4L12 21l-2.5-7.1L2 11.5l7.5-2.4z"/></svg></span>
-        <span class="tag">Track 02</span>
+        <p class="theme">Track 02</p>
+        <p class="gnum">02</p>
         <h3>AI Services</h3>
-        <p style="color:var(--muted)">AI for the rest of the business: agents and automation that do real work, with the same production discipline as the GIS track.</p>
+        <p class="gdesc">AI for the rest of the business: agents and automation that do real work, with the same production discipline as the GIS track.</p>
         <ul>
           <li><b>Custom AI agents for business workflows</b> — an agent that takes on one defined task, with the guardrails that keep it reliable in production</li>
           <li><b>Business process automation with AI</b> — remove the manual steps in routine work so a small team gets more done without hiring</li>
@@ -299,27 +289,39 @@
   <div class="wrap">
     <p class="kicker">Solutions &amp; Resources</p>
     <h2>Experience you can use, not maps you can only look at.</h2>
-    <p class="hook">These are the working pieces of fifteen years in enterprise GIS: a live AI assistant you can question, a tracing demo you can run, short guides you can download, and the apps that show the work. Everything here runs, reads, or downloads. Nothing here is a screenshot.</p>
+    <p class="hook">These are the working pieces of fifteen years in enterprise GIS: live AI agents you can try, a tracing demo you can run, short guides you can download, and the apps that show the work. Everything here runs, reads, or downloads. Nothing here is a screenshot.</p>
 
     <div class="projects">
-      <div class="project feature reveal">
-        <div class="num">01</div>
-        <div>
-          <p><span class="status-live">Live — try it now</span></p>
-          <h3>Enterprise GIS AI Assistant</h3>
-          <p>Ask it about ArcGIS Enterprise migration, ArcGIS Online migration, AI Assistants, ArcGIS Monitor, or what it takes to run an AI agent in production. Or run the guided Migration Readiness check and get a score and a plan in two minutes. It runs entirely in your browser, no backend, no API key, and every answer names its source.</p>
-          <div class="meta"><span class="pill">Working AI agent</span><span class="pill">No backend</span><span class="pill">No API key</span><span class="pill">Migration Readiness check</span><span class="pill">Sourced answers</span></div>
-        </div>
+      <div class="project reveal">
+        <p class="theme">Live — Try It Now</p>
+        <p class="gnum">01</p>
+        <h3>Enterprise GIS AI Assistant</h3>
+        <p class="gdesc">Ask it about ArcGIS Enterprise migration, ArcGIS Online migration, AI Assistants, ArcGIS Monitor, or what it takes to run an AI agent in production. Or run the guided Migration Readiness check and get a score and a plan in two minutes. It runs entirely in your browser, no backend, no API key, and every answer names its source.</p>
+        <div class="pills"><span class="pill">Working AI agent</span><span class="pill">No backend</span><span class="pill">No API key</span><span class="pill">Migration Readiness check</span><span class="pill">Sourced answers</span></div>
         <a class="go" href="projects/enterprise-gis-ai-assistant/index.html">Try the live agent &rarr;</a>
       </div>
-      <div class="project feature reveal">
-        <div class="num">02</div>
-        <div>
-          <p><span class="status-live">Live — try it now</span></p>
-          <h3>Utility Network Tracing Demo</h3>
-          <p>Run the four traces that decide a Utility Network migration, on a working electric distribution network. Find the customers an outage hits, trace a fault back to its source, and prove what a switch operation restores, including the trace that stops at a data gap and says so.</p>
-          <div class="meta"><span class="pill">Working trace engine</span><span class="pill">Downstream</span><span class="pill">Upstream</span><span class="pill">Isolation</span><span class="pill">Data-gap test</span></div>
-        </div>
+      <div class="project reveal">
+        <p class="theme">Live — Try It Now</p>
+        <p class="gnum">02</p>
+        <h3>Enterprise GIS Health Check Agent</h3>
+        <p class="gdesc">Ten questions across the seven areas that decide whether a platform is healthy: monitoring, backups, security, data quality, performance, patches, and governance. You get a score out of 100, a red, amber, or green status per area, and the top three gaps to close.</p>
+        <div class="pills"><span class="pill">Guided assessment</span><span class="pill">Score out of 100</span><span class="pill">Top 3 gaps</span><span class="pill">No backend</span><span class="pill">No API key</span></div>
+        <a class="go" href="projects/enterprise-gis-health-check-agent/index.html">Try the health check &rarr;</a>
+      </div>
+      <div class="project reveal">
+        <p class="theme">Live — Try It Now</p>
+        <p class="gnum">03</p>
+        <h3>AI Assistants in GIS Advisor</h3>
+        <p class="gdesc">Pick the task and this advisor tells you which ArcGIS AI assistant fits, whether it is generally available or in beta, and whether it needs ArcGIS Online or Enterprise 12.0. Built only from Esri&rsquo;s verified list of the twelve assistants.</p>
+        <div class="pills"><span class="pill">12 assistants</span><span class="pill">Generally available vs beta</span><span class="pill">Online vs Enterprise 12.0</span><span class="pill">Admin opt-in</span></div>
+        <a class="go" href="projects/ai-assistants-advisor/index.html">Try the advisor &rarr;</a>
+      </div>
+      <div class="project reveal">
+        <p class="theme">Live — Try It Now</p>
+        <p class="gnum">04</p>
+        <h3>Utility Network Tracing Demo</h3>
+        <p class="gdesc">Run the four traces that decide a Utility Network migration, on a working electric distribution network. Find the customers an outage hits, trace a fault back to its source, and prove what a switch operation restores, including the trace that stops at a data gap and says so.</p>
+        <div class="pills"><span class="pill">Working trace engine</span><span class="pill">Downstream</span><span class="pill">Upstream</span><span class="pill">Isolation</span><span class="pill">Data-gap test</span></div>
         <a class="go" href="projects/utility-network-tracing-demo/index.html">Run a trace &rarr;</a>
       </div>
     </div>
@@ -388,28 +390,38 @@
     <p class="subcopy">Short guides built from Janaki&rsquo;s published articles and Esri documentation. Take the PDF to read, or the slides to present.</p>
     <div class="resources">
       <div class="resource reveal">
-        <h4>ArcGIS Enterprise Migration</h4>
-        <p>Start with scope, not the tool. The full migration article as a guide, with the six approaches, the eight questions, and the scenarios.</p>
+        <p class="theme">Guide</p>
+        <p class="gnum">01</p>
+        <h3>ArcGIS Enterprise Migration</h3>
+        <p class="gdesc">Start with scope, not the tool. The full migration article as a guide, with the six approaches, the eight questions, and the scenarios.</p>
         <div class="dl"><a href="resources/migration-arcgis-enterprise.pdf">PDF &middot; 23 KB</a><a href="resources/migration-arcgis-enterprise.pptx">Slides &middot; 38 KB</a></div>
       </div>
       <div class="resource reveal">
-        <h4>AI Agents: Harness Engineering</h4>
-        <p>The four controls and six gates that separate production AI agents from demos.</p>
+        <p class="theme">Guide</p>
+        <p class="gnum">02</p>
+        <h3>AI Agents: Harness Engineering</h3>
+        <p class="gdesc">The four controls and six gates that separate production AI agents from demos.</p>
         <div class="dl"><a href="resources/ai-agents-harness-engineering.pdf">PDF &middot; 22 KB</a><a href="resources/ai-agents-harness-engineering.pptx">Slides &middot; 38 KB</a></div>
       </div>
       <div class="resource reveal">
-        <h4>AI Assistants in GIS</h4>
-        <p>Twelve assistants, three ready today, and the Enterprise caveat that matters before you switch any of them on.</p>
+        <p class="theme">Guide</p>
+        <p class="gnum">03</p>
+        <h3>AI Assistants in GIS</h3>
+        <p class="gdesc">Twelve assistants, three ready today, and the Enterprise caveat that matters before you switch any of them on.</p>
         <div class="dl"><a href="resources/ai-assistants-in-gis.pdf">PDF &middot; 22 KB</a><a href="resources/ai-assistants-in-gis.pptx">Slides &middot; 38 KB</a></div>
       </div>
       <div class="resource reveal">
-        <h4>Migration in ArcGIS Online</h4>
-        <p>Moving content between Online and Enterprise: the tools, the limits, and the scope to set first.</p>
+        <p class="theme">Guide</p>
+        <p class="gnum">04</p>
+        <h3>Migration in ArcGIS Online</h3>
+        <p class="gdesc">Moving content between Online and Enterprise: the tools, the limits, and the scope to set first.</p>
         <div class="dl"><a href="resources/migration-arcgis-online.pdf">PDF &middot; 22 KB</a><a href="resources/migration-arcgis-online.pptx">Slides &middot; 39 KB</a></div>
       </div>
       <div class="resource reveal">
-        <h4>ArcGIS Monitor</h4>
-        <p>Find the problem before your users do. Components, metrics, alerts, and the eight statuses.</p>
+        <p class="theme">Guide</p>
+        <p class="gnum">05</p>
+        <h3>ArcGIS Monitor</h3>
+        <p class="gdesc">Find the problem before your users do. Components, metrics, alerts, and the eight statuses.</p>
         <div class="dl"><a href="resources/arcgis-monitor-guide.pdf">PDF &middot; 23 KB</a><a href="resources/arcgis-monitor-guide.pptx">Slides &middot; 39 KB</a></div>
       </div>
     </div>
@@ -418,23 +430,19 @@
     <p class="subcopy">Two working map apps on open data and Living Atlas, kept here because they run. They are demos, not the main work.</p>
     <div class="projects">
       <div class="project reveal">
-        <div class="num">03</div>
-        <div>
-          <p><span class="status-live">Live</span></p>
-          <h3>California Wildfire Risk Explorer</h3>
-          <p>CAL FIRE Fire Hazard Severity Zones and current wildfire activity from ArcGIS Living Atlas, on one map. Toggle layers, read the plain-language explainer, and see the difference between hazard zones and live fire activity before you make a land or planning decision.</p>
-          <div class="meta"><span class="pill">Leaflet</span><span class="pill">CAL FIRE open data</span><span class="pill">ArcGIS Living Atlas</span><span class="pill">ArcGIS REST</span></div>
-        </div>
+        <p class="theme">Live Map Demo</p>
+        <p class="gnum">05</p>
+        <h3>California Wildfire Risk Explorer</h3>
+        <p class="gdesc">CAL FIRE Fire Hazard Severity Zones and current wildfire activity from ArcGIS Living Atlas, on one map. Toggle layers, read the plain-language explainer, and see the difference between hazard zones and live fire activity before you make a land or planning decision.</p>
+        <div class="pills"><span class="pill">Leaflet</span><span class="pill">CAL FIRE open data</span><span class="pill">ArcGIS Living Atlas</span><span class="pill">ArcGIS REST</span></div>
         <a class="go" href="projects/ca-wildfire-risk-explorer/index.html">Open the app &rarr;</a>
       </div>
       <div class="project reveal">
-        <div class="num">04</div>
-        <div>
-          <p><span class="status-live">Live</span></p>
-          <h3>Sacramento Housing &amp; Transit Access Explorer</h3>
-          <p>Apartment locations from Sacramento County open data, Caltrans transit stops, and SACOG light rail lines and stations, on one map. Click anywhere to see the nearest homes, stops, and stations, and judge transit access before you judge the address.</p>
-          <div class="meta"><span class="pill">Leaflet</span><span class="pill">Sacramento County open data</span><span class="pill">Caltrans GTFS</span><span class="pill">SACOG</span><span class="pill">ArcGIS REST</span></div>
-        </div>
+        <p class="theme">Live Map Demo</p>
+        <p class="gnum">06</p>
+        <h3>Sacramento Housing &amp; Transit Access Explorer</h3>
+        <p class="gdesc">Apartment locations from Sacramento County open data, Caltrans transit stops, and SACOG light rail lines and stations, on one map. Click anywhere to see the nearest homes, stops, and stations, and judge transit access before you judge the address.</p>
+        <div class="pills"><span class="pill">Leaflet</span><span class="pill">Sacramento County open data</span><span class="pill">Caltrans GTFS</span><span class="pill">SACOG</span><span class="pill">ArcGIS REST</span></div>
         <a class="go" href="projects/sacramento-housing-transit-explorer/index.html">Open the app &rarr;</a>
       </div>
     </div>
@@ -447,20 +455,20 @@
   <div class="wrap">
     <p class="kicker">Certifications</p>
     <h2>Twelve certifications. Each one earned, each one listed plainly.</h2>
-    <p class="hook">Credentials only matter if they are real and current. Here is the full list, all current, led by the GISP renewed through June 2029.</p>
+    <p class="hook">Credentials only matter if they are real and current. Here is the full list, all current, led by the GISP valid through June 2029.</p>
     <div class="certs">
-      <div class="cert reveal"><h3>GISP — Certified GIS Professional</h3><p>GIS Certification Institute (GISCI), Jun 2015. <span class="renewed">Renewed — valid through Jun 25, 2029. Certification #91698.</span></p></div>
-      <div class="cert reveal"><h3>PMP — Project Management Professional</h3><p>Project Management Institute, Oct 2021 – Oct 2027.</p></div>
-      <div class="cert reveal"><h3>PMI-ACP — Agile Certified Practitioner</h3><p>Project Management Institute, Jan 2022 – Jan 2028.</p></div>
-      <div class="cert reveal"><h3>ArcGIS Desktop Associate 19-001</h3><p>Esri, Jul 2019.</p></div>
-      <div class="cert reveal"><h3>ArcGIS Desktop Entry 19-001</h3><p>Esri, Dec 2018.</p></div>
-      <div class="cert reveal"><h3>ArcGIS Desktop Entry 10.5</h3><p>Esri, Apr 2017.</p></div>
-      <div class="cert reveal"><h3>Accredited Land Use Consultant</h3><p>QCI-NABET, Sep 2022.</p></div>
-      <div class="cert reveal"><h3>ArcGIS Enterprise: Advanced Configurations</h3><p>Esri Canada, Apr 2025.</p></div>
-      <div class="cert reveal"><h3>Working with Utility Networks in ArcGIS</h3><p>Esri Canada, Sep 2026.</p></div>
-      <div class="cert reveal"><h3>Deploying Portal for ArcGIS</h3><p>Esri Canada, Dec 2016.</p></div>
-      <div class="cert reveal"><h3>Getting Started with Geocortex Essentials</h3><p>Geocortex, Oct 2016.</p></div>
-      <div class="cert reveal"><h3>Salesforce Certified Administrator</h3><p>Salesforce, May 2020.</p></div>
+      <div class="cert reveal"><p class="theme">GIS Certification</p><p class="gnum">01</p><h3>GISP — Certified GIS Professional</h3><p>GIS Certification Institute (GISCI), Jun 2015. <span class="renewed">Valid through Jun 25, 2029. Certification #91698.</span></p></div>
+      <div class="cert reveal"><p class="theme">Project Management</p><p class="gnum">02</p><h3>PMP — Project Management Professional</h3><p>Project Management Institute, Oct 2021 – Oct 2027.</p></div>
+      <div class="cert reveal"><p class="theme">Project Management</p><p class="gnum">03</p><h3>PMI-ACP — Agile Certified Practitioner</h3><p>Project Management Institute, Jan 2022 – Jan 2028.</p></div>
+      <div class="cert reveal"><p class="theme">GIS Certification</p><p class="gnum">04</p><h3>ArcGIS Desktop Associate 19-001</h3><p>Esri, Jul 2019.</p></div>
+      <div class="cert reveal"><p class="theme">GIS Certification</p><p class="gnum">05</p><h3>ArcGIS Desktop Entry 19-001</h3><p>Esri, Dec 2018.</p></div>
+      <div class="cert reveal"><p class="theme">GIS Certification</p><p class="gnum">06</p><h3>ArcGIS Desktop Entry 10.5</h3><p>Esri, Apr 2017.</p></div>
+      <div class="cert reveal"><p class="theme">Other</p><p class="gnum">07</p><h3>Accredited Land Use Consultant</h3><p>QCI-NABET, Sep 2022.</p></div>
+      <div class="cert reveal"><p class="theme">GIS Certification</p><p class="gnum">08</p><h3>ArcGIS Enterprise: Advanced Configurations</h3><p>Esri Canada, Apr 2025.</p></div>
+      <div class="cert reveal"><p class="theme">GIS Certification</p><p class="gnum">09</p><h3>Working with Utility Networks in ArcGIS</h3><p>Esri Canada, Sep 2026.</p></div>
+      <div class="cert reveal"><p class="theme">GIS Certification</p><p class="gnum">10</p><h3>Deploying Portal for ArcGIS</h3><p>Esri Canada, Dec 2016.</p></div>
+      <div class="cert reveal"><p class="theme">GIS Certification</p><p class="gnum">11</p><h3>Getting Started with Geocortex Essentials</h3><p>Geocortex, Oct 2016.</p></div>
+      <div class="cert reveal"><p class="theme">Other</p><p class="gnum">12</p><h3>Salesforce Certified Administrator</h3><p>Salesforce, May 2020.</p></div>
     </div>
     <p class="section-cta">Want the detail behind any of these, or the work that earned them? <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">See the full record on LinkedIn &rarr;</a></p>
   </div>
