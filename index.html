@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Janaki Gattu — Enterprise GIS Consultant &amp; GIS Solutions Architect</title>
+<meta name="description" content="Janaki Gattu is an Enterprise GIS Consultant and GIS Solutions Architect. 15+ years building and modernizing enterprise GIS, ArcGIS Enterprise administration, and AI agents for GIS teams.">
+<style>
+  :root{
+    --bg:#0a0a0a; --bg2:#111111; --card:#161616; --card2:#1c1c1c;
+    --text:#f5f5f5; --muted:#a3a3a3; --faint:#737373;
+    --line:#262626; --accent:#4ade80; --accent-dim:#166534;
+    --amber:#fbbf24;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  /* Nav */
+  nav{position:sticky;top:0;z-index:50;background:rgba(10,10,10,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .logo{font-weight:800;font-size:1.15rem;letter-spacing:.02em;text-decoration:none}
+  .logo span{color:var(--accent)}
+  .navlinks{display:flex;gap:26px;align-items:center}
+  .navlinks a{text-decoration:none;color:var(--muted);font-size:.92rem}
+  .navlinks a:hover{color:var(--text)}
+  .nav-cta{border:1px solid var(--text);border-radius:999px;padding:7px 16px;color:var(--text)!important;font-weight:600}
+  @media(max-width:760px){.navlinks a:not(.nav-cta){display:none}}
+  /* Hero */
+  header.hero{padding:96px 0 64px;border-bottom:1px solid var(--line)}
+  .eyebrow{color:var(--accent);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.82rem;margin-bottom:20px}
+  h1{font-size:clamp(2.6rem,7vw,4.6rem);line-height:1.05;letter-spacing:-.02em;margin-bottom:18px}
+  .position{font-size:clamp(1.15rem,2.6vw,1.55rem);color:#d4d4d4;font-weight:600;max-width:760px}
+  .hero-sub{color:var(--muted);max-width:720px;margin-top:16px;font-size:1.05rem}
+  .cta-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:34px}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;transition:transform .15s ease,opacity .15s ease}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-solid{background:var(--text);color:#0a0a0a}
+  .btn-outline{border:1px solid #525252;color:var(--text)}
+  .btn-green{background:var(--accent);color:#052e16}
+  /* Stats */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:56px}
+  .stat{background:var(--bg2);padding:26px 22px}
+  .stat b{display:block;font-size:2rem;line-height:1.1;letter-spacing:-.02em}
+  .stat span{color:var(--muted);font-size:.92rem}
+  @media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}}
+  /* Sections */
+  section{padding:72px 0;border-bottom:1px solid var(--line)}
+  .kicker{color:var(--accent);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.8rem;margin-bottom:12px}
+  h2{font-size:clamp(1.7rem,3.6vw,2.3rem);line-height:1.15;letter-spacing:-.015em;margin-bottom:10px}
+  .hook{font-size:1.15rem;color:#d4d4d4;max-width:760px}
+  .hook + p{color:var(--muted);max-width:760px;margin-top:10px}
+  .section-cta{margin-top:28px;color:var(--muted)}
+  .section-cta a{color:var(--accent);font-weight:700;text-decoration:none}
+  .section-cta a:hover{text-decoration:underline}
+  /* Services */
+  .tracks{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:36px}
+  @media(max-width:760px){.tracks{grid-template-columns:1fr}}
+  .track{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:30px}
+  .track h3{font-size:1.35rem;margin-bottom:6px}
+  .track .tag{display:inline-block;font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:12px}
+  .track ul{list-style:none;margin-top:16px}
+  .track li{padding:9px 0;border-top:1px solid var(--line);color:#d4d4d4}
+  .track li:first-child{border-top:0}
+  .track li b{color:var(--text)}
+  .track .mini-cta{margin-top:20px}
+  .track .mini-cta a{color:var(--accent);font-weight:700;text-decoration:none}
+  /* Projects */
+  .projects{margin-top:36px;display:flex;flex-direction:column;gap:18px}
+  .project{display:grid;grid-template-columns:64px 1fr auto;gap:20px;align-items:start;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px}
+  @media(max-width:760px){.project{grid-template-columns:1fr}.project .num{font-size:1.4rem}}
+  .project .num{font-size:2rem;font-weight:800;color:var(--faint);line-height:1}
+  .project h3{font-size:1.3rem;margin-bottom:6px}
+  .project p{color:var(--muted);max-width:640px}
+  .project .meta{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+  .pill{font-size:.8rem;border:1px solid #404040;border-radius:999px;padding:4px 11px;color:#d4d4d4}
+  .project .go{white-space:nowrap;font-weight:700;color:var(--accent);text-decoration:none}
+  .project .go:hover{text-decoration:underline}
+  .status-live{color:var(--accent);font-weight:700;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase}
+  .status-soon{color:var(--amber);font-weight:700;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase}
+  /* Certs */
+  .certs{margin-top:36px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:900px){.certs{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:560px){.certs{grid-template-columns:1fr}}
+  .cert{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
+  .cert h3{font-size:1.02rem;line-height:1.35;margin-bottom:6px}
+  .cert p{color:var(--muted);font-size:.9rem}
+  .cert .expired{color:#f87171;font-weight:700}
+  /* Skills */
+  .skill-groups{margin-top:36px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:900px){.skill-groups{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:560px){.skill-groups{grid-template-columns:1fr}}
+  .skill-group{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
+  .skill-group .gnum{color:var(--faint);font-weight:800;font-size:.85rem;letter-spacing:.1em}
+  .skill-group h3{font-size:1.05rem;margin:6px 0 10px}
+  .skill-group p{color:var(--muted);font-size:.92rem}
+  /* Experience */
+  .jobs{margin-top:36px}
+  .job{display:grid;grid-template-columns:200px 1fr;gap:20px;padding:24px 0;border-top:1px solid var(--line)}
+  @media(max-width:760px){.job{grid-template-columns:1fr;gap:6px}}
+  .job .dates{color:var(--muted);font-size:.95rem}
+  .job h3{font-size:1.2rem}
+  .job .org{color:var(--accent);font-weight:700}
+  .job p{color:var(--muted);margin-top:6px;max-width:680px}
+  .job .meta{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+  /* Articles */
+  .articles{margin-top:36px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:760px){.articles{grid-template-columns:1fr}}
+  .article{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px;display:flex;flex-direction:column}
+  .article .num{color:var(--faint);font-weight:800;font-size:.85rem;letter-spacing:.1em}
+  .article h3{font-size:1.2rem;margin:10px 0 8px;line-height:1.3}
+  .article p{color:var(--muted);flex:1}
+  .article a{margin-top:18px;color:var(--accent);font-weight:700;text-decoration:none}
+  .article a:hover{text-decoration:underline}
+  /* Book a session */
+  .book{background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:44px 36px;text-align:center}
+  .book h2{margin-bottom:10px}
+  .book p{color:var(--muted);max-width:560px;margin:0 auto}
+  .book .cta-row{justify-content:center}
+  .book .note{margin-top:18px;font-size:.9rem;color:var(--faint)}
+  /* Footer */
+  footer{padding:44px 0 56px;color:var(--faint);font-size:.92rem}
+  footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+  footer a{color:var(--muted);text-decoration:none}
+  footer a:hover{color:var(--text)}
+  /* Reveal animation */
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.visible{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="logo" href="#top">JG<span>.</span></a>
+    <div class="navlinks">
+      <a href="#services">Services</a>
+      <a href="#projects">Projects</a>
+      <a href="#certifications">Certifications</a>
+      <a href="#experience">Experience</a>
+      <a href="#articles">Articles</a>
+      <a href="https://github.com/janakigattu" target="_blank" rel="noopener">GitHub</a>
+      <a class="nav-cta" href="#book">Book a Session</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <p class="eyebrow">Enterprise GIS &middot; AI Agents for GIS</p>
+    <h1>Janaki Gattu</h1>
+    <p class="position">Enterprise GIS Consultant &amp; GIS Solutions Architect</p>
+    <p class="hero-sub">Your enterprise GIS is holding your organisation back, and you know it. I modernise ArcGIS Enterprise environments, automate the work your team does by hand, and build AI agents that make GIS teams faster, so the system stops being a bottleneck and starts delivering.</p>
+    <div class="cta-row">
+      <a class="btn btn-solid" href="mailto:gjanaki360@gmail.com">Get in Touch</a>
+      <a class="btn btn-outline" href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">View LinkedIn</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>15+ years</b><span>Enterprise GIS</span></div>
+      <div class="stat"><b>10 years</b><span>ArcGIS Enterprise administration</span></div>
+      <div class="stat"><b>12</b><span>Certifications</span></div>
+      <div class="stat"><b>3</b><span>Published LinkedIn articles</span></div>
+    </div>
+  </div>
+</header>
+
+<main>
+<!-- SERVICES -->
+<section id="services">
+  <div class="wrap">
+    <p class="kicker">What I do</p>
+    <h2>Two ways I help. Both start with your system, not a slide deck.</h2>
+    <p class="hook">Most GIS engagements sell you a report. I work inside your enterprise GIS, fix what is broken, and leave your team with something that keeps working after I leave.</p>
+    <div class="tracks">
+      <div class="track reveal">
+        <span class="tag">Track 01</span>
+        <h3>Geospatial Services</h3>
+        <p style="color:var(--muted)">Enterprise GIS that is governed, secure, and actually used.</p>
+        <ul>
+          <li><b>ArcGIS Enterprise architecture</b> — design, upgrade, and modernisation of Enterprise and Portal deployments</li>
+          <li><b>Migration</b> — ArcGIS Enterprise to Enterprise, Enterprise to ArcGIS Online, and back, with a readiness check first</li>
+          <li><b>Governance and security</b> — administration, access control, and platform standards your team can follow</li>
+          <li><b>Automation</b> — Python, ArcPy, and ArcGIS Notebooks replacing manual, repeatable work</li>
+          <li><b>Utility Network</b> — implementation and working practices for utility GIS teams</li>
+        </ul>
+        <p class="mini-cta"><a href="mailto:gjanaki360@gmail.com?subject=Geospatial%20Services%20enquiry">Ask about a Geospatial engagement &rarr;</a></p>
+      </div>
+      <div class="track reveal">
+        <span class="tag">Track 02</span>
+        <h3>AI Services</h3>
+        <p style="color:var(--muted)">AI that does real GIS work, not demos that never reach production.</p>
+        <ul>
+          <li><b>Enterprise GIS Health Check agent</b> — a guided assessment that produces a readiness report for your platform</li>
+          <li><b>Migration Readiness agent</b> — checks all four migration directions and flags the gaps before you commit</li>
+          <li><b>GeoAI workflows</b> — land-cover and imagery analysis tied to operational decisions</li>
+          <li><b>AI assistants for GIS teams</b> — practical agents built around your data and your workflows</li>
+          <li><b>Automation with AI</b> — cutting the manual steps in publishing, QA, and reporting</li>
+        </ul>
+        <p class="mini-cta"><a href="mailto:gjanaki360@gmail.com?subject=AI%20Services%20enquiry">Ask about an AI engagement &rarr;</a></p>
+      </div>
+    </div>
+    <p class="section-cta">Not sure which track fits? Book a session below and we will work it out in one conversation. <a href="#book">Book a Session &rarr;</a></p>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="wrap">
+    <p class="kicker">Featured projects</p>
+    <h2>Working apps, not screenshots.</h2>
+    <p class="hook">Every project here is something you can open and use. It runs on open data and ArcGIS Living Atlas public services, and the code is on GitHub. If it does not work in your browser, it does not belong here.</p>
+    <div class="projects">
+      <div class="project reveal">
+        <div class="num">01</div>
+        <div>
+          <p><span class="status-live">Live</span></p>
+          <h3>California Wildfire Risk Explorer</h3>
+          <p>CAL FIRE Fire Hazard Severity Zones and current wildfire activity from ArcGIS Living Atlas, on one map. Toggle layers, read the plain-language explainer, and see the difference between hazard zones and live fire activity before you make a land or planning decision.</p>
+          <div class="meta"><span class="pill">Leaflet</span><span class="pill">CAL FIRE open data</span><span class="pill">ArcGIS Living Atlas</span><span class="pill">ArcGIS REST</span></div>
+        </div>
+        <a class="go" href="projects/ca-wildfire-risk-explorer/index.html">Open the app &rarr;</a>
+      </div>
+      <div class="project reveal">
+        <div class="num">02</div>
+        <div>
+          <p><span class="status-soon">In build</span></p>
+          <h3>Sacramento Housing &amp; Transit Access Explorer</h3>
+          <p>Census data, transit access, and Living Atlas layers combined into one view of where housing and transit actually meet in the Sacramento region. Built for planners who need evidence, not another static map.</p>
+          <div class="meta"><span class="pill">Census open data</span><span class="pill">ArcGIS Living Atlas</span><span class="pill">Leaflet</span></div>
+        </div>
+        <a class="go" href="mailto:gjanaki360@gmail.com?subject=Sacramento%20Housing%20and%20Transit%20Explorer">Ask about this project &rarr;</a>
+      </div>
+      <div class="project reveal">
+        <div class="num">03</div>
+        <div>
+          <p><span class="status-soon">In build</span></p>
+          <h3>GeoAI Land-Cover Demo</h3>
+          <p>A working GeoAI demonstration built on my land-cover work, showing how imagery and AI classification support real land decisions. The demo runs in the browser with open data.</p>
+          <div class="meta"><span class="pill">GeoAI</span><span class="pill">Imagery</span><span class="pill">Open data</span></div>
+        </div>
+        <a class="go" href="mailto:gjanaki360@gmail.com?subject=GeoAI%20Land-Cover%20Demo">Ask about this project &rarr;</a>
+      </div>
+    </div>
+    <p class="section-cta">New apps land here every two weeks, built from open data and Living Atlas. Follow the work on <a href="https://github.com/janakigattu" target="_blank" rel="noopener">GitHub</a>, or tell me what your team needs built: <a href="mailto:gjanaki360@gmail.com?subject=Project%20idea">suggest a project &rarr;</a></p>
+  </div>
+</section>
+
+<!-- CERTIFICATIONS -->
+<section id="certifications">
+  <div class="wrap">
+    <p class="kicker">Certifications</p>
+    <h2>Twelve certifications. Each one earned, each one listed plainly.</h2>
+    <p class="hook">Credentials only matter if they are real and current. Here is the full list, including the one that expired, because hiding it would be worse than stating it.</p>
+    <div class="certs">
+      <div class="cert reveal"><h3>GISP — Certified GIS Professional</h3><p>GIS Certification Institute (GISCI), Jun 2015. <span class="expired">Expired Jun 2026 — renewal status open.</span></p></div>
+      <div class="cert reveal"><h3>PMP — Project Management Professional</h3><p>Project Management Institute, Oct 2021 – Oct 2027.</p></div>
+      <div class="cert reveal"><h3>PMI-ACP — Agile Certified Practitioner</h3><p>Project Management Institute, Jan 2022 – Jan 2028.</p></div>
+      <div class="cert reveal"><h3>ArcGIS Desktop Associate 19-001</h3><p>Esri, Jul 2019.</p></div>
+      <div class="cert reveal"><h3>ArcGIS Desktop Entry 19-001</h3><p>Esri, Dec 2018.</p></div>
+      <div class="cert reveal"><h3>ArcGIS Desktop Entry 10.5</h3><p>Esri, Apr 2017.</p></div>
+      <div class="cert reveal"><h3>Accredited Land Use Consultant</h3><p>QCI-NABET, Sep 2022.</p></div>
+      <div class="cert reveal"><h3>ArcGIS Enterprise: Advanced Configurations</h3><p>Esri Canada, Apr 2025.</p></div>
+      <div class="cert reveal"><h3>Working with Utility Networks in ArcGIS</h3><p>Esri Canada, Sep 2026.</p></div>
+      <div class="cert reveal"><h3>Deploying Portal for ArcGIS</h3><p>Esri Canada, Dec 2016.</p></div>
+      <div class="cert reveal"><h3>Getting Started with Geocortex Essentials</h3><p>Geocortex, Oct 2016.</p></div>
+      <div class="cert reveal"><h3>Salesforce Certified Administrator</h3><p>Salesforce, May 2020.</p></div>
+    </div>
+    <p class="section-cta">Want the detail behind any of these, or the work that earned them? <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">See the full record on LinkedIn &rarr;</a></p>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="wrap">
+    <p class="kicker">Skills</p>
+    <h2>The toolkit, grouped by what it is for.</h2>
+    <p class="hook">A long list of tools proves nothing on its own. These groups map to the work above: the platforms I administer, the code I write, and the governance I put in place.</p>
+    <div class="skill-groups">
+      <div class="skill-group reveal"><p class="gnum">01</p><h3>Enterprise GIS</h3><p>ArcGIS Enterprise, Portal for ArcGIS, ArcGIS Server, ArcGIS Online, ArcGIS Enterprise administration, security and governance.</p></div>
+      <div class="skill-group reveal"><p class="gnum">02</p><h3>GIS Automation</h3><p>Python, ArcPy, ArcGIS Notebooks, ModelBuilder, scheduled geoprocessing, workflow automation.</p></div>
+      <div class="skill-group reveal"><p class="gnum">03</p><h3>Web GIS &amp; Visualization</h3><p>ArcGIS Experience Builder, ArcGIS Dashboards, ArcGIS StoryMaps, Leaflet, web maps and apps.</p></div>
+      <div class="skill-group reveal"><p class="gnum">04</p><h3>Data Engineering &amp; BI</h3><p>FME, ETL pipelines, data migration, data quality, ArcGIS Data Interoperability.</p></div>
+      <div class="skill-group reveal"><p class="gnum">05</p><h3>Mobile &amp; Field GIS</h3><p>ArcGIS Field Maps, Survey123, ArcGIS QuickCapture, mobile data collection.</p></div>
+      <div class="skill-group reveal"><p class="gnum">06</p><h3>Databases</h3><p>PostgreSQL, SQL Server, Oracle, enterprise geodatabases, spatial SQL.</p></div>
+      <div class="skill-group reveal"><p class="gnum">07</p><h3>Programming</h3><p>Python, ArcPy, SQL, JavaScript, ArcGIS API for Python.</p></div>
+      <div class="skill-group reveal"><p class="gnum">08</p><h3>Cloud &amp; Dev Tools</h3><p>Cloud GIS, Git, GitHub, ArcGIS Enterprise on cloud infrastructure.</p></div>
+      <div class="skill-group reveal"><p class="gnum">09</p><h3>Governance &amp; AI</h3><p>Enterprise GIS governance, GIS strategy and architecture, GeoAI, AI agents for GIS workflows.</p></div>
+    </div>
+    <p class="section-cta">If your team needs a skill here applied to a live system, not a slide, <a href="mailto:gjanaki360@gmail.com?subject=Skills%20enquiry">start the conversation &rarr;</a></p>
+  </div>
+</section>
+
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="wrap">
+    <p class="kicker">Experience</p>
+    <h2>Fifteen years inside enterprise GIS, not beside it.</h2>
+    <p class="hook">Six organisations, one through-line: enterprise GIS platforms that have to work every day, for teams that depend on them.</p>
+    <div class="jobs">
+      <div class="job reveal">
+        <p class="dates">Jun 2025 – Present</p>
+        <div><h3>Senior GIS Consultant <span class="org">— Caltrans</span></h3>
+        <p>Enterprise GIS and ArcGIS Enterprise for the California Department of Transportation. Platform administration, governance, automation, and modernisation of the enterprise GIS estate.</p>
+        <div class="meta"><span class="pill">ArcGIS Enterprise</span><span class="pill">Governance</span><span class="pill">Automation</span><span class="pill">ArcPy</span></div></div>
+      </div>
+      <div class="job reveal">
+        <p class="dates">Jan 2022 – May 2025</p>
+        <div><h3>Enterprise GIS Consultant <span class="org">— HNTB</span></h3>
+        <p>Enterprise GIS consulting and delivery for infrastructure and transportation clients.</p>
+        <div class="meta"><span class="pill">ArcGIS Enterprise</span><span class="pill">Consulting</span><span class="pill">Transportation GIS</span></div></div>
+      </div>
+      <div class="job reveal">
+        <p class="dates">Jan 2021 – Dec 2021</p>
+        <div><h3>Enterprise GIS Consultant <span class="org">— Maximus</span></h3>
+        <p>Enterprise GIS consulting and delivery for public-sector programmes.</p>
+        <div class="meta"><span class="pill">ArcGIS Enterprise</span><span class="pill">Public Sector GIS</span></div></div>
+      </div>
+      <div class="job reveal">
+        <p class="dates">Aug 2016 – Dec 2020</p>
+        <div><h3>Enterprise GIS Consultant <span class="org">— Cybertech</span></h3>
+        <p>Enterprise GIS consulting, implementation, and support across client engagements.</p>
+        <div class="meta"><span class="pill">ArcGIS Enterprise</span><span class="pill">Implementation</span></div></div>
+      </div>
+      <div class="job reveal">
+        <p class="dates">Aug 2013 – Jul 2016</p>
+        <div><h3>Enterprise GIS Consultant <span class="org">— Geosys</span></h3>
+        <p>GIS consulting and delivery, including remote sensing and geospatial analysis work.</p>
+        <div class="meta"><span class="pill">GIS Analysis</span><span class="pill">Remote Sensing</span></div></div>
+      </div>
+      <div class="job reveal">
+        <p class="dates">2010 – 2013</p>
+        <div><h3>Enterprise GIS Consultant <span class="org">— TCS</span></h3>
+        <p>GIS delivery in enterprise consulting engagements.</p>
+        <div class="meta"><span class="pill">Enterprise GIS</span><span class="pill">Consulting</span></div></div>
+      </div>
+    </div>
+    <p class="section-cta">The full record, with projects and recommendations, is on <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">LinkedIn</a>. If you want to know what this experience means for your system, <a href="#book">book a session &rarr;</a></p>
+  </div>
+</section>
+
+<!-- ARTICLES -->
+<section id="articles">
+  <div class="wrap">
+    <p class="kicker">Articles</p>
+    <h2>Written from the work, not from the headlines.</h2>
+    <p class="hook">Each article comes out of a real migration, a real platform, or a real build. Read them and you will know how I think before we ever speak.</p>
+    <div class="articles">
+      <div class="article reveal">
+        <p class="num">Article 01</p>
+        <h3>ArcGIS Enterprise Migration Fundamentals</h3>
+        <p>What a migration actually involves, the four directions it can take, and the readiness checks that stop a migration from becoming a rescue.</p>
+        <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Read on LinkedIn &rarr;</a>
+      </div>
+      <div class="article reveal">
+        <p class="num">Article 02</p>
+        <h3>Utility Network: What It Takes to Get There</h3>
+        <p>Utility Network is not a software upgrade. It is a data, workflow, and governance change, and this article sets out what teams get wrong first.</p>
+        <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Read on LinkedIn &rarr;</a>
+      </div>
+      <div class="article reveal">
+        <p class="num">Article 03</p>
+        <h3>Harness Engineering: Agentic AI for GIS</h3>
+        <p>How AI agents can take on real GIS engineering work, what a harness around them has to do, and where the human stays in charge.</p>
+        <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Read on LinkedIn &rarr;</a>
+      </div>
+    </div>
+    <p class="section-cta">New articles land regularly. Follow the writing on <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">LinkedIn</a>, and if an article raises a question about your own platform, <a href="mailto:gjanaki360@gmail.com?subject=Article%20question">ask it directly &rarr;</a></p>
+  </div>
+</section>
+
+<!-- BOOK A SESSION -->
+<section id="book">
+  <div class="wrap">
+    <div class="book reveal">
+      <p class="kicker">Book a Session</p>
+      <h2>One conversation. A clear answer on what your GIS needs next.</h2>
+      <p>Bring your platform, your migration question, or your automation problem. You leave with an honest assessment of what to do first, whether or not we work together after that.</p>
+      <div class="cta-row">
+        <a class="btn btn-green" href="mailto:gjanaki360@gmail.com?subject=Book%20a%20Session%20—%20Enterprise%20GIS">Book a Session</a>
+        <a class="btn btn-outline" href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Connect on LinkedIn</a>
+      </div>
+      <p class="note">Email gjanaki360@gmail.com with a short note on what you need. Replies within one business day.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>&copy; 2026 Janaki Gattu — Enterprise GIS Consultant &amp; GIS Solutions Architect</p>
+    <p><a href="https://github.com/janakigattu" target="_blank" rel="noopener">GitHub</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">LinkedIn</a> &nbsp;·&nbsp; <a href="mailto:gjanaki360@gmail.com">gjanaki360@gmail.com</a></p>
+  </div>
+</footer>
+
+<script>
+  // Reveal sections on scroll
+  (function(){
+    var els = document.querySelectorAll('.reveal');
+    if(!('IntersectionObserver' in window)){ els.forEach(function(e){e.classList.add('visible');}); return; }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('visible'); io.unobserve(en.target); } });
+    },{threshold:0.12});
+    els.forEach(function(e){ io.observe(e); });
+  })();
+</script>
+</body>
+</html>
