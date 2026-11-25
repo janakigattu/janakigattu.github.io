@@ -185,6 +185,12 @@
   .project .slinks{margin-top:auto;padding-top:18px;display:flex;gap:20px;flex-wrap:wrap}
   .project .slinks a{color:var(--accent);font-weight:700;text-decoration:none}
   .project .slinks a:hover{text-decoration:underline}
+  .project .more{display:none}
+  .project.expanded .more{display:block;margin-top:auto}
+  .project .readmore{background:none;border:0;padding:0;cursor:pointer;color:var(--accent);font:inherit;font-weight:700;text-align:left}
+  .project:not(.expanded) .readmore{margin-top:auto}
+  .project.expanded .readmore{margin-top:14px}
+  .project .readmore:hover{text-decoration:underline}
   /* Resources */
   .resources{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
   @media(max-width:900px){.resources{grid-template-columns:repeat(2,1fr)}}
@@ -451,12 +457,14 @@
     <p class="kicker">Four Topics</p>
     <h2>Four topics, each on its own card.</h2>
     <p class="hook">The four subjects teams ask Janaki about most, each on its own card.</p>
-    <div class="topics">
+    <div class="projects">
       <div class="project reveal">
         <p class="theme">Topic 01 &middot; AI Assistants in GIS</p>
         <p class="gnum">01</p>
         <h3>Twelve assistants already live inside ArcGIS. Three are ready for everyone.</h3>
         <p class="gdesc">The skill to build now is knowing which routine tasks to hand to an assistant, and how to validate what comes back.</p>
+        <button class="readmore" type="button" aria-expanded="false">Read more</button>
+        <div class="more">
         <ul>
           <li>Three are generally available at no extra cost: Survey123, Business Analyst, and Translation.</li>
           <li>The rest are in beta or preview, including the Pro, Notebooks, and Arcade assistants.</li>
@@ -464,12 +472,15 @@
           <li>Access is governed at the organisation level. An administrator must opt in to AI features.</li>
         </ul>
         <div class="slinks"><a href="https://www.esri.com/arcgis-blog/products/arcgis-online/geoai/whats-new-in-ai-assistants-june-2026" target="_blank" rel="noopener">Esri: What&rsquo;s new in AI assistants &rarr;</a><a href="resources/ai-assistants-in-gis.pdf">Download the guide (PDF) &rarr;</a></div>
+        </div>
       </div>
       <div class="project reveal">
         <p class="theme">Topic 02 &middot; Migration in ArcGIS Enterprise</p>
         <p class="gnum">02</p>
         <h3>Start with scope, not the tool.</h3>
         <p class="gdesc">Migration is rarely one kind of job. Name the move first, and the tool choice gets easier.</p>
+        <button class="readmore" type="button" aria-expanded="false">Read more</button>
+        <div class="more">
         <ul>
           <li>Three kinds of move: a full environment, selected content, or a change of product or platform.</li>
           <li>Six approaches, compared honestly: WebGISDR, Join Site, group export and import, distributed collaboration, scripting, and rebuild.</li>
@@ -477,12 +488,15 @@
           <li>Build the target, test it with real users, and keep a rollback route you have actually practised.</li>
         </ul>
         <div class="slinks"><a href="https://www.linkedin.com/pulse/arcgis-enterprise-migration-start-scope-tool-janaki-gattu-g8xnc/" target="_blank" rel="noopener">Read the LinkedIn article &rarr;</a><a href="#podcast">Listen to Episode 1 &rarr;</a></div>
+        </div>
       </div>
       <div class="project reveal">
         <p class="theme">Topic 03 &middot; Migration in ArcGIS Online</p>
         <p class="gnum">03</p>
         <h3>Online and Enterprise are not two copies of the same system.</h3>
         <p class="gdesc">The move between them needs its own scope: users, licences, content, and what gets rebuilt.</p>
+        <button class="readmore" type="button" aria-expanded="false">Read more</button>
+        <div class="more">
         <ul>
           <li>Distributed collaboration shares Enterprise content to Online, as a reference or as a copy.</li>
           <li>Partnered collaboration is the mechanism built for Online-to-Online sharing.</li>
@@ -490,12 +504,15 @@
           <li>Group export and import is Enterprise only. Maps and apps still point at the source layer URLs until you update them.</li>
         </ul>
         <div class="slinks"><a href="https://www.esri.com/arcgis-blog/products/arcgis-enterprise/administration/collaborate-between-arcgis-enterprise-online-and-field-maps" target="_blank" rel="noopener">Esri: Collaborate between Enterprise, Online and Field Maps &rarr;</a><a href="resources/migration-arcgis-online.pdf">Download the guide (PDF) &rarr;</a></div>
+        </div>
       </div>
       <div class="project reveal">
         <p class="theme">Topic 04 &middot; ArcGIS Monitor</p>
         <p class="gnum">04</p>
         <h3>Find the problem before your users do.</h3>
         <p class="gdesc">Monitor turns system health, usage, and performance into numbers you can act on, before the phone rings.</p>
+        <button class="readmore" type="button" aria-expanded="false">Read more</button>
+        <div class="more">
         <ul>
           <li>Three components: Monitor Server, Monitor Agent, and the database repository.</li>
           <li>Metrics with alert rules on every component, from request rate to CPU and disk.</li>
@@ -503,6 +520,7 @@
           <li>As of Enterprise 12.2, Monitor also covers ArcGIS Velocity.</li>
         </ul>
         <div class="slinks"><a href="https://doc.arcgis.com/en/monitor/2024.0/get-started/windows/introduction-to-arcgis-monitor.htm" target="_blank" rel="noopener">Esri documentation: Introduction to ArcGIS Monitor &rarr;</a><a href="resources/arcgis-monitor-guide.pdf">Download the guide (PDF) &rarr;</a></div>
+        </div>
       </div>
     </div>
 
@@ -855,6 +873,18 @@
       entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('visible'); io.unobserve(en.target); } });
     },{threshold:0.12});
     els.forEach(function(e){ io.observe(e); });
+  })();
+
+  // Read more on topic cards
+  (function(){
+    document.querySelectorAll('#topics .readmore').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var card = btn.closest('.project');
+        var open = card.classList.toggle('expanded');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        btn.textContent = open ? 'Read less' : 'Read more';
+      });
+    });
   })();
 </script>
 </body>
