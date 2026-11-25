@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Utility Network Tracing Demo — Janaki Gattu</title>
+<meta name="description" content="Run the four traces that decide a Utility Network migration on a working electric distribution network: downstream, upstream, isolation, and the trace that stops at a data gap. Built by Janaki Gattu, Enterprise GIS Consultant.">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;color:#f5f5f5;background:#0a0a0a}
+  #app{display:flex;flex-direction:column;height:100vh}
+  header{background:#0a0a0a;border-bottom:1px solid #262626;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  header h1{font-size:1.25rem;letter-spacing:-.01em}
+  header h1 span{color:#4ade80}
+  header p{color:#a3a3a3;font-size:.9rem}
+  header .links a{color:#4ade80;font-weight:700;text-decoration:none;margin-left:16px;font-size:.92rem}
+  header .links a:hover{text-decoration:underline}
+  #main{flex:1;display:flex;min-height:0}
+  #map{flex:1;min-width:0;background:#111}
+  aside{width:380px;max-width:94vw;background:#111;border-left:1px solid #262626;overflow-y:auto;padding:20px}
+  aside h2{font-size:1.05rem;margin-bottom:6px}
+  aside h3{font-size:.95rem;margin:22px 0 8px;color:#4ade80}
+  aside p, aside li{color:#d4d4d4;font-size:.93rem;line-height:1.6}
+  aside ul{padding-left:18px}
+  aside li{margin-bottom:6px}
+  .hook{font-size:1.05rem;color:#f5f5f5;font-weight:600;margin-bottom:10px}
+  .honest{margin-top:14px;background:#161616;border:1px solid #262626;border-radius:10px;padding:12px;font-size:.88rem;color:#a3a3a3}
+  .honest b{color:#f5f5f5}
+  .tracepick{margin:14px 0 4px}
+  .tracepick label{display:flex;gap:10px;align-items:flex-start;background:#161616;border:1px solid #262626;border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+  .tracepick label:has(input:checked){border-color:#4ade80}
+  .tracepick input{margin-top:4px;accent-color:#4ade80}
+  .tracepick b{color:#f5f5f5;display:block;font-size:.95rem}
+  .tracepick span{color:#a3a3a3;font-size:.88rem;line-height:1.5;display:block}
+  select,button{font-family:inherit;font-size:.95rem}
+  select{width:100%;background:#161616;color:#f5f5f5;border:1px solid #404040;border-radius:8px;padding:10px;margin:8px 0}
+  .row{display:flex;gap:10px;margin-top:10px}
+  .row button{flex:1;padding:11px;border-radius:999px;font-weight:700;cursor:pointer;border:none}
+  #runBtn{background:#4ade80;color:#052e16}
+  #runBtn:hover{opacity:.9}
+  #resetBtn{background:#262626;color:#f5f5f5;border:1px solid #404040}
+  .whatif{display:flex;gap:10px;align-items:flex-start;margin-top:14px;background:#1a1405;border:1px solid #57534e;border-radius:10px;padding:12px;cursor:pointer}
+  .whatif input{margin-top:3px;accent-color:#fbbf24}
+  .whatif b{color:#fde68a;font-size:.93rem;display:block}
+  .whatif span{color:#d4d4d4;font-size:.88rem;line-height:1.5;display:block}
+  #selected{margin-top:12px;font-size:.9rem;color:#a3a3a3}
+  #selected b{color:#f5f5f5}
+  #results{margin-top:16px;background:#161616;border:1px solid #262626;border-radius:10px;padding:14px;font-size:.92rem;line-height:1.6}
+  #results h4{color:#4ade80;font-size:1rem;margin-bottom:8px}
+  #results .warn{color:#fbbf24}
+  #results .bad{color:#f87171}
+  #results .good{color:#4ade80}
+  #results ul{padding-left:18px;margin:6px 0}
+  #results li{margin-bottom:4px;color:#d4d4d4}
+  #results .big{font-size:1.15rem;color:#f5f5f5;font-weight:700}
+  .legend{margin-top:8px}
+  .legend div{display:flex;align-items:center;gap:10px;padding:4px 0;color:#d4d4d4;font-size:.92rem}
+  .swatch{width:18px;height:18px;border-radius:4px;flex:none;border:1px solid rgba(255,255,255,.25)}
+  .swatch.line{height:4px;border-radius:2px}
+  .dot{width:14px;height:14px;border-radius:50%;flex:none;border:2px solid #fff}
+  .sq{width:14px;height:14px;border-radius:3px;flex:none;border:2px solid #fff}
+  #status{margin-top:16px;background:#161616;border:1px solid #262626;border-radius:10px;padding:12px;font-size:.88rem;color:#a3a3a3}
+  #status b{color:#f5f5f5}
+  #status .ok{color:#4ade80}
+  #status .bad{color:#f87171}
+  .cta{margin-top:22px;background:#052e16;border:1px solid #166534;border-radius:12px;padding:16px}
+  .cta p{color:#bbf7d0;font-size:.93rem}
+  .cta a{display:inline-block;margin-top:10px;background:#4ade80;color:#052e16;font-weight:700;text-decoration:none;border-radius:999px;padding:9px 18px}
+  .cta a:hover{opacity:.9}
+  .gates li b{color:#f5f5f5}
+  .mk{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#052e16;border:2px solid #fff}
+  .mk.sub{background:#4ade80;font-size:14px}
+  .mk.sw{background:#fbbf24}
+  .mk.sw.open{background:#f87171}
+  .mk.tr{background:#60a5fa}
+  .mk.cu{background:#e5e7eb;color:#111}
+  .mk.jn{background:#a3a3a3;width:12px;height:12px}
+  .mk.sel{box-shadow:0 0 0 3px #fff,0 0 0 6px #4ade80}
+  .mk.dead{opacity:.45}
+  @media (max-width:760px){#main{flex-direction:column}#map{height:52vh;flex:none}aside{width:100%;border-left:none;border-top:1px solid #262626}}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <div>
+    <h1><a href="../../index.html" style="color:#f5f5f5;text-decoration:none">Janaki Gattu</a> <span>· Utility Network Tracing Demo</span></h1>
+    <p>Electric distribution, three feeders, one open tie switch, one data gap. The traces run for real.</p>
+  </div>
+  <div class="links">
+    <a href="../../index.html">&larr; Portfolio</a>
+    <a href="https://www.linkedin.com/pulse/arcgis-utility-network-modernise-model-before-you-migrate-gattu-z6vuc/" target="_blank" rel="noopener">The article</a>
+  </div>
+</header>
+<div id="main">
+  <div id="map"></div>
+  <aside>
+    <h2>Run the traces that decide a migration</h2>
+    <p class="hook">A trace that returns the wrong customers looks fine until someone checks it against the ground.</p>
+    <p>Pick a trace, pick a starting point on the map or from the list, and run it. The network is a small electric distribution system: one substation, three feeders, five switches, five transformers, sixteen customers. The trace engine walks the real connectivity, so an open switch stops it, and the data gap on Feeder C stops it too, and says so.</p>
+    <div class="honest"><b>Training network, honest label.</b> This is a schematic layout over East Sacramento, built to demonstrate Utility Network trace concepts. It is not a real utility's data, and no real customer is in it. What is real is the logic: the same four traces, the same decisions, the same failure modes as the article describes.</div>
+
+    <h3>1. Choose a trace</h3>
+    <div class="tracepick" id="tracePick">
+      <label><input type="radio" name="trace" value="downstream" checked><span><b>Downstream trace</b><span>From a starting point, everything the power reaches. The outage question: which customers lose supply?</span></span></label>
+      <label><input type="radio" name="trace" value="upstream"><span><b>Upstream trace</b><span>From a customer or device, back to the source. The fault question: where does this feed come from?</span></span></label>
+      <label><input type="radio" name="trace" value="isolation"><span><b>Isolation trace</b><span>For a faulted device or span: which switches open to isolate it, who loses power, and what a tie switch restores.</span></span></label>
+      <label><input type="radio" name="trace" value="connected"><span><b>Connected trace</b><span>Everything topologically connected, switches ignored. Connected is not the same as energised, and this trace shows the difference.</span></span></label>
+    </div>
+
+    <h3>2. Choose a starting point</h3>
+    <p>Click any device or line on the map, or pick from the list. For an isolation trace, click the faulted span on Feeder B, between Junction B1 and Switch B2.</p>
+    <select id="startSelect"></select>
+    <p id="selected">Selected: <b>Riverbend Substation</b></p>
+
+    <div class="row">
+      <button id="runBtn">Run trace</button>
+      <button id="resetBtn">Reset</button>
+    </div>
+    <label class="whatif"><input type="checkbox" id="tieBox"><span><b>What if the tie switch A2 were closed?</b><span>Re-run the trace with the open tie switch closed, so Feeder A can feed the far end of Feeder B. This is the restoration move an operator reaches for.</span></span></label>
+
+    <div id="results"><h4>Trace results</h4><p>Run a trace to see the result here. Downstream from the substation is already run for you on load: the whole energised network, with the two places the trace stops called out.</p></div>
+
+    <h3>How this maps to a real Utility Network</h3>
+    <ul>
+      <li><b>Feeders are subnetworks.</b> Each feeder is one subnetwork fed by one source, exactly as a tier defines it.</li>
+      <li><b>Switches are traversability barriers.</b> An open switch stops a trace the way a barrier stops it in the Utility Network. Closing one changes what is energised.</li>
+      <li><b>The gap is dirty data.</b> On Feeder C, two features look connected but share no endpoint. The trace stops there and reports it, instead of returning a confident, wrong answer.</li>
+      <li><b>Isolation is an operation, not a drawing.</b> The trace names the switches to open, the customers who lose power, and what the tie switch restores.</li>
+    </ul>
+
+    <h3>The Four-Gate Load Check</h3>
+    <p>Before any load, from the article: four questions, each with a verifiable answer. If any gate has no answer, the load is not ready.</p>
+    <ol class="gates">
+      <li><b>Which traces will people run, and what decision will each one support?</b></li>
+      <li><b>Where does the source data fail connectivity and attribute checks, and do the failures cluster?</b></li>
+      <li><b>Who edits the network, under what versioning workflow, and who owns each asset type?</b></li>
+      <li><b>How will you prove a trace is right, against the field, not just against the test data?</b></li>
+    </ol>
+    <p style="margin-top:10px">The full argument is in <a href="https://www.linkedin.com/pulse/arcgis-utility-network-modernise-model-before-you-migrate-gattu-z6vuc/" target="_blank" rel="noopener">ArcGIS Utility Network: Modernise the Model Before You Migrate the Data</a>, and in <a href="../../podcast/ep3-utility-network.mp3">podcast episode 3</a>.</p>
+
+    <h3>Legend</h3>
+    <div class="legend">
+      <div><span class="swatch line" style="background:#4ade80"></span> Feeder A — energised path</div>
+      <div><span class="swatch line" style="background:#fbbf24"></span> Feeder B — energised path</div>
+      <div><span class="swatch line" style="background:#60a5fa"></span> Feeder C — energised path</div>
+      <div><span class="swatch line" style="background:#f87171"></span> Data gap — trace stops here</div>
+      <div><span class="dot" style="background:#4ade80"></span> Substation (source)</div>
+      <div><span class="sq" style="background:#fbbf24"></span> Switch — closed (green border) / open (red)</div>
+      <div><span class="sq" style="background:#60a5fa"></span> Transformer</div>
+      <div><span class="dot" style="background:#e5e7eb"></span> Customer service point</div>
+    </div>
+
+    <div id="status"><b>Layer status</b><br>Basemap tiles: <span id="tileStatus">loading&hellip;</span><br>Trace engine: <span class="ok">running in your browser, no server</span></div>
+
+    <div class="cta">
+      <p><b style="color:#f5f5f5">If your traces don't match the field, that is the project to fix first.</b><br>Janaki builds and fixes Utility Network models, and the governance around them, for utility teams.</p>
+      <a href="mailto:gjanaki360@gmail.com?subject=Utility%20Network%20tracing%20demo">Email Janaki &rarr;</a>
+      <a href="../../index.html#projects" style="background:transparent;color:#4ade80;border:1px solid #4ade80;margin-left:8px">More solutions &rarr;</a>
+    </div>
+  </aside>
+</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ---------- Network data: schematic electric distribution, East Sacramento ----------
+// Node types: sub (substation/source), sw (switch), tr (transformer), cu (customer), jn (junction)
+const NODES = {
+  "SUB-1": {type:"sub", label:"Riverbend Substation", lat:38.5785, lng:-121.4785, feeder:"source"},
+  "SW-A1": {type:"sw", label:"Switch A1", lat:38.5805, lng:-121.4785, feeder:"A", state:"closed"},
+  "J-A1":  {type:"jn", label:"Junction A1", lat:38.5825, lng:-121.4785, feeder:"A"},
+  "T-A1":  {type:"tr", label:"Transformer A1", lat:38.5840, lng:-121.4800, feeder:"A"},
+  "SW-A2": {type:"sw", label:"Tie switch A2", lat:38.5810, lng:-121.4720, feeder:"A", state:"open"},
+  "C-A101":{type:"cu", label:"Customer A-101 (Residential)", lat:38.5848, lng:-121.4812, feeder:"A", kw:8},
+  "C-A102":{type:"cu", label:"Customer A-102 (Residential)", lat:38.5850, lng:-121.4795, feeder:"A", kw:6},
+  "C-A103":{type:"cu", label:"Customer A-103 (Commercial)", lat:38.5848, lng:-121.4780, feeder:"A", kw:22},
+  "C-A104":{type:"cu", label:"Customer A-104 (Residential)", lat:38.5835, lng:-121.4815, feeder:"A", kw:7},
+  "SW-B1": {type:"sw", label:"Switch B1", lat:38.5785, lng:-121.4755, feeder:"B", state:"closed"},
+  "T-B1":  {type:"tr", label:"Transformer B1", lat:38.5785, lng:-121.4725, feeder:"B"},
+  "J-B1":  {type:"jn", label:"Junction B1", lat:38.5785, lng:-121.4700, feeder:"B"},
+  "SW-B2": {type:"sw", label:"Switch B2", lat:38.5785, lng:-121.4675, feeder:"B", state:"closed"},
+  "J-B2":  {type:"jn", label:"Junction B2", lat:38.5795, lng:-121.4675, feeder:"B"},
+  "T-B2":  {type:"tr", label:"Transformer B2", lat:38.5785, lng:-121.4650, feeder:"B"},
+  "C-B101":{type:"cu", label:"Customer B-101 (Residential)", lat:38.5798, lng:-121.4735, feeder:"B", kw:7},
+  "C-B102":{type:"cu", label:"Customer B-102 (Residential)", lat:38.5798, lng:-121.4715, feeder:"B", kw:8},
+  "C-B103":{type:"cu", label:"Customer B-103 (Commercial)", lat:38.5772, lng:-121.4735, feeder:"B", kw:25},
+  "C-B104":{type:"cu", label:"Customer B-104 (Residential)", lat:38.5772, lng:-121.4715, feeder:"B", kw:6},
+  "C-B201":{type:"cu", label:"Customer B-201 (Residential)", lat:38.5798, lng:-121.4660, feeder:"B", kw:9},
+  "C-B202":{type:"cu", label:"Customer B-202 (Commercial)", lat:38.5798, lng:-121.4640, feeder:"B", kw:20},
+  "C-B203":{type:"cu", label:"Customer B-203 (Residential)", lat:38.5772, lng:-121.4650, feeder:"B", kw:6},
+  "SW-C1": {type:"sw", label:"Switch C1", lat:38.5760, lng:-121.4785, feeder:"C", state:"closed"},
+  "T-C1":  {type:"tr", label:"Transformer C1", lat:38.5740, lng:-121.4785, feeder:"C"},
+  "J-C1":  {type:"jn", label:"Junction C1", lat:38.5720, lng:-121.4785, feeder:"C"},
+  "T-C2":  {type:"tr", label:"Transformer C2", lat:38.5695, lng:-121.4785, feeder:"C"},
+  "C-C101":{type:"cu", label:"Customer C-101 (Residential)", lat:38.5748, lng:-121.4798, feeder:"C", kw:8},
+  "C-C102":{type:"cu", label:"Customer C-102 (Residential)", lat:38.5748, lng:-121.4772, feeder:"C", kw:7},
+  "C-C103":{type:"cu", label:"Customer C-103 (Commercial)", lat:38.5730, lng:-121.4798, feeder:"C", kw:15},
+  "C-C201":{type:"cu", label:"Customer C-201 (Residential)", lat:38.5702, lng:-121.4798, feeder:"C", kw:9},
+  "C-C202":{type:"cu", label:"Customer C-202 (Residential)", lat:38.5702, lng:-121.4772, feeder:"C", kw:6}
+};
+// Edges: undirected connectivity. gap=true means the two features look connected but share no endpoint.
+const EDGES = [
+  {id:"E1", a:"SUB-1", b:"SW-A1", feeder:"A"},
+  {id:"E2", a:"SW-A1", b:"J-A1", feeder:"A"},
+  {id:"E3", a:"J-A1", b:"T-A1", feeder:"A"},
+  {id:"E4", a:"J-A1", b:"SW-A2", feeder:"A"},
+  {id:"E5", a:"SW-A2", b:"J-B2", feeder:"A", note:"tie"},
+  {id:"E6", a:"T-A1", b:"C-A101", feeder:"A", kind:"service"},
+  {id:"E7", a:"T-A1", b:"C-A102", feeder:"A", kind:"service"},
+  {id:"E8", a:"T-A1", b:"C-A103", feeder:"A", kind:"service"},
+  {id:"E9", a:"T-A1", b:"C-A104", feeder:"A", kind:"service"},
+  {id:"E10", a:"SUB-1", b:"SW-B1", feeder:"B"},
+  {id:"E11", a:"SW-B1", b:"T-B1", feeder:"B"},
+  {id:"E12", a:"T-B1", b:"J-B1", feeder:"B"},
+  {id:"E13", a:"J-B1", b:"SW-B2", feeder:"B", label:"Fault span: Junction B1 to Switch B2"},
+  {id:"E14", a:"SW-B2", b:"J-B2", feeder:"B"},
+  {id:"E15", a:"J-B2", b:"T-B2", feeder:"B"},
+  {id:"E16", a:"T-B1", b:"C-B101", feeder:"B", kind:"service"},
+  {id:"E17", a:"T-B1", b:"C-B102", feeder:"B", kind:"service"},
+  {id:"E18", a:"T-B1", b:"C-B103", feeder:"B", kind:"service"},
+  {id:"E19", a:"T-B1", b:"C-B104", feeder:"B", kind:"service"},
+  {id:"E20", a:"T-B2", b:"C-B201", feeder:"B", kind:"service"},
+  {id:"E21", a:"T-B2", b:"C-B202", feeder:"B", kind:"service"},
+  {id:"E22", a:"T-B2", b:"C-B203", feeder:"B", kind:"service"},
+  {id:"E23", a:"SUB-1", b:"SW-C1", feeder:"C"},
+  {id:"E24", a:"SW-C1", b:"T-C1", feeder:"C"},
+  {id:"E25", a:"T-C1", b:"J-C1", feeder:"C"},
+  {id:"E26", a:"J-C1", b:"T-C2", feeder:"C", gap:true, label:"Data gap: no shared endpoint"},
+  {id:"E27", a:"T-C1", b:"C-C101", feeder:"C", kind:"service"},
+  {id:"E28", a:"T-C1", b:"C-C102", feeder:"C", kind:"service"},
+  {id:"E29", a:"T-C1", b:"C-C103", feeder:"C", kind:"service"},
+  {id:"E30", a:"T-C2", b:"C-C201", feeder:"C", kind:"service"},
+  {id:"E31", a:"T-C2", b:"C-C202", feeder:"C", kind:"service"}
+];
+const FEEDER_COLOR = {A:"#4ade80", B:"#fbbf24", C:"#60a5fa"};
+const SOURCE = "SUB-1";
+
+// ---------- Trace engine ----------
+// switchStates: id -> "open"/"closed". The what-if toggle closes SW-A2.
+function currentSwitchStates(){
+  const s = {};
+  for (const id in NODES) if (NODES[id].type === "sw") s[id] = NODES[id].state;
+  if (document.getElementById("tieBox").checked) s["SW-A2"] = "closed";
+  return s;
+}
+// An edge is passable for flow if it is not a data gap and neither endpoint is an open switch.
+function edgePassable(e, states, extraOpen){
+  if (e.gap) return false;
+  for (const n of [e.a, e.b]) {
+    if (NODES[n].type === "sw" && states[n] === "open") return false;
+    if (extraOpen && extraOpen.has(n)) return false;
+  }
+  return true;
+}
+function neighbors(id){
+  const out = [];
+  for (const e of EDGES) {
+    if (e.a === id) out.push({node:e.b, edge:e});
+    else if (e.b === id) out.push({node:e.a, edge:e});
+  }
+  return out;
+}
+// BFS from the source over passable edges. Returns {parent, order, edgesUsed, blockers}.
+// blockers: [{at, edge, reason}] where the walk stopped (open switch or data gap).
+function energizedTree(states, extraOpen){
+  const parent = {[SOURCE]: null};
+  const parentEdge = {};
+  const order = [SOURCE];
+  const blockers = [];
+  const queue = [SOURCE];
+  const seenBlocker = new Set();
+  while (queue.length) {
+    const u = queue.shift();
+    for (const {node:v, edge:e} of neighbors(u)) {
+      if (parent[v] !== undefined) continue;
+      if (!edgePassable(e, states, extraOpen)) {
+        const reason = e.gap ? "data gap" : "open switch";
+        // Dedupe by the barrier itself: one open switch can block two edges
+        // (one on each side) and should be reported once.
+        let key;
+        if (e.gap) key = "gap:" + e.id;
+        else {
+          const swId = [e.a, e.b].find(n => NODES[n].type === "sw" && (states[n] === "open" || (extraOpen && extraOpen.has(n))));
+          key = "sw:" + (swId || e.id);
+        }
+        if (!seenBlocker.has(key)) { seenBlocker.add(key); blockers.push({at:u, edge:e, reason}); }
+        continue;
+      }
+      parent[v] = u; parentEdge[v] = e; order.push(v); queue.push(v);
+    }
+  }
+  return {parent, parentEdge, order, blockers};
+}
+function descendantsOf(tree, id){
+  const kids = {};
+  for (const n in tree.parent) { const p = tree.parent[n]; if (p) (kids[p] = kids[p] || []).push(n); }
+  const out = [];
+  const stack = [id];
+  while (stack.length) { const u = stack.pop(); out.push(u); for (const c of (kids[u] || [])) stack.push(c); }
+  return out;
+}
+function ancestorsOf(tree, id){
+  const out = [];
+  let u = tree.parent[id];
+  while (u) { out.push(u); u = tree.parent[u]; }
+  return out;
+}
+function isEnergized(tree, id){ return tree.parent[id] !== undefined; }
+function customersIn(ids){
+  return ids.filter(id => NODES[id].type === "cu");
+}
+function customerSummary(ids){
+  const cs = customersIn(ids);
+  const kw = cs.reduce((t, id) => t + (NODES[id].kw || 0), 0);
+  return {count: cs.length, kw, list: cs};
+}
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+function blockerText(b){
+  const other = b.edge.a === b.at ? b.edge.b : b.edge.a;
+  if (b.reason === "data gap") return "Trace stopped at a <b>data gap</b> between " + esc(NODES[b.at].label) + " and " + esc(NODES[other].label) + " — the two features look connected but share no endpoint, so nothing beyond it is traced.";
+  const swId = NODES[b.at].type === "sw" ? b.at : (NODES[other].type === "sw" ? other : null);
+  const swName = swId ? esc(NODES[swId].label) : "an open switch";
+  return "Trace stopped at open switch <b>" + swName + "</b> — a switch left open is a barrier, and the trace does not cross it.";
+}
+
+// ---------- Traces ----------
+function runDownstream(startId, states, tree){
+  const traced = descendantsOf(tree, startId);
+  const edgesUsed = traced.filter(id => id !== startId).map(id => tree.parentEdge[id].id);
+  const blockers = tree.blockers.filter(b => traced.includes(b.at));
+  const cs = customerSummary(traced);
+  return {traced, edgesUsed, blockers, customers: cs,
+    energized: true,
+    headline: "Downstream trace from " + esc(NODES[startId].label),
+    lines: ["<span class='big'>" + cs.count + " customers reached, " + cs.kw + " kW of load.</span>",
+      cs.count ? "Customers: " + cs.list.map(id => esc(NODES[id].label) + " (" + NODES[id].kw + " kW)").join(", ") + "." : "No customers downstream of this point.",
+      "Devices in the trace: " + traced.length + " (substation, switches, transformers, junctions and service points)."]};
+}
+function runUpstream(startId, states, tree){
+  // Path to the source on the full graph (ignoring barriers), then report where it is blocked.
+  const prev = {[startId]: null};
+  const prevEdge = {};
+  const q = [startId];
+  while (q.length && prev[SOURCE] === undefined) {
+    const u = q.shift();
+    for (const {node:v, edge:e} of neighbors(u)) {
+      if (prev[v] !== undefined) continue;
+      prev[v] = u; prevEdge[v] = e; q.push(v);
+    }
+  }
+  const path = [];
+  let u = SOURCE;
+  if (prev[SOURCE] === undefined && startId !== SOURCE) return {error:"No path to the source exists from " + esc(NODES[startId].label) + "."};
+  while (u) { path.push(u); u = prev[u]; }
+  path.reverse();
+  const blocks = [];
+  for (let i = 0; i < path.length - 1; i++) {
+    const e = prevEdge[path[i + 1]];
+    if (e.gap) blocks.push({at: path[i], edge: e, reason: "data gap"});
+    else for (const n of [e.a, e.b]) if (NODES[n].type === "sw" && states[n] === "open") blocks.push({at: path[i], edge: e, reason: "open switch"});
+  }
+  const traced = path;
+  const edgesUsed = [];
+  for (let i = 0; i < path.length - 1; i++) edgesUsed.push(prevEdge[path[i + 1]].id);
+  const lines = blocks.length === 0
+    ? ["<span class='good'>This point is energised.</span> Power flows from the substation through " + path.slice(1, -1).map(id => esc(NODES[id].label)).join(" → ") + " to reach it."]
+    : ["<span class='bad'>This point is NOT energised.</span> The path from the substation is blocked. " + blocks.map(blockerText).join(" ")];
+  return {traced, edgesUsed, blockers: blocks, headline: "Upstream trace from " + esc(NODES[startId].label),
+    lines: lines.concat(["Path to source: " + path.map(id => esc(NODES[id].label)).join(" → ") + "."])};
+}
+function runConnected(startId, states){
+  // All nodes reachable ignoring switch states, stopped only by the data gap.
+  const seen = {[startId]: true};
+  const parentEdge = {};
+  const q = [startId];
+  const blockers = [];
+  while (q.length) {
+    const u = q.shift();
+    for (const {node:v, edge:e} of neighbors(u)) {
+      if (seen[v]) continue;
+      if (e.gap) { blockers.push({at: u, edge: e, reason: "data gap"}); continue; }
+      seen[v] = true; parentEdge[v] = e; q.push(v);
+    }
+  }
+  const traced = Object.keys(seen);
+  const edgesUsed = traced.filter(id => id !== startId).map(id => parentEdge[id].id);
+  const cs = customerSummary(traced);
+  return {traced, edgesUsed, blockers, customers: cs,
+    headline: "Connected trace from " + esc(NODES[startId].label),
+    lines: ["<span class='big'>" + traced.length + " devices connected, " + cs.count + " customers.</span>",
+      "This trace ignores switch states, so it reaches further than the energised network. Connected is not the same as energised: the open tie switch and the data gap are the only things that stop it here.",
+      cs.count ? "Customers connected: " + cs.list.map(id => esc(NODES[id].label)).join(", ") + "." : "No customers connected."]};
+}
+function nearestSwitchUp(tree, id){
+  let u = id;
+  if (NODES[u].type === "sw") return u;
+  for (const a of ancestorsOf(tree, id)) if (NODES[a].type === "sw") return a;
+  return null; // substation breaker
+}
+function nearestSwitchesDown(tree, id){
+  const kids = {};
+  for (const n in tree.parent) { const p = tree.parent[n]; if (p) (kids[p] = kids[p] || []).push(n); }
+  const out = [];
+  const startKids = (kids[id] || []).slice();
+  for (const k of startKids) {
+    const stack = [k];
+    while (stack.length) {
+      const u = stack.pop();
+      if (NODES[u].type === "sw") { out.push(u); continue; }
+      for (const c of (kids[u] || [])) stack.push(c);
+    }
+  }
+  return out;
+}
+function runIsolation(sel, states, tree){
+  // sel: {kind:"node", id} or {kind:"edge", edge}
+  let faultNodes, upFrom, downFrom, faultLabel;
+  if (sel.kind === "edge") {
+    const e = sel.edge;
+    faultNodes = [e.a, e.b];
+    faultLabel = (e.label || ("span " + NODES[e.a].label + " to " + NODES[e.b].label));
+    upFrom = e.a; downFrom = e.b;
+  } else {
+    faultNodes = [sel.id];
+    faultLabel = NODES[sel.id].label;
+    upFrom = sel.id; downFrom = sel.id;
+  }
+  const inTree = faultNodes.some(id => isEnergized(tree, id));
+  if (!inTree) {
+    return {traced: faultNodes, edgesUsed: [], blockers: [],
+      headline: "Isolation trace: " + esc(faultLabel),
+      lines: ["<span class='warn'>This part of the network is already de-energised.</span> It sits beyond an open switch or a data gap, so there is nothing to isolate. The gap on Feeder C already does the isolating, which is the problem: nobody chose it."]};
+  }
+  const iso = new Set();
+  const up = nearestSwitchUp(tree, upFrom);
+  if (up) iso.add(up); else iso.add("SUB-BREAKER");
+  if (sel.kind === "edge") {
+    if (NODES[sel.edge.a].type === "sw") iso.add(sel.edge.a);
+    if (NODES[sel.edge.b].type === "sw") iso.add(sel.edge.b);
+  }
+  for (const s of nearestSwitchesDown(tree, downFrom)) iso.add(s);
+  if (sel.kind === "node" && NODES[sel.id].type === "sw") iso.add(sel.id);
+  const extraOpen = new Set([...iso].filter(x => x !== "SUB-BREAKER"));
+  const treeAfter = energizedTree(states, extraOpen);
+  const before = customerSummary(tree.order);
+  const after = customerSummary(treeAfter.order);
+  const lost = before.list.filter(id => !after.list.includes(id));
+  const lostKw = lost.reduce((t, id) => t + NODES[id].kw, 0);
+  // Restoration: close the tie switch as well.
+  const statesTie = Object.assign({}, states, {"SW-A2": "closed"});
+  const treeRestored = energizedTree(statesTie, extraOpen);
+  const restored = lost.filter(id => treeRestored.parent[id] !== undefined);
+  const restoredKw = restored.reduce((t, id) => t + NODES[id].kw, 0);
+  // Isolated section: component containing the fault when the isolation switches are open.
+  const section = componentOf(faultNodes[0], states, extraOpen);
+  const sectionCustomers = customerSummary(section);
+  const switchNames = [...iso].map(s => s === "SUB-BREAKER" ? "the substation breaker" : esc(NODES[s].label));
+  const lines = [
+    "<span class='big'>Open " + switchNames.join(" and ") + " to isolate the fault.</span>",
+    "Fault: " + esc(faultLabel) + ".",
+    sectionCustomers.count ? "Customers inside the isolated section: " + sectionCustomers.list.map(id => esc(NODES[id].label)).join(", ") + " (" + sectionCustomers.kw + " kW)." : "No customers sit inside the isolated section itself.",
+    lost.length ? "<span class='bad'>" + lost.length + " customers lose power (" + lostKw + " kW):</span> " + lost.map(id => esc(NODES[id].label)).join(", ") + "." : "<span class='good'>No customer loses power.</span>",
+    restored.length ? "<span class='good'>Close tie switch A2 and " + restored.length + " of them come back (" + restoredKw + " kW):</span> " + restored.map(id => esc(NODES[id].label)).join(", ") + ". That is the restoration move, and it is why the tie switch exists." : "Closing the tie switch restores nothing here — the fault is not on a feeder the tie can reach."
+  ];
+  return {traced: section, edgesUsed: edgesIn(section), blockers: [], switches: [...iso],
+    headline: "Isolation trace: " + esc(faultLabel), lines};
+}
+function componentOf(start, states, extraOpen){
+  const seen = {[start]: true};
+  const q = [start];
+  while (q.length) {
+    const u = q.shift();
+    for (const {node:v, edge:e} of neighbors(u)) {
+      if (seen[v]) continue;
+      if (!edgePassable(e, states, extraOpen)) continue;
+      seen[v] = true; q.push(v);
+    }
+  }
+  return Object.keys(seen);
+}
+function edgesIn(nodeIds){
+  const set = new Set(nodeIds);
+  return EDGES.filter(e => set.has(e.a) && set.has(e.b)).map(e => e.id);
+}
+
+// ---------- Map ----------
+const map = L.map("map").setView([38.5775, -121.4720], 15);
+const tiles = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}", {
+  attribution: "Esri, HERE, Garmin, OpenStreetMap contributors",
+  maxZoom: 19
+}).addTo(map);
+let tileOk = false;
+tiles.on("tileload", () => { if (!tileOk) { tileOk = true; document.getElementById("tileStatus").innerHTML = "<span class='ok'>loaded</span>"; } });
+setTimeout(() => { if (!tileOk) document.getElementById("tileStatus").innerHTML = "<span class='bad'>failed to load — check connection</span>"; }, 20000);
+
+const hl = L.layerGroup().addTo(map);
+const markerById = {};
+const edgeLayerById = {};
+
+function iconFor(id, selected){
+  const n = NODES[id];
+  let cls = "mk", label = "";
+  if (n.type === "sub") { cls += " sub"; label = "S"; }
+  else if (n.type === "sw") { cls += " sw" + (currentSwitchStates()[id] === "open" ? " open" : ""); label = "S"; }
+  else if (n.type === "tr") { cls += " tr"; label = "T"; }
+  else if (n.type === "cu") { cls += " cu"; label = "C"; }
+  else { cls += " jn"; label = ""; }
+  if (selected) cls += " sel";
+  return L.divIcon({className: "", html: '<div class="' + cls + '">' + label + "</div>", iconSize: n.type === "jn" ? [12, 12] : [26, 26], iconAnchor: n.type === "jn" ? [6, 6] : [13, 13]});
+}
+function refreshMarkers(selectedId, tree){
+  for (const id in NODES) {
+    const n = NODES[id];
+    const dead = tree && !isEnergized(tree, id);
+    const m = markerById[id];
+    if (!m) continue;
+    m.setIcon(iconFor(id, id === selectedId));
+    const el = m.getElement();
+    if (el) { const inner = el.querySelector(".mk"); if (inner) inner.classList.toggle("dead", !!dead); }
+  }
+}
+// Edges
+for (const e of EDGES) {
+  const a = NODES[e.a], b = NODES[e.b];
+  const pts = [[a.lat, a.lng], [b.lat, b.lng]];
+  const opts = e.gap
+    ? {color: "#f87171", weight: 4, dashArray: "8 8", opacity: 0.95}
+    : {color: FEEDER_COLOR[e.feeder], weight: e.kind === "service" ? 2 : 4, opacity: 0.85};
+  const pl = L.polyline(pts, opts).addTo(map);
+  pl.bindTooltip(e.label || (NODES[e.a].label + " to " + NODES[e.b].label));
+  pl.on("click", () => select({kind: "edge", edge: e}));
+  edgeLayerById[e.id] = pl;
+}
+// Nodes
+for (const id in NODES) {
+  const n = NODES[id];
+  const m = L.marker([n.lat, n.lng], {icon: iconFor(id, false), title: n.label}).addTo(map);
+  m.bindTooltip(n.label + (n.type === "sw" ? " (" + currentSwitchStates()[id] + ")" : "") + (n.type === "cu" ? " — " + n.kw + " kW" : ""));
+  m.on("click", () => select({kind: "node", id}));
+  markerById[id] = m;
+}
+
+// ---------- Selection + UI ----------
+let selection = {kind: "node", id: "SUB-1"};
+let lastTraceType = null;
+const startSelect = document.getElementById("startSelect");
+(function fillSelect(){
+  const g1 = document.createElement("optgroup"); g1.label = "Devices";
+  for (const id in NODES) {
+    const o = document.createElement("option");
+    o.value = "node:" + id; o.textContent = NODES[id].label;
+    g1.appendChild(o);
+  }
+  const g2 = document.createElement("optgroup"); g2.label = "Spans — pick for an isolation trace";
+  for (const e of EDGES.filter(e => e.label)) {
+    const o = document.createElement("option");
+    o.value = "edge:" + e.id; o.textContent = e.label;
+    g2.appendChild(o);
+  }
+  startSelect.appendChild(g1); startSelect.appendChild(g2);
+  startSelect.value = "node:SUB-1";
+})();
+function selectionLabel(sel){
+  if (sel.kind === "edge") return sel.edge.label || (NODES[sel.edge.a].label + " to " + NODES[sel.edge.b].label);
+  return NODES[sel.id].label;
+}
+function selectionNodeId(sel){
+  if (sel.kind === "node") return sel.id;
+  // Deeper endpoint of the edge (full-graph depth from the source).
+  return fullDepth[sel.edge.a] >= fullDepth[sel.edge.b] ? sel.edge.a : sel.edge.b;
+}
+const fullDepth = (function(){
+  const d = {[SOURCE]: 0};
+  const q = [SOURCE];
+  while (q.length) {
+    const u = q.shift();
+    for (const {node: v} of neighbors(u)) if (d[v] === undefined) { d[v] = d[u] + 1; q.push(v); }
+  }
+  return d;
+})();
+function select(sel){
+  selection = sel;
+  startSelect.value = sel.kind === "node" ? "node:" + sel.id : "edge:" + sel.edge.id;
+  document.getElementById("selected").innerHTML = "Selected: <b>" + esc(selectionLabel(sel)) + "</b>";
+  const tree = energizedTree(currentSwitchStates());
+  refreshMarkers(selectionNodeId(sel), tree);
+}
+startSelect.addEventListener("change", () => {
+  const v = startSelect.value;
+  if (v.startsWith("node:")) select({kind: "node", id: v.slice(5)});
+  else select({kind: "edge", edge: EDGES.find(e => e.id === v.slice(5))});
+});
+document.getElementById("tieBox").addEventListener("change", () => { if (lastTraceType) runTrace(); });
+
+function highlightResult(res, startId){
+  hl.clearLayers();
+  for (const eid of (res.edgesUsed || [])) {
+    const e = EDGES.find(x => x.id === eid);
+    if (!e) continue;
+    const a = NODES[e.a], b = NODES[e.b];
+    L.polyline([[a.lat, a.lng], [b.lat, b.lng]], {color: "#4ade80", weight: 7, opacity: 0.85}).addTo(hl);
+  }
+  for (const id of (res.traced || [])) {
+    const n = NODES[id];
+    if (!n) continue;
+    L.circleMarker([n.lat, n.lng], {radius: n.type === "cu" ? 9 : 13, color: "#4ade80", weight: 2, fillColor: "#4ade80", fillOpacity: 0.18}).addTo(hl);
+  }
+  for (const s of (res.switches || [])) {
+    if (s === "SUB-BREAKER" || !NODES[s]) continue;
+    const n = NODES[s];
+    L.circleMarker([n.lat, n.lng], {radius: 16, color: "#fbbf24", weight: 3, fill: false}).addTo(hl);
+  }
+  const n = NODES[startId];
+  if (n) L.circleMarker([n.lat, n.lng], {radius: 18, color: "#ffffff", weight: 2, fill: false}).addTo(hl);
+}
+
+function runTrace(){
+  const type = document.querySelector('input[name="trace"]:checked').value;
+  lastTraceType = type;
+  const states = currentSwitchStates();
+  const tree = energizedTree(states);
+  const startId = selectionNodeId(selection);
+  const resBox = document.getElementById("results");
+  let res;
+  if (type === "downstream") {
+    if (!isEnergized(tree, startId)) {
+      res = {traced: [startId], edgesUsed: [], blockers: [],
+        headline: "Downstream trace from " + esc(NODES[startId].label),
+        lines: ["<span class='bad'>This point is NOT energised.</span> No power reaches it, so there is nothing downstream to trace. Run the upstream trace from the same point to find out why — it will name the open switch or the data gap that cuts it off."]};
+    } else {
+      res = runDownstream(startId, states, tree);
+    }
+  } else if (type === "upstream") {
+    res = runUpstream(startId, states, tree);
+    if (res.error) { resBox.innerHTML = "<h4>" + res.headline + "</h4><p class='bad'>" + esc(res.error) + "</p>"; hl.clearLayers(); return; }
+  } else if (type === "isolation") {
+    res = runIsolation(selection, states, tree);
+  } else {
+    res = runConnected(startId, states);
+  }
+  let html = "<h4>" + res.headline + "</h4>";
+  for (const line of res.lines) html += "<p>" + line + "</p>";
+  if (res.blockers && res.blockers.length) {
+    html += "<p class='warn'>Where the trace stopped:</p><ul>";
+    for (const b of res.blockers) html += "<li>" + blockerText(b) + "</li>";
+    html += "</ul>";
+  }
+  if (type === "downstream" && isEnergized(tree, startId)) {
+    html += "<p>What this proves: the trace names real customers and real load. If any of those names were wrong, the model is wrong, not the trace.</p>";
+  }
+  resBox.innerHTML = html;
+  highlightResult(res, startId);
+  refreshMarkers(startId, tree);
+}
+document.getElementById("runBtn").addEventListener("click", runTrace);
+document.getElementById("resetBtn").addEventListener("click", () => {
+  document.querySelector('input[name="trace"][value="downstream"]').checked = true;
+  document.getElementById("tieBox").checked = false;
+  lastTraceType = null;
+  hl.clearLayers();
+  select({kind: "node", id: "SUB-1"});
+  document.getElementById("results").innerHTML = "<h4>Trace results</h4><p>Run a trace to see the result here. Downstream from the substation is already run for you on load: the whole energised network, with the two places the trace stops called out.</p>";
+  runTrace();
+});
+// Run once on load so the map opens with the energised network highlighted.
+runTrace();
+</script>
+</body>
+</html>
