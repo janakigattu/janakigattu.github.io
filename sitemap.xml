@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://janakigattu.github.io/</loc>
-    <lastmod>2026-11-24</lastmod>
+    <lastmod>2026-11-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -69,6 +69,30 @@
   <url>
     <loc>https://janakigattu.github.io/resources/arcgis-monitor-guide.pdf</loc>
     <lastmod>2026-11-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://janakigattu.github.io/projects/esri-cots-app-showcase/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://janakigattu.github.io/publications/arcgis-enterprise-migration-start-with-scope-not-the-tool.pdf</loc>
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://janakigattu.github.io/publications/arcgis-utility-network-modernise-the-model-before-you-migrate-the-data.pdf</loc>
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://janakigattu.github.io/publications/harness-engineering-discipline-separates-production-ai-agents-from-demos.pdf</loc>
+    <lastmod>2026-11-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
