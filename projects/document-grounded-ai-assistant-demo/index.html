@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Document-Grounded AI Assistant: a working demo by Janaki Gattu</title>
+<meta name="description" content="A working document-grounded AI assistant by Janaki Gattu. Ask a question and get an answer built only from the documents, with the source shown for every line. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 8px}
+  .sub{color:var(--muted);margin-bottom:14px}
+  .docgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:18px 0}
+  .doc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .doc h3{font-size:1rem;margin-bottom:4px}
+  .doc p{color:var(--muted);font-size:.92rem}
+  .doc .count{color:var(--accent);font-weight:700;font-size:.85rem;margin-top:8px}
+  .askbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px 28px}
+  .askbox label{display:block;font-weight:700;margin-bottom:10px}
+  .askrow{display:flex;gap:10px}
+  .askrow input{flex:1;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:999px;padding:13px 18px;font-size:1rem;font-family:inherit}
+  .askrow input:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer;white-space:nowrap}
+  .btn-dark{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a;border:0;cursor:pointer}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .chip{background:var(--bg2);border:1px solid #404040;color:#d4d4d4;border-radius:999px;padding:8px 14px;font-size:.9rem;cursor:pointer;font-family:inherit}
+  .chip:hover{border-color:var(--accent);color:var(--text)}
+  .hint{color:var(--faint);font-size:.9rem;margin-top:14px}
+  #answer{margin-top:22px}
+  .answer{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px 28px}
+  .answer h3{font-size:1.15rem;margin-bottom:10px}
+  .answer p{color:#d4d4d4;margin-bottom:10px}
+  .answer p:last-child{margin-bottom:0}
+  sup.cite{color:var(--accent);font-weight:800;font-size:.8rem}
+  .noanswer{border-color:#7f1d1d}
+  .noanswer h3{color:var(--red)}
+  .sources{margin-top:16px}
+  .sources h4{font-size:1rem;margin-bottom:10px}
+  .src{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+  .src .shead{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+  .src .shead b{font-size:.95rem}
+  .src .shead span{color:var(--faint);font-size:.85rem;white-space:nowrap}
+  .src p{color:var(--muted);font-size:.92rem;margin-top:4px}
+  .bar{height:6px;background:var(--bg);border-radius:999px;overflow:hidden;margin-top:8px}
+  .bar i{display:block;height:100%;background:var(--accent)}
+  .matched{margin-top:10px;color:var(--faint);font-size:.88rem}
+  .matched b{color:var(--muted)}
+  .matched span{display:inline-block;background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin:2px 4px 2px 0;color:#d4d4d4}
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:18px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .step .n{color:var(--accent);font-weight:800;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase}
+  .step h3{font-size:1rem;margin:6px 0 4px}
+  .step p{color:var(--muted);font-size:.92rem}
+  .passages{margin-top:14px}
+  .passage{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+  .passage h4{font-size:.95rem}
+  .passage p{color:var(--muted);font-size:.92rem;margin-top:4px}
+  .toggle{background:none;border:0;color:var(--accent);cursor:pointer;font-size:.95rem;text-decoration:underline;padding:0;font-family:inherit}
+  .cta{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px;margin-top:34px}
+  .cta h2{margin-top:0}
+  .cta p{color:var(--muted);margin-bottom:16px}
+  .srcs{color:var(--faint);font-size:.9rem}
+  .srcs li{margin-bottom:4px}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+  @media (max-width:600px){.askrow{flex-direction:column}.askrow .btn{width:100%}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu&rsquo;s portfolio</a>
+    <p class="eyebrow">Working AI agent &middot; Live demo</p>
+    <h1>Document-Grounded AI Assistant</h1>
+    <p class="lede">An AI assistant is only as trustworthy as the documents it answers from. <b>Ask a question and watch it answer from the documents, with the source shown for every line.</b></p>
+    <p class="honest"><b>How this demo works, honestly:</b> it runs entirely in your browser. There is no server, no API key, no account, and nothing you type leaves this page. The three document sets below are samples written for this demo. A production version connects to your team&rsquo;s real documents and answers from those instead. When no document covers your question, this demo says so, instead of guessing.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <h2>The documents it answers from</h2>
+    <p class="sub">Three sample document sets, eighteen passages in total. Every answer on this page comes from one of these passages, and every answer names which one.</p>
+    <div class="docgrid">
+      <div class="doc">
+        <h3>City of Riverton GIS Data Sharing Policy</h3>
+        <p>A sample policy: what may be published openly, what stays internal, how often each dataset is updated, and how outside requests are handled. Riverton is a fictional city.</p>
+        <p class="count">6 passages</p>
+      </div>
+      <div class="doc">
+        <h3>ArcGIS Enterprise 11.5 Upgrade Checklist</h3>
+        <p>A sample checklist built from Esri&rsquo;s published upgrade guidance: backup, component order, direct upgrades, scene layer caches, and the rollback that exists when there is no downgrade.</p>
+        <p class="count">6 passages</p>
+      </div>
+      <div class="doc">
+        <h3>Enterprise GIS Support Services, Sample RFP Scope</h3>
+        <p>A sample scope for a support agreement: response times, monitoring, patching, reporting, working hours, and documentation. It shows the shape of an agreement, not a real contract.</p>
+        <p class="count">6 passages</p>
+      </div>
+    </div>
+    <p><button class="toggle" id="browsetoggle" type="button" aria-expanded="false">Read all eighteen passages</button></p>
+    <div class="passages" id="passages" style="display:none"></div>
+
+    <h2>Ask the documents</h2>
+    <div class="askbox">
+      <label for="q">Your question</label>
+      <div class="askrow">
+        <input id="q" type="text" placeholder="Can we publish parcel data on the open data portal?" autocomplete="off">
+        <button class="btn" id="askbtn" type="button">Ask</button>
+      </div>
+      <div class="chips" id="chips"></div>
+      <p class="hint">Try a question it cannot answer, too, such as &ldquo;What does this cost?&rdquo; A grounded assistant says it does not know, instead of inventing a price.</p>
+    </div>
+
+    <div id="answer"></div>
+
+    <h2>How it works, in plain language</h2>
+    <div class="steps">
+      <div class="step"><p class="n">Step 1</p><h3>Cut the documents into passages</h3><p>Each document is split into short passages, one subject each, so the assistant retrieves a precise answer instead of a whole manual.</p></div>
+      <div class="step"><p class="n">Step 2</p><h3>Index what each passage covers</h3><p>Each passage is indexed by its subject and keywords, so a question about response times finds the response time passage and not the patching one.</p></div>
+      <div class="step"><p class="n">Step 3</p><h3>Retrieve, then answer</h3><p>Your question is matched against the index. Only the passages that match are used, and the answer is built from those passages alone.</p></div>
+      <div class="step"><p class="n">Step 4</p><h3>Show the source</h3><p>Every line of the answer carries a citation to the document and section it came from, so anyone can check it in seconds.</p></div>
+    </div>
+    <p class="sub">A production version adds three things this demo does not need: your real document store instead of samples, access control so staff only see what they are allowed to see, and a model that writes the answer in full sentences from the retrieved passages. The retrieval and the citations stay exactly as you see them here.</p>
+
+    <div class="cta">
+      <h2>Put this on your team&rsquo;s documents</h2>
+      <p>Your policies, manuals, runbooks, and reports already hold the answers your staff ask for every day. A grounded assistant turns them into answers with sources, instead of another search box. Email Janaki with the document set you would ground it on, or book a session and bring the three documents your team asks about most.</p>
+      <a class="btn" href="mailto:gjanaki360@gmail.com?subject=Document-grounded%20AI%20assistant">Email Janaki about a grounded assistant</a>
+      <a class="btn-dark" href="https://janakigattu.github.io/#book" style="margin-left:10px">Book a session</a>
+    </div>
+
+    <h2>Sources</h2>
+    <ul class="srcs">
+      <li>Upgrade facts in the checklist come from Esri&rsquo;s published documentation: the ArcGIS Enterprise upgrade order, the direct upgrade table, the hosted scene layer cache migration at 11.5, and WebGISDR backup and restore.</li>
+      <li>The data sharing policy and the RFP scope are samples written for this demo. Riverton is a fictional city, and the scope is not a real contract.</li>
+      <li>The retrieval pattern follows Janaki Gattu&rsquo;s article <a href="https://www.linkedin.com/pulse/harness-engineering-discipline-separates-production-ai-janaki-gattu-jdcdc/" target="_blank" rel="noopener">Harness Engineering: the discipline that separates production AI agents from demos</a>: the harness around an agent, what it has to do, and where the human stays in charge.</li>
+    </ul>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Document-Grounded AI Assistant: a working demo by <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Janaki Gattu</a>, Enterprise GIS Consultant &amp; GIS Solutions Architect. Questions about grounding an assistant on your own documents? <a href="mailto:gjanaki360@gmail.com?subject=Document-grounded%20AI%20assistant">Email gjanaki360@gmail.com</a> or <a href="https://janakigattu.github.io/">visit the portfolio</a>.</p>
+  </div>
+</footer>
+<script>
+var DOCS = [
+  {
+    id: "policy",
+    title: "City of Riverton GIS Data Sharing Policy",
+    passages: [
+      {section: "What can be published openly", keywords: ["publish", "open", "public", "parcel", "parcels", "zoning", "roads", "portal"], answer: "Parcel boundaries, zoning, and roads can be published on the open data portal. Anything that identifies a person, or the exact location of a vulnerable facility, cannot.", text: "Parcel boundaries, zoning districts, and the road network are public records and may be published on the open data portal. Data that identifies a person, such as owner names and mailing addresses, stays internal. The exact locations of vulnerable facilities, such as water treatment plants and emergency shelters, are never published."},
+      {section: "What stays internal", keywords: ["internal", "staff", "restricted", "approval", "manager", "share", "sharing"], answer: "Staff-only layers, such as detailed utility locations and draft plans, are shared inside the organisation only, and only with a manager's approval.", text: "Layers marked internal, such as detailed utility locations, draft plans, and work in progress, are shared inside the organisation only. Sharing an internal layer outside the organisation needs a manager's written approval. Draft data is never shared externally, even on request."},
+      {section: "How often each dataset is updated", keywords: ["update", "updated", "cadence", "parcels", "monthly", "quarterly", "refresh", "often"], answer: "Parcels are updated monthly, zoning is updated when a change is adopted, and roads are updated quarterly.", text: "Parcels are refreshed monthly, on the first working day. Zoning is updated within five working days of a change being adopted. Roads are updated quarterly. The open data portal shows the refresh date on every dataset, so users can see how current it is."},
+      {section: "How outside requests are handled", keywords: ["request", "requests", "external", "form", "days", "outside"], answer: "Outside requests go through the GIS data request form and are answered within ten business days.", text: "Anyone outside the organisation who wants GIS data fills in the GIS data request form. The GIS team answers within ten business days, with the data, a refusal with a reason, or a date when it will be ready. Requests for data that is already on the open data portal are answered with a link to the portal."},
+      {section: "The licence on open data", keywords: ["licence", "license", "attribution", "reuse", "use", "commercial"], answer: "Open data is published under a CC BY 4.0 licence. Anyone may reuse it, with attribution to the City of Riverton.", text: "Open data is published under a Creative Commons Attribution 4.0 licence. Anyone may copy, share, and adapt it, including for commercial use, as long as they credit the City of Riverton. The licence text is linked from every dataset on the portal."},
+      {section: "Who owns each dataset", keywords: ["owner", "owners", "ownership", "steward", "responsible", "contact"], answer: "Every dataset has a named owner, usually the department that creates it. The owner approves sharing decisions and answers questions about the data.", text: "Every dataset has a named owner, usually the department that creates it. The owner approves sharing decisions, signs off on updates, and answers questions about the data. The GIS team keeps the owner list current and publishes a contact for each dataset."}
+    ]
+  },
+  {
+    id: "upgrade",
+    title: "ArcGIS Enterprise 11.5 Upgrade Checklist",
+    passages: [
+      {section: "Back up before anything else", keywords: ["backup", "webgisdr", "export", "restore", "before", "first"], answer: "Run a WebGISDR export before anything else, check that the export completed, and store it off the deployment machines.", text: "Run a WebGISDR export before the upgrade starts. Check that the export completed cleanly and note its size and time. Store the backup off the deployment machines, where a failed machine cannot take it with it. Do not start the upgrade until the backup is verified."},
+      {section: "The order to upgrade the components", keywords: ["order", "upgrade", "portal", "server", "store", "adaptor", "sequence", "component", "steps"], answer: "Upgrade in this order: Portal for ArcGIS, the Web Adaptor for Portal, the hosting server, the Web Adaptor for Server, ArcGIS Data Store, then extra server roles, then federated sites.", text: "Upgrade the components in Esri's published order. Portal for ArcGIS first, then the Web Adaptor for Portal, then the hosting server, then the Web Adaptor for Server, then ArcGIS Data Store. After that, upgrade extra server roles such as Notebook Server and GeoEvent Server, then federated sites. Skipping the order is how upgrades fail."},
+      {section: "Direct upgrades, and when you need an interim version", keywords: ["direct", "upgrade", "10.9.1", "10.7.1", "11.5", "11.3", "interim", "version", "versions"], answer: "Version 10.9.1 can upgrade directly to 11.5. Version 10.7.1 cannot: it must go to 11.3 first, then to 11.5.", text: "Not every version can jump straight to the target. Version 10.9.1 can upgrade directly to 11.5. Version 10.7.1 cannot upgrade directly to 11.5, it must go to 11.3 first and then to 11.5. Check Esri's direct upgrade table for your exact versions before you plan the window."},
+      {section: "All components must be the same version", keywords: ["same", "version", "versions", "match", "matching", "components"], answer: "Every component of the deployment must run the same version. A mixed-version deployment is not supported.", text: "Every component of the deployment must run the same version: Portal, Server, Data Store, and every server role. A mixed-version deployment is not supported by Esri, and support will ask you to fix the versions before they help with anything else."},
+      {section: "Hosted scene layers need their caches migrated at 11.5", keywords: ["scene", "scenes", "cache", "caches", "hosted", "11.5", "12.0", "migrate", "migration"], answer: "If you use hosted scene layers, migrate their caches at 11.5. If you wait until 12.0, the caches are deleted.", text: "Hosted scene layer caches must be migrated at 11.5 if the deployment plans to reach 12.0. The migration runs during the 11.5 upgrade. If the caches are not migrated at 11.5, they are deleted when the deployment reaches 12.0, and the scene layers must be rebuilt."},
+      {section: "There is no downgrade, only a restore", keywords: ["downgrade", "rollback", "restore", "webgisdr", "fail", "fails", "failure", "back", "version", "upgrade"], answer: "There is no downgrade path. If an upgrade fails, the rollback is a WebGISDR restore to the version you backed up.", text: "ArcGIS Enterprise has no downgrade path. Once a component is upgraded, it cannot be put back to the earlier version. If an upgrade fails, the rollback is a WebGISDR restore, which is why the backup before the upgrade matters. Plan the maintenance window with time for a restore."}
+    ]
+  },
+  {
+    id: "rfp",
+    title: "Enterprise GIS Support Services, Sample RFP Scope",
+    passages: [
+      {section: "How fast we respond", keywords: ["response", "respond", "critical", "hour", "hours", "platform", "down", "outage", "support"], answer: "A critical issue, such as the platform being down, gets a response within one hour. High priority issues get a response within four business hours.", text: "Response times are set by priority. A critical issue, such as the platform being down or data being lost, gets a response within one hour, day or night. A high priority issue, such as a service failing for one team, gets a response within four business hours. A normal request gets a response by the next business day."},
+      {section: "Monitoring and reporting", keywords: ["monitor", "monitoring", "report", "reports", "monthly", "uptime", "alert"], answer: "ArcGIS Monitor checks the platform around the clock. You get a weekly health note and a monthly report with uptime, tickets, and changes.", text: "ArcGIS Monitor checks the platform around the clock and raises an alert when a service stops or slows. You get a short weekly health note and a monthly report covering uptime, tickets opened and closed, changes made, and what is planned next."},
+      {section: "Patching and upgrades", keywords: ["patch", "patches", "patching", "security", "upgrade", "upgrades", "quarterly"], answer: "Security patches go in within thirty days. Version upgrades are planned quarterly, with a date agreed in advance.", text: "Security patches are applied within thirty days of release. Version upgrades are planned quarterly, with the date and the maintenance window agreed in advance. Every patch and upgrade is tested in the staging environment first, and the backup is verified before the work starts."},
+      {section: "What the monthly report covers", keywords: ["monthly", "report", "uptime", "tickets", "changes", "covers"], answer: "The monthly report covers uptime, tickets opened and closed, changes made, and what is planned next.", text: "The monthly report is short and plain. It covers uptime for the month, tickets opened and closed with their priorities, changes made to the platform, and what is planned for the next month. If uptime missed the target, the report says why and what will change."},
+      {section: "Working hours and after-hours cover", keywords: ["hours", "business", "after-hours", "on-call", "night", "weekend"], answer: "Support works business hours, eight to five. After-hours cover is for critical issues only.", text: "Support works business hours, eight in the morning to five in the afternoon, Monday to Friday. After-hours cover is for critical issues only, such as the platform being down. After-hours calls go to the on-call engineer, not to a queue."},
+      {section: "Documentation and handover", keywords: ["documentation", "handover", "document", "changes", "review", "quarterly"], answer: "Documentation is updated with every change, and the whole set is reviewed quarterly with your team.", text: "Documentation is updated with every change, not at the end of the quarter. The whole set, including runbooks and the recovery plan, is reviewed quarterly with your team. When the agreement ends, you keep every document and every runbook."}
+    ]
+  }
+];
+
+var STOP = {};
+["a","an","the","is","are","was","were","what","how","when","where","why","who","can","could","should","would","do","does","did","i","we","you","it","its","of","to","in","on","for","and","or","if","my","our","your","this","that","with","from","by","at","be","as","me","us","them","his","her","their","there","here","will","about","into","over","under","after","before","between","during","each","any","all","no","not","so","too","very","just","only","then","than","also","more","most","some","such","am","been","being","have","has","had","having","ought","he","she","they","get","gets","got"].forEach(function(w){ STOP[w] = true; });
+
+var SYN = {
+  down: ["outage", "critical", "platform"],
+  crash: ["outage", "critical"],
+  cost: ["price", "fee", "charge"],
+  price: ["fee"],
+  share: ["sharing", "publish"],
+  backup: ["webgisdr", "restore"],
+  rollback: ["downgrade", "restore"],
+  fail: ["fails", "failure"],
+  fails: ["fail", "failure"],
+  update: ["cadence", "refresh"],
+  updated: ["cadence"],
+  often: ["cadence"],
+  fast: ["response", "hour"],
+  quickly: ["response", "hour"],
+  respond: ["response"],
+  straight: ["direct"],
+  go: ["upgrade"],
+  happens: ["failure", "restore"],
+  owns: ["owner"],
+  open: ["publish"],
+  public: ["publish"]
+};
+
+function tokens(q) {
+  var versions = (q.match(/\d+\.\d+(?:\.\d+)?/g) || []);
+  var clean = q.toLowerCase().replace(/\d+\.\d+(?:\.\d+)?/g, " ").replace(/[^a-z0-9\s]/g, " ");
+  var words = clean.split(/\s+/).filter(function(w){ return w.length > 1 && !STOP[w]; });
+  var out = versions.concat(words);
+  var expanded = out.slice();
+  out.forEach(function(t){
+    (SYN[t] || []).forEach(function(s){ if (expanded.indexOf(s) === -1) expanded.push(s); });
+  });
+  return expanded;
+}
+
+function sameWord(a, b) {
+  if (a === b) return true;
+  if (a.length > 3 && b.length > 3) {
+    var as = a.charAt(a.length - 1) === "s" ? a.slice(0, -1) : a;
+    var bs = b.charAt(b.length - 1) === "s" ? b.slice(0, -1) : b;
+    if (as === bs) return true;
+  }
+  return false;
+}
+
+function scorePassage(p, toks) {
+  var total = 0, strong = 0;
+  var title = p.section.toLowerCase();
+  var text = p.text.toLowerCase();
+  toks.forEach(function(t){
+    if (title.indexOf(t) !== -1) { total += 3; strong += 3; }
+    var kwHit = p.keywords.some(function(k){ return sameWord(t, k); });
+    if (kwHit) { total += 2; strong += 2; }
+    else if (text.indexOf(t) !== -1) { total += 1; }
+  });
+  return {total: total, strong: strong};
+}
+
+function answerQuestion(q) {
+  var toks = tokens(q);
+  if (toks.length === 0) return null;
+  var scored = [];
+  DOCS.forEach(function(doc){
+    doc.passages.forEach(function(p){
+      var s = scorePassage(p, toks);
+      if (s.total > 0) scored.push({doc: doc, p: p, total: s.total, strong: s.strong});
+    });
+  });
+  scored.sort(function(a, b){ return b.total - a.total; });
+  if (scored.length === 0 || scored[0].strong < 4) return null;
+  var top = scored.filter(function(x){ return x.total >= 4 && x.strong >= 2; }).slice(0, 3);
+  var maxScore = top[0].total;
+  var matched = [];
+  toks.forEach(function(t){
+    var hit = top.some(function(x){
+      return x.p.section.toLowerCase().indexOf(t) !== -1 || x.p.keywords.some(function(k){ return sameWord(t, k); });
+    });
+    if (hit && matched.indexOf(t) === -1) matched.push(t);
+  });
+  return {question: q, sources: top, maxScore: maxScore, matched: matched};
+}
+
+var SUGGESTED = [
+  "Can we publish parcel data on the open data portal?",
+  "What order do I upgrade the components in?",
+  "How fast do you respond when the platform is down?",
+  "How often are parcels updated?",
+  "Can I go straight from 10.7.1 to 11.5?",
+  "What happens if an upgrade fails?"
+];
+
+function esc(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function renderAnswer(res) {
+  var box = document.getElementById("answer");
+  if (!res) {
+    box.innerHTML = '<div class="answer noanswer"><h3>These documents do not cover that.</h3><p>Nothing in the three sample document sets answers your question, so this demo says so instead of guessing. A grounded assistant only answers from its documents. Try one of the suggested questions, or ask about publishing data, upgrade order, response times, update cadence, or the rollback.</p></div>';
+    return;
+  }
+  var html = '<div class="answer"><h3>Answer, from your documents</h3>';
+  res.sources.forEach(function(s, i){
+    html += '<p>' + esc(s.p.answer) + ' <sup class="cite">[' + (i + 1) + ']</sup></p>';
+  });
+  html += '<div class="sources"><h4>Sources</h4>';
+  res.sources.forEach(function(s, i){
+    var pct = Math.round(100 * s.total / res.maxScore);
+    html += '<div class="src"><div class="shead"><b>[' + (i + 1) + '] ' + esc(s.doc.title) + ' &middot; ' + esc(s.p.section) + '</b><span>Relevance ' + pct + '%</span></div><p>' + esc(s.p.text) + '</p><div class="bar"><i style="width:' + pct + '%"></i></div></div>';
+  });
+  html += '</div>';
+  if (res.matched.length) {
+    html += '<p class="matched"><b>Matched words:</b> ' + res.matched.map(function(m){ return '<span>' + esc(m) + '</span>'; }).join('') + '</p>';
+  }
+  html += '</div>';
+  box.innerHTML = html;
+}
+
+function init() {
+  var q = document.getElementById("q");
+  if (!q) return;
+  var chips = document.getElementById("chips");
+  SUGGESTED.forEach(function(s){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip";
+    b.textContent = s;
+    b.addEventListener("click", function(){
+      q.value = s;
+      renderAnswer(answerQuestion(s));
+      document.getElementById("answer").scrollIntoView({behavior: "smooth", block: "start"});
+    });
+    chips.appendChild(b);
+  });
+  function ask() {
+    var val = q.value.trim();
+    if (!val) { q.focus(); return; }
+    renderAnswer(answerQuestion(val));
+  }
+  document.getElementById("askbtn").addEventListener("click", ask);
+  q.addEventListener("keydown", function(e){ if (e.key === "Enter") ask(); });
+  var toggle = document.getElementById("browsetoggle");
+  var passages = document.getElementById("passages");
+  toggle.addEventListener("click", function(){
+    var open = passages.style.display !== "none";
+    if (open) {
+      passages.style.display = "none";
+      toggle.textContent = "Read all eighteen passages";
+      toggle.setAttribute("aria-expanded", "false");
+      return;
+    }
+    var html = "";
+    DOCS.forEach(function(doc){
+      html += '<h3 style="margin:18px 0 4px">' + esc(doc.title) + '</h3>';
+      doc.passages.forEach(function(p){
+        html += '<div class="passage"><h4>' + esc(p.section) + '</h4><p>' + esc(p.text) + '</p></div>';
+      });
+    });
+    passages.innerHTML = html;
+    passages.style.display = "block";
+    toggle.textContent = "Hide the passages";
+    toggle.setAttribute("aria-expanded", "true");
+  });
+}
+
+if (typeof document !== "undefined" && document.getElementById) { init(); }
+if (typeof module !== "undefined") { module.exports = {DOCS: DOCS, tokens: tokens, scorePassage: scorePassage, answerQuestion: answerQuestion}; }
+</script>
+</body>
+</html>
