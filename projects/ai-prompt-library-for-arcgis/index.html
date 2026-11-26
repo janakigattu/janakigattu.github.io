@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Prompt Library for ArcGIS: twelve prompts that work, by Janaki Gattu</title>
+<meta name="description" content="A working AI Prompt Library for ArcGIS by Janaki Gattu. Twelve copyable prompts, each written for the right ArcGIS AI assistant, with fill-in fields, availability, and the check to run before you trust the answer. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:28px 0 10px}
+  h2:first-child{margin-top:0}
+  .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0 8px}
+  .rule{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .rule h3{font-size:1rem;margin-bottom:4px}
+  .rule p{color:var(--muted);font-size:.92rem}
+  .facts{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+  .fact{background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:.92rem;color:var(--muted)}
+  .fact b{color:var(--accent)}
+  .filters{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 6px}
+  .fbtn{background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:999px;padding:9px 18px;font-size:.95rem;cursor:pointer}
+  .fbtn:hover{border-color:var(--accent)}
+  .fbtn.active{background:var(--accent);border-color:var(--accent);color:#052e16;font-weight:700}
+  .countline{color:var(--faint);font-size:.9rem;margin-bottom:18px}
+  .prompt{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px 26px;margin-bottom:16px}
+  .prompt h3{font-size:1.2rem;margin-bottom:6px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;font-size:.88rem;color:var(--muted)}
+  .pill{display:inline-block;font-weight:800;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px}
+  .pill.green{background:#14532d;color:#bbf7d0}
+  .pill.amber{background:#451a03;color:#fde68a}
+  .pill.grey{background:#262626;color:#d4d4d4}
+  .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:12px}
+  .field label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:4px}
+  .field input{width:100%;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:8px;padding:9px 12px;font-size:.95rem;font-family:inherit}
+  .field input:focus{outline:none;border-color:var(--accent)}
+  .template{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;padding:14px 16px;font-size:.98rem;color:#e5e5e5;margin-bottom:12px;white-space:pre-wrap}
+  .template b{color:var(--accent);font-weight:700}
+  .check{font-size:.92rem;color:var(--muted);margin-bottom:14px}
+  .check b{color:var(--amber)}
+  .copybtn{display:inline-block;font-weight:700;border-radius:999px;padding:10px 22px;font-size:.95rem;background:var(--accent);color:#052e16;border:0;cursor:pointer}
+  .copybtn.copied{background:var(--text);color:#0a0a0a}
+  .ctabox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px;margin-top:28px}
+  .ctabox h2{margin-top:0}
+  .ctabox p{color:var(--muted);margin-bottom:16px}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer}
+  .btn-outline{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;border:1px solid #525252;color:var(--text);margin-left:10px}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+  @media (max-width:600px){.btn-outline{margin-left:0;margin-top:10px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu&rsquo;s portfolio</a>
+    <p class="eyebrow">Working prompt library &middot; Live demo</p>
+    <h1>AI Prompt Library for ArcGIS</h1>
+    <p class="lede">An AI assistant is only as good as the prompt you give it. <b>Twelve prompts, each written for the right ArcGIS assistant, with the blanks filled in and the check named.</b></p>
+    <p class="honest"><b>How this library works, honestly:</b> it runs entirely in your browser. There is no server, no API key, no account, and nothing you type leaves this page. The prompts are templates. The assistant does the work inside ArcGIS. Availability comes from Esri&rsquo;s public update on AI assistants, and where no dedicated assistant is named, this library says so instead of inventing one.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <h2>Four rules for a prompt that works</h2>
+    <div class="rules">
+      <div class="rule"><h3>1. Name the data</h3><p>A prompt that names the layer, the fields, and the question gets a useful answer. A prompt that says &ldquo;analyse this&rdquo; gets a guess.</p></div>
+      <div class="rule"><h3>2. Name the output</h3><p>Say what you want back: a table, an expression, a summary under 120 words. If you do not name it, the assistant picks for you.</p></div>
+      <div class="rule"><h3>3. Name the check</h3><p>Every prompt below ends with a check. Run it. The assistant drafts, a human approves.</p></div>
+      <div class="rule"><h3>4. Keep a human in the loop</h3><p>Nothing here goes live without a person reading it first. That is the rule that keeps an assistant useful instead of risky.</p></div>
+    </div>
+
+    <h2>What the assistants can and cannot do</h2>
+    <div class="facts">
+      <div class="fact"><b>12</b> AI assistants live inside ArcGIS.</div>
+      <div class="fact"><b>3</b> are generally available at no extra cost: Survey123, Business Analyst, Translation.</div>
+      <div class="fact">The rest are <b>beta or preview</b>, including Pro, Notebooks, and Arcade.</div>
+      <div class="fact">Item details is the only one in Enterprise, and only in <b>12.0</b>.</div>
+      <div class="fact">An administrator must <b>opt in</b> before your team can use any of them.</div>
+    </div>
+
+    <h2>Browse the prompts</h2>
+    <p style="color:var(--muted)">Fill in the blanks and the prompt updates as you type. Copy it, paste it into the assistant, and run the check at the bottom of the card.</p>
+    <div class="filters" id="filters"></div>
+    <p class="countline" id="countline"></p>
+    <div id="plist"></div>
+
+    <div class="ctabox">
+      <h2>Bring Janaki the task your team repeats most</h2>
+      <p>A prompt library gets your team started. A working assistant, with the harness around it, is the next step: scoped data access, a third failed call fallback, a cost ceiling, and a human who reviews the answers. That is the work Janaki builds.</p>
+      <a class="btn" href="mailto:gjanaki360@gmail.com?subject=AI%20Prompt%20Library%20for%20ArcGIS%20-%20the%20task%20my%20team%20repeats%20most">Email Janaki</a>
+      <a class="btn-outline" href="https://janakigattu.github.io/#book">Book a Session</a>
+      <p style="margin-top:16px;font-size:.9rem">Not sure which assistant your team should switch on first? The <a href="https://janakigattu.github.io/projects/ai-assistants-advisor/">AI Assistants in GIS Advisor</a> picks the right one for the task, and the <a href="https://janakigattu.github.io/projects/ai-readiness-assessment-agent/">AI Readiness Assessment</a> shows whether your team is ready before you spend anything.</p>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>AI Prompt Library for ArcGIS: a working demo by <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Janaki Gattu</a>, Enterprise GIS Consultant &amp; GIS Solutions Architect. Assistant facts from <a href="https://www.esri.com/arcgis-blog/products/arcgis-online/geoai/whats-new-in-ai-assistants-june-2026" target="_blank" rel="noopener">Esri: What&rsquo;s new in AI assistants</a> and her migration article, <a href="https://www.linkedin.com/pulse/arcgis-enterprise-migration-start-scope-tool-janaki-gattu-g8xnc/" target="_blank" rel="noopener">ArcGIS Enterprise migration: start with scope, not the tool</a>. Questions? <a href="mailto:gjanaki360@gmail.com?subject=AI%20Prompt%20Library%20for%20ArcGIS">Email gjanaki360@gmail.com</a> or <a href="https://janakigattu.github.io/">visit the portfolio</a>.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  var ESRI_URL = "https://www.esri.com/arcgis-blog/products/arcgis-online/geoai/whats-new-in-ai-assistants-june-2026";
+
+  var CATEGORIES = [
+    {id:"all", label:"All prompts"},
+    {id:"create", label:"Create"},
+    {id:"analyse", label:"Analyse"},
+    {id:"code", label:"Write code"},
+    {id:"describe", label:"Describe"},
+    {id:"plan", label:"Plan"}
+  ];
+
+  var PROMPTS = [
+    {
+      id:"survey", cat:"create", title:"Draft a survey from a description",
+      assistant:"Survey123 assistant", status:"ga", statusLabel:"Generally available", cost:"No extra cost", where:"ArcGIS Online",
+      template:"Draft a survey about {purpose} for {audience}. Include {count} questions. Cover {topics}. Keep each question short, in plain language, with one idea per question. Add a note on any question that needs a follow-up question.",
+      fields:[
+        {key:"purpose", label:"Survey purpose", def:"street tree planting requests"},
+        {key:"audience", label:"Audience", def:"residents"},
+        {key:"count", label:"Number of questions", def:"8"},
+        {key:"topics", label:"Topics to cover", def:"location, species preference, and maintenance"}
+      ],
+      check:"Read every draft question before the survey goes out. The assistant drafts, a human approves."
+    },
+    {
+      id:"translate", cat:"create", title:"Translate a survey or app",
+      assistant:"Translation assistant", status:"ga", statusLabel:"Generally available", cost:"No extra cost", where:"ArcGIS Online",
+      template:"Translate this {content} from {fromLang} to {toLang}. Keep the tone {tone}. Keep place names, organisation names, and field names unchanged. Flag any sentence where the meaning is unclear.",
+      fields:[
+        {key:"content", label:"What to translate", def:"survey"},
+        {key:"fromLang", label:"From language", def:"English"},
+        {key:"toLang", label:"To language", def:"Spanish"},
+        {key:"tone", label:"Tone", def:"plain and friendly"}
+      ],
+      check:"Have a fluent reviewer check the translation before it reaches users. Machine translation drafts, it does not approve."
+    },
+    {
+      id:"report", cat:"analyse", title:"Plan the analysis behind a report",
+      assistant:"Business Analyst assistant", status:"ga", statusLabel:"Generally available", cost:"No extra cost", where:"ArcGIS Online",
+      template:"I need to answer this question: {question}. The data I have is {data}. The decision this will inform is {decision}. Suggest the analysis steps in order, name the output of each step, and say what would make the answer unreliable.",
+      fields:[
+        {key:"question", label:"Question to answer", def:"which neighbourhoods have the least park access"},
+        {key:"data", label:"Data you have", def:"park locations, census tracts, and the street network"},
+        {key:"decision", label:"Decision it informs", def:"where to fund new parks"}
+      ],
+      check:"Check each step against data you trust before you act on the result."
+    },
+    {
+      id:"arcade-label", cat:"code", title:"Write an Arcade label expression",
+      assistant:"Arcade assistant", status:"beta", statusLabel:"Beta / preview", cost:"Availability: beta / preview", where:"ArcGIS Online",
+      template:"Write an Arcade expression for a label on the {layer} layer. Label each feature with {fields}, formatted as {format}. Return only the expression, with a short comment on any line that does something non-obvious.",
+      fields:[
+        {key:"layer", label:"Layer", def:"Parcels"},
+        {key:"fields", label:"Fields to show", def:"parcel number and owner name"},
+        {key:"format", label:"Label format", def:"two lines, number on top"}
+      ],
+      check:"Test the expression on a copy of the map first. Beta means it can be wrong in ways that look right."
+    },
+    {
+      id:"arcade-popup", cat:"code", title:"Write an Arcade pop-up expression",
+      assistant:"Arcade assistant", status:"beta", statusLabel:"Beta / preview", cost:"Availability: beta / preview", where:"ArcGIS Online",
+      template:"Write an Arcade expression for a pop-up on the {layer} layer. Show {fields}. Format numbers with {numberFormat}. If a value is missing, show {missing} instead of leaving a blank.",
+      fields:[
+        {key:"layer", label:"Layer", def:"Hydrants"},
+        {key:"fields", label:"Fields to show", def:"last inspection date, flow rate, and condition"},
+        {key:"numberFormat", label:"Number format", def:"one decimal place"},
+        {key:"missing", label:"Show when missing", def:"Not recorded"}
+      ],
+      check:"Open the pop-up on three features you know well and compare every value with the source data."
+    },
+    {
+      id:"arcade-symbology", cat:"code", title:"Write an Arcade symbology expression",
+      assistant:"Arcade assistant", status:"beta", statusLabel:"Beta / preview", cost:"Availability: beta / preview", where:"ArcGIS Online",
+      template:"Write an Arcade expression to classify the {layer} layer by {field} into {classes} classes. Use {breaks} for the breaks. Explain each break in one line so a reviewer can check it.",
+      fields:[
+        {key:"layer", label:"Layer", def:"Roads"},
+        {key:"field", label:"Field to classify", def:"pavement condition index"},
+        {key:"classes", label:"Number of classes", def:"4"},
+        {key:"breaks", label:"Break method", def:"equal intervals"}
+      ],
+      check:"Check the class breaks against the real distribution. Equal intervals can hide the features that matter."
+    },
+    {
+      id:"notebook", cat:"analyse", title:"Draft a notebook analysis plan",
+      assistant:"Notebooks assistant", status:"beta", statusLabel:"Beta / preview", cost:"Availability: beta / preview", where:"ArcGIS Online",
+      template:"Help me analyse {dataset} to answer this question: {question}. Write the steps as a notebook plan, name the output at each step, and say what to check before trusting the result. The final output should be {output}.",
+      fields:[
+        {key:"dataset", label:"Dataset", def:"monthly service requests"},
+        {key:"question", label:"Question to answer", def:"which request types take longest to close"},
+        {key:"output", label:"Final output", def:"a table and a short summary"}
+      ],
+      check:"Validate every result against the data before you act on it. Run the notebook on data you already know first."
+    },
+    {
+      id:"item-summary", cat:"describe", title:"Summarise an item for new staff",
+      assistant:"Item details assistant", status:"beta", statusLabel:"Beta / preview", cost:"Availability: beta / preview", where:"Enterprise 12.0 only",
+      template:"Summarise the item {item} for {audience}. Cover what it contains, who maintains it, and when it was last updated. Keep it under {length} words and in plain language.",
+      fields:[
+        {key:"item", label:"Item", def:"Regional parcels hosted feature layer"},
+        {key:"audience", label:"Audience", def:"new staff"},
+        {key:"length", label:"Max words", def:"120"}
+      ],
+      check:"Check the summary against the item itself. The assistant reads the metadata, not the data."
+    },
+    {
+      id:"metadata", cat:"describe", title:"Write metadata for a layer",
+      assistant:"Item details assistant", status:"beta", statusLabel:"Beta / preview", cost:"Availability: beta / preview", where:"Enterprise 12.0 only",
+      template:"Write metadata for the {layer} layer. Purpose: {purpose}. It is updated {frequency}. Include the source, the update schedule, the known limitations, and who to contact with questions.",
+      fields:[
+        {key:"layer", label:"Layer", def:"Stormwater assets"},
+        {key:"purpose", label:"Purpose", def:"asset inspections and maintenance planning"},
+        {key:"frequency", label:"Update frequency", def:"monthly"}
+      ],
+      check:"Metadata is your AI strategy. A wrong description here is what the next assistant will repeat, so read it before you save it."
+    },
+    {
+      id:"migration-scope", cat:"plan", title:"Scope a migration step",
+      assistant:null, closest:"Business Analyst assistant", status:"none", statusLabel:"No dedicated assistant named", cost:"No named assistant in the verified list", where:"ArcGIS Online",
+      template:"List the steps to scope a move of {content} from {from} to {to}. Start with what to count first, name the flags that change the effort, and finish with the checks to run before the move starts.",
+      fields:[
+        {key:"content", label:"Content to move", def:"42 hosted feature services, 18 web maps, and 6 Experience Builder apps"},
+        {key:"from", label:"Move from", def:"ArcGIS Enterprise 11.3"},
+        {key:"to", label:"Move to", def:"ArcGIS Online"}
+      ],
+      check:"There is no dedicated assistant named for this task. Use the Business Analyst assistant for the analysis behind the plan, then run the Migration Readiness check."
+    },
+    {
+      id:"dashboard-analysis", cat:"analyse", title:"Plan the analysis behind a dashboard",
+      assistant:null, closest:"Business Analyst assistant", status:"none", statusLabel:"No dedicated assistant named", cost:"No named assistant in the verified list", where:"ArcGIS Online",
+      template:"I need a dashboard that answers this question: {question}. The data I have is {data}. Suggest the analysis steps in order, the output of each step, and the indicators the dashboard should show. Say what the dashboard cannot answer.",
+      fields:[
+        {key:"question", label:"Question to answer", def:"are we meeting our inspection targets"},
+        {key:"data", label:"Data you have", def:"inspection records and crew schedules"}
+      ],
+      check:"There is no dedicated assistant named for drafting a dashboard. Use the Business Analyst assistant for the analysis behind it, then build the dashboard with the standard ArcGIS Dashboards tools."
+    },
+    {
+      id:"workflow-doc", cat:"plan", title:"Document a workflow for handover",
+      assistant:null, closest:"Item details assistant", status:"none", statusLabel:"No dedicated assistant named", cost:"No named assistant in the verified list", where:"ArcGIS Online",
+      template:"Document the workflow for {workflow} for {team}. List each step, who does it, the system it happens in, and what can go wrong at each step. Keep it short enough to read in five minutes.",
+      fields:[
+        {key:"workflow", label:"Workflow", def:"publishing a new service to production"},
+        {key:"team", label:"Team", def:"the GIS team"}
+      ],
+      check:"There is no dedicated assistant named for this task. The closest option is the Item details assistant, for summarising the items the workflow touches. Write the steps with the people who run them."
+    }
+  ];
+
+  var values = {};
+  PROMPTS.forEach(function(p){
+    values[p.id] = {};
+    p.fields.forEach(function(f){ values[p.id][f.key] = f.def; });
+  });
+
+  var activeCat = "all";
+  var filtersBox = document.getElementById("filters");
+  var plistBox = document.getElementById("plist");
+  var countBox = document.getElementById("countline");
+
+  function esc(s){
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  function fillTemplate(p){
+    var out = p.template;
+    p.fields.forEach(function(f){
+      var v = values[p.id][f.key];
+      if(!v){ v = "[" + f.label + "]"; }
+      out = out.split("{" + f.key + "}").join(v);
+    });
+    return out;
+  }
+
+  function fillTemplateHtml(p){
+    var out = esc(p.template);
+    p.fields.forEach(function(f){
+      var v = values[p.id][f.key];
+      if(!v){ v = "[" + f.label + "]"; }
+      out = out.split("{" + f.key + "}").join("<b>" + esc(v) + "</b>");
+    });
+    return out;
+  }
+
+  function pillClass(status){
+    if(status === "ga"){ return "green"; }
+    if(status === "beta"){ return "amber"; }
+    return "grey";
+  }
+
+  function renderFilters(){
+    var html = "";
+    CATEGORIES.forEach(function(c){
+      var n = c.id === "all" ? PROMPTS.length : PROMPTS.filter(function(p){ return p.cat === c.id; }).length;
+      html += "<button type=\"button\" class=\"fbtn" + (activeCat === c.id ? " active" : "") + "\" data-cat=\"" + c.id + "\">" + esc(c.label) + " (" + n + ")</button>";
+    });
+    filtersBox.innerHTML = html;
+    var btns = filtersBox.querySelectorAll(".fbtn");
+    btns.forEach(function(b){
+      b.addEventListener("click", function(){
+        activeCat = b.getAttribute("data-cat");
+        renderAll();
+      });
+    });
+  }
+
+  function renderList(){
+    var shown = PROMPTS.filter(function(p){ return activeCat === "all" || p.cat === activeCat; });
+    countBox.textContent = "Showing " + shown.length + " of " + PROMPTS.length + " prompts.";
+    var html = "";
+    shown.forEach(function(p){
+      var meta = "";
+      if(p.assistant){
+        meta = "<span>Use the <b style=\"color:#d4d4d4\">" + esc(p.assistant) + "</b></span><span class=\"pill " + pillClass(p.status) + "\">" + esc(p.statusLabel) + "</span><span>" + esc(p.cost) + "</span><span>Runs in " + esc(p.where) + "</span>";
+      } else {
+        meta = "<span class=\"pill " + pillClass(p.status) + "\">" + esc(p.statusLabel) + "</span><span>Closest: <b style=\"color:#d4d4d4\">" + esc(p.closest) + "</b></span><span>Runs in " + esc(p.where) + "</span>";
+      }
+      html += "<div class=\"prompt\" data-id=\"" + p.id + "\">";
+      html += "<h3>" + esc(p.title) + "</h3>";
+      html += "<div class=\"meta\">" + meta + "</div>";
+      html += "<div class=\"fields\">";
+      p.fields.forEach(function(f){
+        html += "<div class=\"field\"><label for=\"in-" + p.id + "-" + f.key + "\">" + esc(f.label) + "</label><input id=\"in-" + p.id + "-" + f.key + "\" type=\"text\" value=\"" + esc(values[p.id][f.key]) + "\" data-prompt=\"" + p.id + "\" data-field=\"" + f.key + "\"></div>";
+      });
+      html += "</div>";
+      html += "<div class=\"template\" id=\"tpl-" + p.id + "\">" + fillTemplateHtml(p) + "</div>";
+      html += "<p class=\"check\"><b>Check before you trust it:</b> " + esc(p.check) + "</p>";
+      html += "<button type=\"button\" class=\"copybtn\" data-prompt=\"" + p.id + "\">Copy prompt</button>";
+      html += "</div>";
+    });
+    plistBox.innerHTML = html;
+
+    plistBox.querySelectorAll("input").forEach(function(inp){
+      inp.addEventListener("input", function(){
+        var pid = inp.getAttribute("data-prompt");
+        var key = inp.getAttribute("data-field");
+        values[pid][key] = inp.value;
+        var p = PROMPTS.filter(function(x){ return x.id === pid; })[0];
+        document.getElementById("tpl-" + pid).innerHTML = fillTemplateHtml(p);
+      });
+    });
+
+    plistBox.querySelectorAll(".copybtn").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var pid = btn.getAttribute("data-prompt");
+        var p = PROMPTS.filter(function(x){ return x.id === pid; })[0];
+        var text = fillTemplate(p);
+        copyText(text, btn);
+      });
+    });
+  }
+
+  function copyText(text, btn){
+    function done(){
+      btn.textContent = "Copied";
+      btn.classList.add("copied");
+      setTimeout(function(){ btn.textContent = "Copy prompt"; btn.classList.remove("copied"); }, 2000);
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done, function(){ fallbackCopy(text, done); });
+    } else {
+      fallbackCopy(text, done);
+    }
+  }
+
+  function fallbackCopy(text, done){
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); } catch(e){}
+    document.body.removeChild(ta);
+    done();
+  }
+
+  function renderAll(){
+    renderFilters();
+    renderList();
+  }
+
+  renderAll();
+})();
+</script>
+</body>
+</html>
