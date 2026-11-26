@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Pilot Planner - Janaki Gattu</title>
+<meta name="description" content="Turn one repeated task into a 30-day AI pilot plan with a success number, the six harness gates, the guardrails, and the go or no-go call.">
+<style>
+  :root{--bg:#0b0b0b;--card:#161616;--line:#2a2a2a;--text:#f2f2f2;--muted:#a3a3a3;--green:#4ade80;--amber:#fbbf24;--red:#f87171;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.55}
+  a{color:var(--green)}
+  .wrap{max-width:860px;margin:0 auto;padding:28px 20px 60px}
+  .back{font-size:.9rem;color:var(--muted);text-decoration:none}
+  .back:hover{color:var(--text)}
+  h1{font-size:clamp(2rem,6vw,3rem);line-height:1.1;margin:.4rem 0 .6rem;background:linear-gradient(90deg,#4ade80,#fbbf24);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hook{font-size:1.15rem;color:var(--text);margin:0 0 .4rem}
+  .note{color:var(--muted);font-size:.95rem;margin:0 0 1.6rem}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin:0 0 16px}
+  .card h2{font-size:1.05rem;margin:0 0 .4rem;text-transform:uppercase;letter-spacing:.04em;color:var(--amber)}
+  .card p{margin:.3rem 0 .8rem;color:var(--muted);font-size:.95rem}
+  label{display:block;font-weight:600;margin:14px 0 4px}
+  label small{display:block;font-weight:400;color:var(--muted)}
+  select,input[type=number]{width:100%;background:#0b0b0b;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:1rem;margin-top:4px}
+  select:focus,input:focus{outline:2px solid var(--green);outline-offset:1px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+  @media(max-width:640px){.row{grid-template-columns:1fr}}
+  .presets{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px}
+  .preset{background:#0b0b0b;border:1px solid var(--line);color:var(--text);border-radius:999px;padding:8px 14px;font-size:.92rem;cursor:pointer}
+  .preset:hover{border-color:var(--green)}
+  button.big{background:var(--green);color:#06210f;border:0;border-radius:10px;padding:14px 22px;font-size:1.05rem;font-weight:700;cursor:pointer;width:100%;margin-top:8px}
+  button.big:hover{filter:brightness(1.08)}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--text);border-radius:8px;padding:10px 16px;font-size:.95rem;cursor:pointer}
+  button.ghost:hover{border-color:var(--amber)}
+  #results{display:none}
+  .verdict{border-radius:12px;padding:20px;margin:0 0 16px;border:1px solid var(--line)}
+  .verdict.go{background:#0f2417;border-color:#1f6b3a}
+  .verdict.guards{background:#2a2103;border-color:#8a6d1d}
+  .verdict.fix{background:#2a0f0f;border-color:#7f2d2d}
+  .verdict h2{margin:0 0 .3rem;font-size:1.4rem}
+  .verdict.go h2{color:var(--green)}
+  .verdict.guards h2{color:var(--amber)}
+  .verdict.fix h2{color:var(--red)}
+  .score{font-size:2.2rem;font-weight:800;line-height:1}
+  .score small{font-size:1rem;font-weight:400;color:var(--muted)}
+  .statgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 16px}
+  @media(max-width:640px){.statgrid{grid-template-columns:1fr}}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .stat .k{color:var(--muted);font-size:.85rem;text-transform:uppercase;letter-spacing:.04em}
+  .stat .v{font-size:1.3rem;font-weight:700;margin-top:2px}
+  .stat p{margin:.3rem 0 0;color:var(--muted);font-size:.93rem}
+  .week{border-left:3px solid var(--green);padding:2px 0 2px 14px;margin:0 0 18px}
+  .week h3{margin:0 0 4px;font-size:1.05rem}
+  .week ul{margin:0;padding-left:18px;color:var(--text)}
+  .week li{margin:4px 0}
+  .gaps li,.guards li,.check li{margin:6px 0}
+  .gaps,.guards,.check{margin:.4rem 0 .8rem;padding-left:18px}
+  .check{list-style:none;padding-left:0}
+  .check li{padding-left:26px;position:relative}
+  .check li:before{content:"";position:absolute;left:0;top:4px;width:14px;height:14px;border:2px solid var(--amber);border-radius:3px}
+  .sources{color:var(--muted);font-size:.9rem}
+  .cta{margin-top:28px;border-top:1px solid var(--line);padding-top:20px}
+  .cta h2{font-size:1.25rem;margin:0 0 .4rem}
+  .cta p{color:var(--muted)}
+  .hidden{display:none}
+  @media print{
+    body{background:#fff;color:#000}
+    .back,.presets,button.big,button.ghost,.cta{display:none}
+    .card,.stat,.verdict{background:#fff;border-color:#999;color:#000}
+    .card p,.stat p,.note{color:#333}
+    h1{color:#000;background:none;-webkit-text-fill-color:#000}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="https://janakigattu.github.io/">&larr; Back to janakigattu.github.io</a>
+  <h1>AI Pilot Planner</h1>
+  <p class="hook">Most AI pilots fail on the data and the guardrails, not the model. Plan the pilot before you build it, and judge it on one number.</p>
+  <p class="note">Runs entirely in your browser. No backend, no API key, nothing you type leaves this page. Built from the Harness Readiness Check in Janaki Gattu's article, Harness Engineering: The Discipline That Separates Production AI Agents from Demos.</p>
+
+  <div class="card">
+    <h2>Start from a preset, or fill in your own numbers</h2>
+    <p>Three common starting points. Pick one and change anything that does not fit.</p>
+    <div class="presets">
+      <button class="preset" type="button" data-preset="intake">Small team, document intake</button>
+      <button class="preset" type="button" data-preset="email">Email triage, busy inbox</button>
+      <button class="preset" type="button" data-preset="reports">Report drafting, regulated data</button>
+    </div>
+  </div>
+
+  <form id="pilotForm" onsubmit="return false">
+    <div class="card">
+      <h2>1. The task</h2>
+      <label for="useCase">What does the team repeat every week?
+        <select id="useCase">
+          <option value="intake">Document intake and data entry</option>
+          <option value="email">Customer email triage and drafting replies</option>
+          <option value="reports">Report drafting from your data</option>
+          <option value="notes">Meeting notes turned into tasks</option>
+          <option value="cleanup">Data cleanup and matching records</option>
+          <option value="qa">Internal questions answered from your documents</option>
+        </select>
+      </label>
+      <div class="row">
+        <label for="hoursPerWeek">Hours the task takes now, per week
+          <small>Across everyone who does it. A rough number is fine.</small>
+          <input id="hoursPerWeek" type="number" min="1" max="200" value="12">
+        </label>
+        <label for="people">People who do the task now
+          <input id="people" type="number" min="1" max="100" value="3">
+        </label>
+      </div>
+      <div class="row">
+        <label for="targetHours">Success number: hours to save per week
+          <small>The pilot passes only if it saves at least this many hours, with the reviewer signing off.</small>
+          <input id="targetHours" type="number" min="1" max="200" value="6">
+        </label>
+        <label for="pilotUsers">Pilot users
+          <small>Keep it small: 3 to 5 people on real work.</small>
+          <input id="pilotUsers" type="number" min="2" max="20" value="4">
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2. The data, the reviewer, the risk</h2>
+      <label for="dataState">Where does the data the agent needs live today?
+        <select id="dataState">
+          <option value="organised">Organised: documents and data in one place, named and current</option>
+          <option value="scattered" selected>Scattered: across drives, inboxes, and spreadsheets</option>
+          <option value="paper">Mostly paper, or PDFs nobody can search</option>
+        </select>
+      </label>
+      <label for="reviewer">Who checks the output before it goes out?
+        <select id="reviewer">
+          <option value="named">A named person will check every output</option>
+          <option value="sometimes" selected>Someone can check sometimes</option>
+          <option value="nobody">Nobody has time to check</option>
+        </select>
+      </label>
+      <label for="sensitivity">What kind of data does the task touch?
+        <select id="sensitivity">
+          <option value="low">Public or internal, low risk</option>
+          <option value="internal" selected>Internal, some personal data</option>
+          <option value="regulated">Customer or regulated data</option>
+        </select>
+      </label>
+    </div>
+
+    <button class="big" type="button" id="buildBtn">Build my 30-day pilot plan</button>
+    <p class="note" style="text-align:center;margin-top:10px">No sign up. No data leaves this page.</p>
+  </form>
+
+  <div id="results">
+    <div class="verdict" id="verdictBox">
+      <h2 id="verdictTitle"></h2>
+      <p id="verdictText" style="color:var(--text)"></p>
+      <p style="margin:.6rem 0 0"><span class="score"><span id="scoreNum"></span><small> / 100 pilot readiness</small></span></p>
+    </div>
+
+    <div class="statgrid">
+      <div class="stat"><div class="k">Success number</div><div class="v" id="successNum"></div><p id="successNote"></p></div>
+      <div class="stat"><div class="k">Effort to run the pilot</div><div class="v" id="effortNum"></div><p id="effortNote"></p></div>
+    </div>
+
+    <div class="card">
+      <h2>The gaps to close first</h2>
+      <ol class="gaps" id="gapsList"></ol>
+    </div>
+
+    <div class="card">
+      <h2>Your 30-day plan</h2>
+      <div id="weeksBox"></div>
+    </div>
+
+    <div class="card">
+      <h2>Guardrails for this pilot</h2>
+      <ul class="guards" id="guardsList"></ul>
+    </div>
+
+    <div class="card">
+      <h2>Printable checklist</h2>
+      <ul class="check" id="checkList"></ul>
+      <button class="ghost" type="button" id="printBtn">Print this plan</button>
+    </div>
+
+    <p class="sources">Sources: Janaki Gattu, Harness Engineering: The Discipline That Separates Production AI Agents from Demos, LinkedIn, 24 Nov 2026 (<a href="https://www.linkedin.com/pulse/harness-engineering-discipline-separates-production-ai-janaki-gattu-jdcdc/" target="_blank" rel="noopener">read the article</a>). The six gates in the plan are the article's Harness Readiness Check, quoted in full there. The week by week shape follows the article's rule: build the harness with the first version, around one small task, and judge the pilot on a verifiable outcome.</p>
+
+    <div class="cta">
+      <h2>Want Janaki to run this pilot with your team?</h2>
+      <p>Email her the use case and your success number, and she will tell you honestly whether the pilot is worth running. Or book a session and work through the plan together in one conversation.</p>
+      <p><a href="mailto:gjanaki360@gmail.com?subject=AI%20pilot%20plan">Email Janaki &rarr;</a> &nbsp; <a href="https://janakigattu.github.io/#book">Book a session &rarr;</a></p>
+    </div>
+  </div>
+</div>
+<script>
+var USE_CASE_LABELS = {
+  intake: "Document intake and data entry",
+  email: "Customer email triage and drafting replies",
+  reports: "Report drafting from your data",
+  notes: "Meeting notes turned into tasks",
+  cleanup: "Data cleanup and matching records",
+  qa: "Internal questions answered from your documents"
+};
+
+var PRESETS = {
+  intake: {useCase: "intake", hoursPerWeek: 12, people: 3, targetHours: 6, pilotUsers: 4, dataState: "scattered", reviewer: "sometimes", sensitivity: "internal"},
+  email: {useCase: "email", hoursPerWeek: 20, people: 5, targetHours: 10, pilotUsers: 5, dataState: "organised", reviewer: "named", sensitivity: "internal"},
+  reports: {useCase: "reports", hoursPerWeek: 8, people: 2, targetHours: 4, pilotUsers: 3, dataState: "scattered", reviewer: "named", sensitivity: "regulated"}
+};
+
+function computePilot(inp) {
+  var hours = Math.max(1, Number(inp.hoursPerWeek) || 1);
+  var target = Math.max(1, Number(inp.targetHours) || 1);
+  var users = Math.max(2, Number(inp.pilotUsers) || 3);
+  var people = Math.max(1, Number(inp.people) || 1);
+
+  var dataScore = inp.dataState === "organised" ? 30 : inp.dataState === "scattered" ? 15 : 0;
+  var reviewerScore = inp.reviewer === "named" ? 25 : inp.reviewer === "sometimes" ? 12 : 0;
+  var sensitivityScore = inp.sensitivity === "low" ? 25 : inp.sensitivity === "internal" ? 18 : 10;
+  var hoursScore = hours >= 10 ? 20 : hours >= 5 ? 12 : 5;
+  var score = dataScore + reviewerScore + sensitivityScore + hoursScore;
+
+  var verdict = score >= 75 ? "go" : score >= 50 ? "guards" : "fix";
+  var verdictTitle = verdict === "go" ? "Go. Run the pilot."
+    : verdict === "guards" ? "Go, with guardrails."
+    : "Fix the data first.";
+  var verdictText = verdict === "go"
+    ? "The task, the data, and the reviewer are all in place. A 30-day pilot on this task is a reasonable bet, and the success number below is the bar it has to clear."
+    : verdict === "guards"
+    ? "The pilot is worth running, but only with the guardrails in the plan. Close the gaps below in week 1, keep the old way running in parallel, and let the reviewer stop any output that is wrong."
+    : "The pilot would fail on the data and the review, not the model. Spend the first two weeks getting the data into one searchable place and naming the reviewer. Then run this planner again.";
+
+  var gaps = [];
+  if (inp.dataState === "paper") {
+    gaps.push({area: "Data is not searchable", fix: "Move the source documents into one searchable place and name the current version before the pilot clock starts. A pilot on paper is a typing exercise, not an AI test."});
+  } else if (inp.dataState === "scattered") {
+    gaps.push({area: "Data is scattered", fix: "Pick the one folder, list, or system that holds the current version, and point the agent at that and nothing else. Week 1, day 1."});
+  }
+  if (inp.reviewer === "nobody") {
+    gaps.push({area: "No reviewer", fix: "Name one person who checks every output before it leaves the team, and give them the time to do it. Without a reviewer there is no pilot, only unsupervised output."});
+  } else if (inp.reviewer === "sometimes") {
+    gaps.push({area: "Review is part time", fix: "Agree the review hours in advance and cap the pilot volume to what the reviewer can actually check. Unchecked output is the failure the pilot is meant to prevent."});
+  }
+  if (inp.sensitivity === "regulated") {
+    gaps.push({area: "Regulated data", fix: "Keep the data inside your own tenant, keep personal data out of prompts until the handling is reviewed, and write down who can see the logs. Do this in week 1, not after the first incident."});
+  }
+  if (hours < 5) {
+    gaps.push({area: "Small prize", fix: "The task takes " + hours + " hours a week, so the pilot must be cheap and short. One task, one tool, four weeks, then judge. Do not build a platform for a five hour problem."});
+  }
+  if (gaps.length === 0) {
+    gaps.push({area: "No blocking gap", fix: "Nothing here stops the pilot. The risk left is ordinary: the first version will be rough, and the reviewer will need the patience to improve it rather than abandon it."});
+  }
+
+  var annualHours = target * 48;
+  var passBar = "The pilot passes if it saves at least " + target + " hours a week for two running weeks, with the reviewer signing off every output. That is " + annualHours + " hours a year if the saving holds.";
+
+  var useLabel = USE_CASE_LABELS[inp.useCase] || inp.useCase;
+  var weeks = [
+    {title: "Week 1: Scope it and name the number", items: [
+      "One task only: " + useLabel + ". Nothing else enters the pilot.",
+      "The success number is " + target + " hours saved per week, judged over the two pilot weeks.",
+      "Name the reviewer and the hours they will spend checking. Name the one data source the agent may reach.",
+      "Harness gates 1 and 2: list every tool and data source the agent can reach, and scope write access to the task. Read only where read only is enough."
+    ]},
+    {title: "Week 2: Build the harness, not just the agent", items: [
+      "One tool, one data source, one defined query shape. Fewer tools, each well tested, beat a long catalogue.",
+      "Harness gate 3: decide what happens on the third failed call. Name the fallback now, a cached result, a second source, or an answer that says what could not be verified.",
+      "Harness gate 4: run the code in an isolated environment with explicit limits, so the blast radius is defined.",
+      "Harness gate 5: set the cost ceiling and the hard stop. Harness gate 6: log every prompt, tool call, response, error, and cost, so the run can be replayed."
+    ]},
+    {title: "Week 3: Pilot with " + users + " users on real work", items: [
+      "Real work, real users, real data. The reviewer checks every output before it leaves the team.",
+      "Keep the old way running in parallel. Nobody is stranded if the pilot output is wrong.",
+      "Log every failure, not just the successes. The failure log is what week 4 judges."
+    ]},
+    {title: "Week 4: Judge on the number", items: [
+      "Count the hours saved against the " + target + " hour target. Count the errors the reviewer caught.",
+      "Three outcomes only: go, if the number holds and the errors are caught; fix, if the harness needs work; stop, if the task was the wrong one.",
+      "If it goes, the next step is one more task, not a platform. If it stops, write down why, so the next pilot starts smarter."
+    ]}
+  ];
+
+  var guardrails = [
+    "A named person checks every output before it leaves the team.",
+    "The agent cites its source for every answer it gives, so staff trust it instead of guessing.",
+    "A cost ceiling stops the run before the bill surprises you.",
+    "Every run is logged, prompt, tool calls, responses, errors, and cost, so a bad answer can be traced."
+  ];
+  if (inp.sensitivity === "internal" || inp.sensitivity === "regulated") {
+    guardrails.push("No customer or personal data goes into prompts until the handling is reviewed.");
+  }
+  if (inp.sensitivity === "regulated") {
+    guardrails.push("Keep the data inside your own tenant. No third party training on it.");
+  }
+  if (inp.reviewer === "nobody" || inp.reviewer === "sometimes") {
+    guardrails.push("Do not ship output the reviewer has not seen. Unchecked output is the failure the pilot is meant to prevent.");
+  }
+
+  var effort = verdict === "go" ? {low: 8, high: 12, note: "One person, part time, across the four weeks. Most of it is the harness and the review, not the agent."}
+    : verdict === "guards" ? {low: 12, high: 18, note: "Includes the week 1 fixes: the data tidy up, the reviewer time, and the guardrails. Do not skip them to save days."}
+    : {low: 5, high: 10, note: "Person-days of data preparation before the 30-day pilot clock starts. The pilot itself is not counted here."};
+
+  var checklist = [
+    "One task named: " + useLabel,
+    "Success number written down: " + target + " hours saved per week",
+    "Reviewer named, with hours agreed",
+    "One data source named, current version confirmed",
+    "Every tool and data source the agent can reach listed (gate 1)",
+    "Write access scoped to the task (gate 2)",
+    "Fallback for the third failed call named (gate 3)",
+    "Code runs isolated, with explicit limits (gate 4)",
+    "Cost ceiling set, with a hard stop (gate 5)",
+    "Logging on for prompts, tool calls, responses, errors, and cost (gate 6)",
+    "Old way kept running in parallel through the pilot",
+    "Week 4 decision booked: go, fix, or stop, judged on the number"
+  ];
+
+  return {
+    score: score, verdict: verdict, verdictTitle: verdictTitle, verdictText: verdictText,
+    gaps: gaps.slice(0, 3), annualHours: annualHours, passBar: passBar,
+    weeks: weeks, guardrails: guardrails, effort: effort, checklist: checklist,
+    useLabel: useLabel, target: target, users: users, hours: hours, people: people
+  };
+}
+
+function readInputs() {
+  return {
+    useCase: document.getElementById("useCase").value,
+    hoursPerWeek: document.getElementById("hoursPerWeek").value,
+    people: document.getElementById("people").value,
+    targetHours: document.getElementById("targetHours").value,
+    pilotUsers: document.getElementById("pilotUsers").value,
+    dataState: document.getElementById("dataState").value,
+    reviewer: document.getElementById("reviewer").value,
+    sensitivity: document.getElementById("sensitivity").value
+  };
+}
+
+function renderPlan(r) {
+  var box = document.getElementById("verdictBox");
+  box.className = "verdict " + (r.verdict === "go" ? "go" : r.verdict === "guards" ? "guards" : "fix");
+  document.getElementById("verdictTitle").textContent = r.verdictTitle;
+  document.getElementById("verdictText").textContent = r.verdictText;
+  document.getElementById("scoreNum").textContent = r.score;
+  document.getElementById("successNum").textContent = r.target + " hours a week";
+  document.getElementById("successNote").textContent = r.passBar;
+  document.getElementById("effortNum").textContent = r.effort.low + " to " + r.effort.high + " person-days";
+  document.getElementById("effortNote").textContent = r.effort.note;
+
+  var gapsHtml = "";
+  r.gaps.forEach(function(g) {
+    gapsHtml += "<li><strong>" + g.area + ".</strong> " + g.fix + "</li>";
+  });
+  document.getElementById("gapsList").innerHTML = gapsHtml;
+
+  var weeksHtml = "";
+  r.weeks.forEach(function(w) {
+    weeksHtml += "<div class='week'><h3>" + w.title + "</h3><ul>";
+    w.items.forEach(function(it) { weeksHtml += "<li>" + it + "</li>"; });
+    weeksHtml += "</ul></div>";
+  });
+  document.getElementById("weeksBox").innerHTML = weeksHtml;
+
+  var guardsHtml = "";
+  r.guardrails.forEach(function(g) { guardsHtml += "<li>" + g + "</li>"; });
+  document.getElementById("guardsList").innerHTML = guardsHtml;
+
+  var checkHtml = "";
+  r.checklist.forEach(function(c) { checkHtml += "<li>" + c + "</li>"; });
+  document.getElementById("checkList").innerHTML = checkHtml;
+
+  document.getElementById("results").style.display = "block";
+  document.getElementById("results").scrollIntoView({behavior: "smooth"});
+}
+
+if (typeof window !== "undefined") {
+  document.getElementById("buildBtn").addEventListener("click", function() {
+    renderPlan(computePilot(readInputs()));
+  });
+  document.getElementById("printBtn").addEventListener("click", function() {
+    window.print();
+  });
+  var presetBtns = document.querySelectorAll(".preset");
+  presetBtns.forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      var p = PRESETS[btn.getAttribute("data-preset")];
+      if (!p) return;
+      document.getElementById("useCase").value = p.useCase;
+      document.getElementById("hoursPerWeek").value = p.hoursPerWeek;
+      document.getElementById("people").value = p.people;
+      document.getElementById("targetHours").value = p.targetHours;
+      document.getElementById("pilotUsers").value = p.pilotUsers;
+      document.getElementById("dataState").value = p.dataState;
+      document.getElementById("reviewer").value = p.reviewer;
+      document.getElementById("sensitivity").value = p.sensitivity;
+      renderPlan(computePilot(readInputs()));
+    });
+  });
+}
+</script>
+</body>
+</html>
