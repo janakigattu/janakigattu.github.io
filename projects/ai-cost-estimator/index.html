@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Cost Estimator: price the assistant before the bill arrives, by Janaki Gattu</title>
+<meta name="description" content="A working AI Cost Estimator by Janaki Gattu. Enter your assistant's usage and get the monthly model cost, the human review cost, the biggest cost driver, and the fixes that bring the bill down. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 6px}
+  h2:first-child{margin-top:0}
+  .secnote{color:var(--muted);margin-bottom:16px}
+  .presets{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+  .preset{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:10px 18px;color:var(--text);cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700}
+  .preset:hover{border-color:var(--accent)}
+  .preset.active{border-color:var(--accent);background:#052e16}
+  .tiers{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+  .tier{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;color:var(--text);cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700;text-align:left}
+  .tier small{display:block;color:var(--muted);font-weight:400;font-size:.85rem;margin-top:2px}
+  .tier:hover{border-color:var(--accent)}
+  .tier.active{border-color:var(--accent);background:#052e16}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .field{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .field label{display:block;font-weight:700;font-size:1rem;margin-bottom:2px}
+  .field .hint{color:var(--muted);font-size:.88rem;margin-bottom:10px}
+  .field .hint b{color:#d4d4d4}
+  .field input{width:100%;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:8px;padding:10px 12px;font-size:1rem;font-family:inherit}
+  .field input:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+  .field .rate{color:var(--faint);font-size:.85rem;margin-top:8px}
+  .actions{margin-top:26px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer}
+  .btn-dark{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a;border:0;cursor:pointer}
+  .result{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px;margin-top:28px}
+  .result h2{margin-top:0}
+  .pill{display:inline-block;font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:6px}
+  .pill.green{background:#14532d;color:#bbf7d0}
+  .pill.amber{background:#451a03;color:#fde68a}
+  .pill.red{background:#450a0a;color:#fecaca}
+  .big{font-size:2.2rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+  .big small{font-size:1rem;color:var(--muted);font-weight:600}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:18px 0 6px}
+  .stat{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .stat .k{color:var(--faint);font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .stat .v{font-size:1.35rem;font-weight:800;margin-top:2px}
+  .stat .s{color:var(--muted);font-size:.88rem}
+  table{width:100%;border-collapse:collapse;margin-top:14px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);font-size:.95rem}
+  th{color:var(--faint);text-transform:uppercase;letter-spacing:.06em;font-size:.8rem}
+  td.num,th.num{text-align:right;white-space:nowrap}
+  tr.top td{color:#fff;font-weight:700}
+  .driver{color:var(--amber);font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+  .result h3{margin:24px 0 8px;font-size:1.1rem}
+  .result p{color:var(--muted)}
+  .result ul,.result ol{margin-left:20px;color:#d4d4d4}
+  .result li{margin-bottom:6px}
+  .result .cta{margin-top:24px}
+  .sources{margin-top:26px;border-top:1px solid var(--line);padding-top:18px}
+  .sources p{font-size:.92rem}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+  @media print{
+    body{background:#fff;color:#000}
+    .noprint{display:none !important}
+    .result,.field,.stat{background:#fff;border-color:#ccc;color:#000}
+    .result p,.secnote,.lede{color:#333}
+    a{color:#000}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu&rsquo;s portfolio</a>
+    <p class="eyebrow">Working estimator &middot; Live demo</p>
+    <h1>AI Cost Estimator</h1>
+    <p class="lede">The pilot was cheap. The running bill is the surprise. <b>Price the month before you commit to it.</b> Enter how much your assistant will actually be used, and this estimator prices the model, the human review, and the hosting, names the biggest cost driver, and tells you what to change first.</p>
+    <p class="honest"><b>How this estimator works, honestly:</b> it runs entirely in your browser. There is no server, no API key, no account, and nothing you enter leaves this page. The three model tiers start from the providers&rsquo; own published list prices, checked 26 November 2026. Providers reprice and retire models without much notice, so confirm your model&rsquo;s current rates on its pricing page before you build a budget on this. Treat the result as a planning estimate, not a bill.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <h2>Start from a preset, or enter your own numbers</h2>
+    <p class="secnote">The presets are typical months, not promises. Change any number and the estimate follows.</p>
+    <div class="presets noprint">
+      <button type="button" class="preset" id="preset-small">Small team internal assistant</button>
+      <button type="button" class="preset" id="preset-support">Customer support assistant</button>
+      <button type="button" class="preset" id="preset-docs">Document-heavy assistant</button>
+      <button type="button" class="preset" id="preset-clear">Clear all</button>
+    </div>
+
+    <h2>How much it gets used</h2>
+    <p class="secnote">One conversation is one question and one answer, including the follow-ups in the same thread. Count the busy month, not the quiet one.</p>
+    <div class="grid">
+      <div class="field">
+        <label for="convDay">Conversations per day</label>
+        <p class="hint">Questions the assistant answers in a day, across all users.</p>
+        <input type="number" id="convDay" min="0" step="any" value="40">
+      </div>
+      <div class="field">
+        <label for="daysMonth">Working days per month</label>
+        <p class="hint">Use 22 for a weekday service, 30 for one that runs every day.</p>
+        <input type="number" id="daysMonth" min="0" step="any" value="22">
+      </div>
+      <div class="field">
+        <label for="inTokens">Input tokens per conversation</label>
+        <p class="hint">The question plus the retrieved passages and the instructions, in <b>tokens</b>. Roughly 750 words is about 1,000 tokens.</p>
+        <input type="number" id="inTokens" min="0" step="any" value="3000">
+      </div>
+      <div class="field">
+        <label for="outTokens">Output tokens per conversation</label>
+        <p class="hint">The answer the assistant writes, in <b>tokens</b>. A short paragraph is about 150 tokens, a full page about 600.</p>
+        <input type="number" id="outTokens" min="0" step="any" value="600">
+      </div>
+      <div class="field">
+        <label for="cachePct">Input served from cache, percent</label>
+        <p class="hint">The share of input tokens read back from the prompt cache instead of priced fresh. Same instructions and same passages every time means a high share.</p>
+        <input type="number" id="cachePct" min="0" max="100" step="any" value="40">
+        <p class="rate">Cached input costs about a tenth of fresh input on every tier</p>
+      </div>
+    </div>
+
+    <h2>Which model tier</h2>
+    <p class="secnote">Pick the tier that matches the model you plan to use. The prices fill in from the published rates, and you can change any of them to your own provider&rsquo;s rates.</p>
+    <div class="tiers noprint">
+      <button type="button" class="tier" id="tier-light">Lightweight<small>Gemini 2.5 Flash rates: $0.30 in, $2.50 out, $0.03 cached per 1M tokens</small></button>
+      <button type="button" class="tier active" id="tier-balanced">Balanced<small>GPT-5 rates: $1.25 in, $10.00 out, $0.125 cached per 1M tokens</small></button>
+      <button type="button" class="tier" id="tier-flagship">Flagship<small>Claude Sonnet 4.5 rates: $3.00 in, $15.00 out, $0.30 cached per 1M tokens</small></button>
+    </div>
+    <div class="grid">
+      <div class="field">
+        <label for="priceIn">Input price, $ per 1M tokens</label>
+        <p class="hint">What your provider charges for fresh input tokens.</p>
+        <input type="number" id="priceIn" min="0" step="any" value="1.25">
+      </div>
+      <div class="field">
+        <label for="priceOut">Output price, $ per 1M tokens</label>
+        <p class="hint">What your provider charges for output tokens. Always the expensive one.</p>
+        <input type="number" id="priceOut" min="0" step="any" value="10">
+      </div>
+      <div class="field">
+        <label for="priceCache">Cached input price, $ per 1M tokens</label>
+        <p class="hint">What your provider charges for input read back from the cache.</p>
+        <input type="number" id="priceCache" min="0" step="any" value="0.125">
+      </div>
+    </div>
+
+    <h2>Human review</h2>
+    <p class="secnote">Someone has to check the answers. In most pilots this costs more than the model, and it is the line most budgets forget.</p>
+    <div class="grid">
+      <div class="field">
+        <label for="reviewsDay">Answers reviewed per day</label>
+        <p class="hint">How many answers a person reads and checks each day. Zero means nobody reviews, which is a decision, not a saving.</p>
+        <input type="number" id="reviewsDay" min="0" step="any" value="5">
+      </div>
+      <div class="field">
+        <label for="reviewMin">Minutes per review</label>
+        <p class="hint">Reading the answer, checking it against the source, and fixing it when it is wrong.</p>
+        <input type="number" id="reviewMin" min="0" step="any" value="2">
+      </div>
+      <div class="field">
+        <label for="reviewRate">Reviewer cost, $ per hour</label>
+        <p class="hint">The loaded hourly cost of the person doing the reviews, not just their wage.</p>
+        <input type="number" id="reviewRate" min="0" step="any" value="45">
+      </div>
+    </div>
+
+    <h2>Fixed monthly costs</h2>
+    <p class="secnote">Everything that is charged by the month whether the assistant is used or not.</p>
+    <div class="grid">
+      <div class="field">
+        <label for="fixedCost">Hosting, search, and storage, $ per month</label>
+        <p class="hint">The server or platform fee, the vector store or search index, and document storage, added together.</p>
+        <input type="number" id="fixedCost" min="0" step="any" value="25">
+      </div>
+    </div>
+
+    <div class="actions noprint">
+      <button type="button" class="btn" id="calcBtn">Estimate my monthly cost</button>
+      <button type="button" class="btn-dark" onclick="window.print()">Print this estimate</button>
+    </div>
+
+    <div class="result" id="result">
+      <p class="pill green" id="verdictPill">Small pilot money</p>
+      <h2 id="verdictTitle">Your assistant costs about $197 a month</h2>
+      <p class="big" id="totalBig">$197.39 <small>per month &middot; $2,368.70 per year</small></p>
+      <p id="driverLine">The biggest cost driver is <b>human review</b> at $165.00 a month, about 84% of the total.</p>
+      <div class="stats">
+        <div class="stat"><div class="k">Conversations</div><div class="v" id="statConv">880</div><div class="s">per month</div></div>
+        <div class="stat"><div class="k">Model cost</div><div class="v" id="statModel">$7.39</div><div class="s">tokens only, per month</div></div>
+        <div class="stat"><div class="k">Review cost</div><div class="v" id="statReview">$165.00</div><div class="s">per month</div></div>
+        <div class="stat"><div class="k">Cost per conversation</div><div class="v" id="statPerConv">$0.22</div><div class="s">all costs included</div></div>
+      </div>
+      <h3>Where the money goes</h3>
+      <table>
+        <thead><tr><th>Line item</th><th>Amount</th><th class="num">Cost per month</th></tr></thead>
+        <tbody id="costTable"></tbody>
+      </table>
+      <h3>The two fixes that cut the bill fastest</h3>
+      <ol id="fixList"></ol>
+      <h3>Same usage, other tiers</h3>
+      <p>Model cost only, per month, with your usage and cache rate. The tier changes the model bill, not the review or the hosting.</p>
+      <table>
+        <thead><tr><th>Tier</th><th>Rates in / out / cached</th><th class="num">Model cost per month</th></tr></thead>
+        <tbody id="tierTable"></tbody>
+      </table>
+      <div class="cta">
+        <p><b>What to do next:</b> email Janaki with your monthly total and your biggest cost driver, and she will tell you what to change first, or book a session and bring the numbers from this page.</p>
+        <p style="margin-top:12px"><a class="btn" href="mailto:gjanaki360@gmail.com?subject=AI%20cost%20estimate">Email Janaki the estimate</a>
+        <a class="btn-dark" href="https://janakigattu.github.io/#book" style="margin-left:8px">Book a session</a></p>
+      </div>
+      <div class="sources">
+        <h3>Sources</h3>
+        <p>Model prices checked 26 November 2026 from the providers&rsquo; own pricing pages: OpenAI GPT-5, $1.25 input, $10.00 output, $0.125 cached per 1M tokens (<a href="https://developers.openai.com/api/docs/pricing" target="_blank" rel="noopener">OpenAI pricing</a>); Anthropic Claude Sonnet 4.5, $3.00 input, $15.00 output, $0.30 cached per 1M tokens (Anthropic pricing page); Google Gemini 2.5 Flash, $0.30 input, $2.50 output, $0.03 cached per 1M tokens (<a href="https://ai.google.dev/gemini-api/docs/pricing" target="_blank" rel="noopener">Gemini API pricing</a>). Prices move and models retire, so confirm your model&rsquo;s current rates before you budget. The review and hosting numbers are yours to set, not ours to guess.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Built by <a href="https://janakigattu.github.io/">Janaki Gattu</a>, Enterprise GIS Consultant and GIS Solutions Architect. <a href="https://www.linkedin.com/in/janaki-gis-enterprise">LinkedIn</a> &middot; <a href="https://github.com/janakigattu">GitHub</a> &middot; <a href="mailto:gjanaki360@gmail.com">gjanaki360@gmail.com</a></p>
+  </div>
+</footer>
+
+<script>
+var TIERS = {
+  light: {name: "Lightweight", pin: 0.30, pout: 2.50, pcache: 0.03, note: "$0.30 / $2.50 / $0.03"},
+  balanced: {name: "Balanced", pin: 1.25, pout: 10.00, pcache: 0.125, note: "$1.25 / $10.00 / $0.125"},
+  flagship: {name: "Flagship", pin: 3.00, pout: 15.00, pcache: 0.30, note: "$3.00 / $15.00 / $0.30"}
+};
+var currentTier = "balanced";
+
+function num(id) {
+  var v = parseFloat(document.getElementById(id).value);
+  return (isNaN(v) || v < 0) ? 0 : v;
+}
+function money(n) {
+  return "$" + n.toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+function tokens(n) {
+  if (n >= 1000000) return (n / 1000000).toFixed(2) + "M";
+  if (n >= 1000) return (n / 1000).toFixed(1) + "K";
+  return String(Math.round(n));
+}
+function modelCost(tier, conv, inTok, outTok, cachePct) {
+  var totalIn = conv * inTok;
+  var cached = totalIn * cachePct / 100;
+  var fresh = totalIn - cached;
+  var totalOut = conv * outTok;
+  return {
+    fresh: fresh / 1000000 * tier.pin,
+    cached: cached / 1000000 * tier.pcache,
+    output: totalOut / 1000000 * tier.pout,
+    total: (fresh / 1000000 * tier.pin) + (cached / 1000000 * tier.pcache) + (totalOut / 1000000 * tier.pout)
+  };
+}
+var FIXES = {
+  output: "Shorten the answers. Cap the reply length and ask for plain sentences, not essays. Output tokens cost 4 to 8 times input tokens on every tier, so every extra paragraph is the dearest part of the bill.",
+  fresh: "Raise the cache hit rate. Keep the same instructions and the same retrieved passages across questions, so more of the input is served from cache, where it costs about a tenth of fresh input.",
+  cached: "The cache is already doing the work. Trim the retrieved context instead: fewer passages per question, shorter passages, and no whole documents when a paragraph will do.",
+  review: "Review a sample, not everything. Check 1 in 5 answers at random, plus every answer the assistant flags as uncertain, and bank the hours. Keep full review only for answers that go outside the organisation.",
+  fixed: "Check the hosting tier. A vector store and a server that sit idle overnight are paying for hours nobody uses. Drop a tier or pause what you do not need until usage grows."
+};
+function calculate() {
+  var convDay = num("convDay");
+  var days = num("daysMonth");
+  var inTok = num("inTokens");
+  var outTok = num("outTokens");
+  var cachePct = Math.min(100, num("cachePct"));
+  var pin = num("priceIn");
+  var pout = num("priceOut");
+  var pcache = num("priceCache");
+  var reviewsDay = num("reviewsDay");
+  var reviewMin = num("reviewMin");
+  var reviewRate = num("reviewRate");
+  var fixed = num("fixedCost");
+
+  var conv = convDay * days;
+  var tier = {pin: pin, pout: pout, pcache: pcache};
+  var mc = modelCost(tier, conv, inTok, outTok, cachePct);
+  var reviewHours = reviewsDay * days * reviewMin / 60;
+  var reviewCost = reviewHours * reviewRate;
+  var total = mc.total + reviewCost + fixed;
+  var annual = total * 12;
+  var perConv = conv > 0 ? total / conv : 0;
+
+  var pill = document.getElementById("verdictPill");
+  var title = document.getElementById("verdictTitle");
+  if (total < 100) { pill.textContent = "Small pilot money"; pill.className = "pill green"; title.textContent = "Your assistant costs about " + money(total) + " a month"; }
+  else if (total < 1000) { pill.textContent = "A real monthly line item"; pill.className = "pill green"; title.textContent = "Your assistant costs about " + money(total) + " a month"; }
+  else if (total < 5000) { pill.textContent = "A budget line worth owning"; pill.className = "pill amber"; title.textContent = "Your assistant costs about " + money(total) + " a month"; }
+  else { pill.textContent = "Board-level money"; pill.className = "pill red"; title.textContent = "Your assistant costs about " + money(total) + " a month"; }
+
+  document.getElementById("totalBig").innerHTML = money(total) + " <small>per month &middot; " + money(annual) + " per year</small>";
+
+  var items = [
+    {key: "fresh", label: "Fresh input tokens (" + tokens(conv * inTok * (100 - cachePct) / 100) + ")", cost: mc.fresh},
+    {key: "cached", label: "Cached input tokens (" + tokens(conv * inTok * cachePct / 100) + ")", cost: mc.cached},
+    {key: "output", label: "Output tokens (" + tokens(conv * outTok) + ")", cost: mc.output},
+    {key: "review", label: "Human review (" + reviewHours.toFixed(1) + " hours)", cost: reviewCost},
+    {key: "fixed", label: "Hosting, search, and storage", cost: fixed}
+  ];
+  var ranked = items.slice().sort(function(a, b) { return b.cost - a.cost; });
+  var top = ranked[0];
+  var driverLine = document.getElementById("driverLine");
+  if (total > 0) {
+    driverLine.innerHTML = "The biggest cost driver is <b>" + top.label.split(" (")[0].toLowerCase() + "</b> at " + money(top.cost) + " a month, about " + Math.round(top.cost / total * 100) + "% of the total.";
+  } else {
+    driverLine.textContent = "Enter your usage above and the biggest cost driver will show here.";
+  }
+
+  document.getElementById("statConv").textContent = conv.toLocaleString("en-US");
+  document.getElementById("statModel").textContent = money(mc.total);
+  document.getElementById("statReview").textContent = money(reviewCost);
+  document.getElementById("statPerConv").textContent = money(perConv);
+
+  var rows = "";
+  ranked.forEach(function(it) {
+    rows += "<tr" + (it === top && total > 0 ? " class=\"top\"" : "") + "><td>" + it.label + (it === top && total > 0 ? " <span class=\"driver\">Biggest driver</span>" : "") + "</td><td></td><td class=\"num\">" + money(it.cost) + "</td></tr>";
+  });
+  rows += "<tr class=\"top\"><td>Total</td><td></td><td class=\"num\">" + money(total) + "</td></tr>";
+  document.getElementById("costTable").innerHTML = rows;
+
+  var fixKeys = [ranked[0].key, ranked[1].key];
+  var fixHtml = "";
+  fixKeys.forEach(function(k) {
+    if (ranked[0].cost > 0 || k !== ranked[0].key) { fixHtml += "<li>" + FIXES[k] + "</li>"; }
+  });
+  if (!fixHtml) { fixHtml = "<li>There is nothing to cut yet. Enter your usage above and the fixes will show here.</li>"; }
+  document.getElementById("fixList").innerHTML = fixHtml;
+
+  var tierRows = "";
+  Object.keys(TIERS).forEach(function(k) {
+    var t = TIERS[k];
+    var c = modelCost(t, conv, inTok, outTok, cachePct);
+    tierRows += "<tr" + (k === currentTier ? " class=\"top\"" : "") + "><td>" + t.name + (k === currentTier ? " (selected)" : "") + "</td><td>" + t.note + " per 1M tokens</td><td class=\"num\">" + money(c.total) + "</td></tr>";
+  });
+  document.getElementById("tierTable").innerHTML = tierRows;
+}
+function setTier(name) {
+  currentTier = name;
+  var t = TIERS[name];
+  document.getElementById("priceIn").value = t.pin;
+  document.getElementById("priceOut").value = t.pout;
+  document.getElementById("priceCache").value = t.pcache;
+  document.querySelectorAll(".tier").forEach(function(b) { b.classList.remove("active"); });
+  document.getElementById("tier-" + name).classList.add("active");
+  calculate();
+}
+function setPreset(name) {
+  document.querySelectorAll(".preset").forEach(function(b) { b.classList.remove("active"); });
+  var set = function(id, v) { document.getElementById(id).value = v; };
+  if (name === "small") {
+    document.getElementById("preset-small").classList.add("active");
+    set("convDay", 40); set("daysMonth", 22); set("inTokens", 3000); set("outTokens", 600); set("cachePct", 40);
+    setTier("balanced");
+    set("reviewsDay", 5); set("reviewMin", 2); set("reviewRate", 45); set("fixedCost", 25);
+  } else if (name === "support") {
+    document.getElementById("preset-support").classList.add("active");
+    set("convDay", 500); set("daysMonth", 30); set("inTokens", 2500); set("outTokens", 400); set("cachePct", 60);
+    setTier("light");
+    set("reviewsDay", 20); set("reviewMin", 3); set("reviewRate", 40); set("fixedCost", 150);
+  } else if (name === "docs") {
+    document.getElementById("preset-docs").classList.add("active");
+    set("convDay", 120); set("daysMonth", 22); set("inTokens", 12000); set("outTokens", 800); set("cachePct", 70);
+    setTier("flagship");
+    set("reviewsDay", 2); set("reviewMin", 4); set("reviewRate", 60); set("fixedCost", 300);
+  } else {
+    ["convDay", "daysMonth", "inTokens", "outTokens", "cachePct", "priceIn", "priceOut", "priceCache", "reviewsDay", "reviewMin", "reviewRate", "fixedCost"].forEach(function(id) { set(id, 0); });
+  }
+  calculate();
+}
+document.getElementById("calcBtn").addEventListener("click", calculate);
+document.querySelectorAll("input").forEach(function(el) { el.addEventListener("input", calculate); });
+document.getElementById("tier-light").addEventListener("click", function() { setTier("light"); });
+document.getElementById("tier-balanced").addEventListener("click", function() { setTier("balanced"); });
+document.getElementById("tier-flagship").addEventListener("click", function() { setTier("flagship"); });
+document.getElementById("preset-small").addEventListener("click", function() { setPreset("small"); });
+document.getElementById("preset-support").addEventListener("click", function() { setPreset("support"); });
+document.getElementById("preset-docs").addEventListener("click", function() { setPreset("docs"); });
+document.getElementById("preset-clear").addEventListener("click", function() { setPreset("clear"); });
+calculate();
+</script>
+</body>
+</html>
