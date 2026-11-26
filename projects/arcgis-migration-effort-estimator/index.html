@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArcGIS Migration Effort Estimator: scope the move before you choose the tool, by Janaki Gattu</title>
+<meta name="description" content="A working ArcGIS Migration Effort Estimator by Janaki Gattu. Count what you actually have to move between ArcGIS Enterprise and ArcGIS Online and get a person-day estimate, the biggest workstream, the flags that set the schedule, and a phased plan. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 6px}
+  h2:first-child{margin-top:0}
+  .secnote{color:var(--muted);margin-bottom:16px}
+  .presets{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+  .preset{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:10px 18px;color:var(--text);cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700}
+  .preset:hover{border-color:var(--accent)}
+  .preset.active{border-color:var(--accent);background:#052e16}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .field{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .field label{display:block;font-weight:700;font-size:1rem;margin-bottom:2px}
+  .field .hint{color:var(--muted);font-size:.88rem;margin-bottom:10px}
+  .field .hint b{color:#d4d4d4}
+  .field input{width:100%;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:8px;padding:10px 12px;font-size:1rem;font-family:inherit}
+  .field input:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+  .field .rate{color:var(--faint);font-size:.85rem;margin-top:8px}
+  .direction{display:flex;flex-wrap:wrap;gap:12px}
+  .dir{flex:1;min-width:280px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;cursor:pointer}
+  .dir:hover{border-color:var(--accent)}
+  .dir.selected{border-color:var(--accent);background:#052e16}
+  .dir b{display:block;font-size:1rem;margin-bottom:2px}
+  .dir span{color:var(--muted);font-size:.88rem}
+  .flags{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:640px){.flags{grid-template-columns:1fr}}
+  .flag{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;display:flex;gap:10px;align-items:flex-start}
+  .flag input{margin-top:4px;accent-color:var(--accent);width:18px;height:18px;flex:none}
+  .flag b{display:block;font-size:.98rem}
+  .flag span{color:var(--muted);font-size:.88rem}
+  .actions{margin-top:26px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer}
+  .btn-dark{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a;border:0;cursor:pointer}
+  .btn-outline{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;border:1px solid #525252;color:var(--text);background:none;cursor:pointer}
+  .result{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px;margin-top:28px}
+  .result h2{margin-top:0}
+  .pill{display:inline-block;font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:6px}
+  .pill.green{background:#14532d;color:#bbf7d0}
+  .pill.amber{background:#451a03;color:#fde68a}
+  .pill.red{background:#450a0a;color:#fecaca}
+  .big{font-size:2.2rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+  .big small{font-size:1rem;color:var(--muted);font-weight:600}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:18px 0 6px}
+  .stat{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .stat .k{color:var(--faint);font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .stat .v{font-size:1.35rem;font-weight:800;margin-top:2px}
+  .stat .s{color:var(--muted);font-size:.88rem}
+  table{width:100%;border-collapse:collapse;margin-top:14px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);font-size:.95rem}
+  th{color:var(--faint);text-transform:uppercase;letter-spacing:.06em;font-size:.8rem}
+  td.num,th.num{text-align:right;white-space:nowrap}
+  tr.top td{color:#fff;font-weight:700}
+  .driver{color:var(--amber);font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+  .result h3{margin:24px 0 8px;font-size:1.1rem}
+  .result p{color:var(--muted)}
+  .result ul,.result ol{margin-left:20px;color:#d4d4d4}
+  .result li{margin-bottom:6px}
+  .result .cta{margin-top:24px}
+  .sources{margin-top:26px;border-top:1px solid var(--line);padding-top:18px}
+  .sources p{font-size:.92rem}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+  @media print{
+    body{background:#fff;color:#000}
+    .noprint{display:none !important}
+    .result,.field,.stat,.dir,.flag{background:#fff;border-color:#ccc;color:#000}
+    .result p,.secnote,.lede{color:#333}
+    a{color:#000}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu&rsquo;s portfolio</a>
+    <p class="eyebrow">Working estimator &middot; Live demo</p>
+    <h1>ArcGIS Migration Effort Estimator</h1>
+    <p class="lede">A migration is not one job. It is a pile of small jobs wearing one name, and the pile is different every time. <b>Start with scope, not the tool.</b> Count what you actually have to move between ArcGIS Enterprise and ArcGIS Online, and this estimator prices the move in person-days, names the biggest workstream, and flags the things that set the schedule.</p>
+    <p class="honest"><b>How this estimator works, honestly:</b> it runs entirely in your browser. There is no server, no API key, no account, and nothing you enter leaves this page. The day rates are planning rules from practice, not Esri numbers: Esri publishes no migration effort rates, so treat this as a scoping estimate, not a quote. The facts it rests on are Janaki&rsquo;s migration article and Esri&rsquo;s own documentation, both cited below.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <h2>Which way are you moving?</h2>
+    <p class="secnote">The direction changes the work: Enterprise to Online means republishing what referenced registered data and rebuilding what Online does not carry. Online to Enterprise means standing up the deployment and the licences first.</p>
+    <div class="direction noprint">
+      <div class="dir selected" id="dir-e2o" role="button" tabindex="0">
+        <b>ArcGIS Enterprise &rarr; ArcGIS Online</b>
+        <span>Retire the servers, keep the content. Hosted data moves; referenced data, extensions, and the Utility Network do not come as they are.</span>
+      </div>
+      <div class="dir" id="dir-o2e" role="button" tabindex="0">
+        <b>ArcGIS Online &rarr; ArcGIS Enterprise</b>
+        <span>Bring the content home. Users and licences first, content through collaboration, and the Online-only pieces rebuilt.</span>
+      </div>
+    </div>
+
+    <h2>Start from a preset, or enter your own numbers</h2>
+    <p class="secnote">The presets are typical estates, not promises. Change any number and the estimate follows.</p>
+    <div class="presets noprint">
+      <button type="button" class="preset" id="preset-small">Small department</button>
+      <button type="button" class="preset" id="preset-mid">Mid-size organisation</button>
+      <button type="button" class="preset" id="preset-large">Large enterprise</button>
+      <button type="button" class="preset" id="preset-clear">Clear all</button>
+    </div>
+
+    <h2>Content to move</h2>
+    <p class="secnote">Count what is actually in use. The fastest way to cut this estimate is to retire what nobody opens before you move it.</p>
+    <div class="grid">
+      <div class="field">
+        <label for="featureServices">Hosted feature services</label>
+        <p class="hint">Layers your maps and apps read. Each one is republished and validated on the target.</p>
+        <input type="number" id="featureServices" min="0" step="1" value="0">
+        <p class="rate">About half a day each to move and validate</p>
+      </div>
+      <div class="field">
+        <label for="webMaps">Web maps</label>
+        <p class="hint">Maps in Map Viewer. Each one is opened, repointed, and checked against its layers.</p>
+        <input type="number" id="webMaps" min="0" step="1" value="0">
+        <p class="rate">About a quarter of a day each</p>
+      </div>
+      <div class="field">
+        <label for="expBuilder">Experience Builder apps</label>
+        <p class="hint">Apps built in Experience Builder. Mostly a repoint and test, unless widgets are custom.</p>
+        <input type="number" id="expBuilder" min="0" step="1" value="0">
+        <p class="rate">About half a day each</p>
+      </div>
+      <div class="field">
+        <label for="dashboards">Dashboards</label>
+        <p class="hint">ArcGIS Dashboards. Serial indicators and lists usually survive; data expressions need a second look.</p>
+        <input type="number" id="dashboards" min="0" step="1" value="0">
+        <p class="rate">About half a day each</p>
+      </div>
+      <div class="field">
+        <label for="storyMaps">StoryMaps</label>
+        <p class="hint">ArcGIS StoryMaps stories. Short to repoint, longer if the maps inside them change.</p>
+        <input type="number" id="storyMaps" min="0" step="1" value="0">
+        <p class="rate">About a quarter of a day each</p>
+      </div>
+      <div class="field">
+        <label for="wabApps">Web AppBuilder apps</label>
+        <p class="hint">Older apps that must be rebuilt in Experience Builder. This is the long pole in most moves.</p>
+        <input type="number" id="wabApps" min="0" step="1" value="0">
+        <p class="rate">About 2 days each to rebuild</p>
+      </div>
+      <div class="field">
+        <label for="sceneLayers">Scene layers</label>
+        <p class="hint">3D layers. Caches are rebuilt on the target, and the rebuild is the slow part.</p>
+        <input type="number" id="sceneLayers" min="0" step="1" value="0">
+        <p class="rate">About 1 day each, cache rebuild included</p>
+      </div>
+      <div class="field">
+        <label for="notebooks">Notebooks</label>
+        <p class="hint">ArcGIS Notebooks. Each one is checked for paths, credentials, and schedules that change on the target.</p>
+        <input type="number" id="notebooks" min="0" step="1" value="0">
+        <p class="rate">About half a day each</p>
+      </div>
+      <div class="field">
+        <label for="users">Named users</label>
+        <p class="hint">People who need an account, a user type, and privileges on the target. Not viewers who only read public maps.</p>
+        <input type="number" id="users" min="0" step="1" value="0">
+        <p class="rate">About 0.05 days each, plus the decisions</p>
+      </div>
+      <div class="field">
+        <label for="groups">Groups</label>
+        <p class="hint">Groups that carry the sharing model. Each one is recreated with its members and its sharing rules.</p>
+        <input type="number" id="groups" min="0" step="1" value="0">
+        <p class="rate">About a quarter of a day each</p>
+      </div>
+    </div>
+
+    <h2>What else is in the estate?</h2>
+    <p class="secnote">These are the things that quietly set the schedule. Tick what applies and the estimate adds the work and says what changes.</p>
+    <div class="flags noprint">
+      <label class="flag"><input type="checkbox" id="flag-utilityNetwork"><span><b>Utility Network in scope</b><span>ArcGIS Online does not carry a Utility Network. Moving to Online means the network stays on Enterprise or gets redesigned.</span></span></label>
+      <label class="flag"><input type="checkbox" id="flag-versioned"><span><b>Branch-versioned data</b><span>Versioned editing, replicas, and sync rules have to be rebuilt and retested on the target.</span></span></label>
+      <label class="flag"><input type="checkbox" id="flag-soe"><span><b>ArcGIS Server extensions or SOEs</b><span>Custom server objects and extensions have no equivalent in ArcGIS Online. They are rewritten or retired.</span></span></label>
+      <label class="flag"><input type="checkbox" id="flag-geoevent"><span><b>GeoEvent real-time feeds</b><span>Feeds move to ArcGIS Velocity in Online, or are rebuilt as scheduled jobs on Enterprise.</span></span></label>
+      <label class="flag"><input type="checkbox" id="flag-noPython"><span><b>No Python capacity in-house</b><span>Without scripting, the move is manual: group export, collaboration, and hand checks instead of a repeatable script.</span></span></label>
+      <label class="flag"><input type="checkbox" id="flag-unaudited"><span><b>Content never audited</b><span>Nobody knows what is actually in the portal. The inventory takes longer because the list has to be built first.</span></span></label>
+    </div>
+
+    <div class="actions noprint">
+      <button type="button" class="btn" id="calcBtn">Estimate my migration</button>
+      <button type="button" class="btn-dark" id="printBtn">Print this estimate</button>
+      <button type="button" class="btn-outline" id="resetBtn">Start over</button>
+    </div>
+
+    <div id="result" class="result" style="display:none"></div>
+
+    <div class="sources">
+      <h2>Sources</h2>
+      <p>Scope-first thinking, the four kinds of migration work, and the tool guidance (WebGISDR for same-version full moves, group export and import for hosted content, distributed collaboration for repeated sharing, rebuild for retired app types) come from Janaki&rsquo;s article <a href="https://www.linkedin.com/pulse/arcgis-enterprise-migration-start-scope-tool-janaki-gattu-g8xnc/" target="_blank" rel="noopener">ArcGIS Enterprise Migration: Start With Scope, Not the Tool</a> (LinkedIn, 24 November 2026). WebGISDR migration rules are in Esri&rsquo;s <a href="https://doc.esri.com/en/arcgis-enterprise/latest/deploy/migrate-to-new-machines-with-webgisdr.html" target="_blank" rel="noopener">Migrate ArcGIS Enterprise with WebGISDR</a> documentation. Distributed collaboration between Enterprise and Online is covered in Esri&rsquo;s <a href="https://learn.arcgis.com/en/projects/get-started-with-distributed-collaboration/" target="_blank" rel="noopener">Get started with distributed collaboration</a> tutorial. The day rates are planning rules from practice, not Esri numbers. If a rate here disagrees with your own history, your history wins.</p>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>ArcGIS Migration Effort Estimator, a working tool by <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Janaki Gattu</a>, Enterprise GIS Consultant &amp; GIS Solutions Architect. Still unsure what your move costs? <a href="mailto:gjanaki360@gmail.com?subject=ArcGIS%20migration%20estimate">Email gjanaki360@gmail.com</a> with your estimate, or <a href="https://janakigattu.github.io/#book">book a session</a> and bring the inventory from your portal.</p>
+  </div>
+</footer>
+
+<script>
+function roundHalf(n){ return Math.round(n * 2) / 2; }
+function round1(n){ return Math.round(n * 10) / 10; }
+
+function estimateMigration(d){
+  var e2o = (d.direction === "e2o");
+  var items = d.featureServices + d.webMaps + d.expBuilder + d.dashboards + d.storyMaps + d.wabApps + d.sceneLayers + d.notebooks;
+  var inventory = 2 + 0.02 * items + (d.unaudited ? 2 : 0);
+  var data = d.featureServices * (e2o ? 0.5 : 0.6) + d.sceneLayers * 1.0;
+  var apps = d.webMaps * 0.25 + d.expBuilder * 0.5 + d.dashboards * 0.5 + d.storyMaps * 0.25 + d.wabApps * 2.0 + d.notebooks * 0.5;
+  var people = d.users * 0.05 + d.groups * 0.25;
+  var flagDays = 0;
+  var flagNotes = [];
+  if (d.utilityNetwork){
+    flagDays += e2o ? 12 : 8;
+    flagNotes.push({label: "Utility Network", days: e2o ? 12 : 8, note: e2o ? "ArcGIS Online does not carry a Utility Network. The network stays on Enterprise or the design is reworked, and that decision comes before anything else moves." : "The network is built on Enterprise as a separate workstream. The data model, the rules, and the editing workflows are designed, not copied."});
+  }
+  if (d.versioned){
+    flagDays += 4;
+    flagNotes.push({label: "Branch-versioned data", days: 4, note: "Versioned editing, replicas, and sync rules are rebuilt and retested on the target. Do not assume a version moves with its data."});
+  }
+  if (d.soe){
+    var soeDays = e2o ? 6 : 0;
+    flagDays += soeDays;
+    flagNotes.push({label: "Server extensions / SOEs", days: soeDays, note: e2o ? "Custom server objects and extensions have no equivalent in ArcGIS Online. Each one is rewritten as a service or a notebook, or retired." : "Extensions stay on the Enterprise side and are re-registered on the new deployment. No rewrite is needed for the move itself."});
+  }
+  if (d.geoevent){
+    flagDays += e2o ? 5 : 2;
+    flagNotes.push({label: "GeoEvent real-time feeds", days: e2o ? 5 : 2, note: e2o ? "Feeds move to ArcGIS Velocity in Online. Each feed is re-pointed, re-tested, and re-licensed." : "Feeds are rebuilt as scheduled jobs or re-pointed at the new services. The feed definitions do not move on their own."});
+  }
+  if (d.noPython){
+    flagDays += 3;
+    flagNotes.push({label: "No Python capacity in-house", days: 3, note: "Without scripting, the move is manual: group export, collaboration, and hand checks. Budget the extra hands, or budget the time to build the script once."});
+  }
+  var build = inventory + data + apps + people + flagDays;
+  var testing = 0.15 * build;
+  var subtotal = build + testing;
+  var cutover = subtotal < 40 ? 2 : subtotal < 120 ? 4 : 6;
+  var training = subtotal < 40 ? 2 : subtotal < 120 ? 3 : 5;
+  var total = subtotal + cutover + training;
+  var low = roundHalf(total * 0.8);
+  var high = roundHalf(total * 1.25);
+  var verdict;
+  if (e2o && d.utilityNetwork){
+    verdict = {band: "red", label: "Rebuild-first", text: "The Utility Network cannot move to ArcGIS Online. Decide what happens to the network before anything else is priced: it stays on Enterprise, or the design is reworked. The rest of the move is priced below, but it does not include rebuilding a network."};
+  } else if (high < 40){
+    verdict = {band: "green", label: "Straightforward", text: "A small, well-understood estate. One person can carry this in a few weeks, in waves, with the old deployment readable until the new one is proven."};
+  } else if (high < 120){
+    verdict = {band: "amber", label: "Tight but doable", text: "A real project, not a weekend. Run it in waves by owner, validate each wave before the next starts, and keep the old deployment readable until cutover."};
+  } else {
+    verdict = {band: "red", label: "Rebuild-first", text: "At this size the move is a rebuild with a migration inside it. Retire hard before you move, rebuild the apps first, and plan the cutover as its own phase with a rollback that is rehearsed, not hoped for."};
+  }
+  var rows = [
+    {label: "Inventory and scope", days: inventory, tip: "Retire content before you move it. Every unused map, app, and layer you delete is work you never do. Retire, do not recreate out of habit."},
+    {label: "Data migration", days: data, tip: "Move data in waves by owner, not all at once. Validate each wave before the next starts, so a bad layer fails small."},
+    {label: "Apps rebuild and verify", days: apps, tip: "Rebuild Web AppBuilder apps in Experience Builder first, before the move. They are the long pole, and they cannot be copied across."},
+    {label: "Users, groups, permissions", days: people, tip: "Decide the user types and privileges before you move anyone. Adding users twice costs more than planning once."},
+    {label: "Flags and exceptions", days: flagDays, tip: "Decide the Utility Network question first: it stays on Enterprise. Everything else in the plan follows that call."},
+    {label: "Testing and validation", days: testing, tip: "Test with the people who use the maps, not just the admins. A map that opens is not a map that works."},
+    {label: "Cutover and rollback", days: cutover, tip: "Keep the old deployment readable until the new one is proven. Rollback is a plan, not a hope."},
+    {label: "Training and docs", days: training, tip: "Train on the new URLs and the new sharing model. Most post-move tickets are 'where did my map go'."}
+  ];
+  var biggest = rows.slice().sort(function(a, b){ return b.days - a.days; })[0];
+  var fixes = rows.slice().sort(function(a, b){ return b.days - a.days; }).slice(0, 2);
+  var weeks1 = Math.max(1, Math.ceil(total / 5));
+  var weeks3 = Math.max(1, Math.ceil(total / 15));
+  return {
+    direction: d.direction, items: items, rows: rows, flagNotes: flagNotes,
+    build: build, testing: testing, cutover: cutover, training: training,
+    total: total, low: low, high: high, verdict: verdict, biggest: biggest, fixes: fixes,
+    weeks1: weeks1, weeks3: weeks3
+  };
+}
+
+(function(){
+  "use strict";
+
+  var direction = "e2o";
+  var COUNT_IDS = ["featureServices","webMaps","expBuilder","dashboards","storyMaps","wabApps","sceneLayers","notebooks","users","groups"];
+  var FLAG_IDS = ["flag-utilityNetwork","flag-versioned","flag-soe","flag-geoevent","flag-noPython","flag-unaudited"];
+
+  var PRESETS = {
+    small: {direction: "e2o", featureServices: 20, webMaps: 30, expBuilder: 4, dashboards: 6, storyMaps: 5, wabApps: 2, sceneLayers: 1, notebooks: 3, users: 40, groups: 8, flags: {}},
+    mid: {direction: "o2e", featureServices: 80, webMaps: 120, expBuilder: 12, dashboards: 20, storyMaps: 15, wabApps: 8, sceneLayers: 4, notebooks: 10, users: 150, groups: 25, flags: {"flag-versioned": true, "flag-noPython": true}},
+    large: {direction: "e2o", featureServices: 300, webMaps: 400, expBuilder: 40, dashboards: 60, storyMaps: 30, wabApps: 25, sceneLayers: 12, notebooks: 30, users: 600, groups: 80, flags: {"flag-utilityNetwork": true, "flag-versioned": true, "flag-soe": true, "flag-geoevent": true, "flag-noPython": true, "flag-unaudited": true}}
+  };
+
+  function val(id){
+    var el = document.getElementById(id);
+    var n = parseFloat(el.value);
+    return (isNaN(n) || n < 0) ? 0 : n;
+  }
+
+  function fmt(n){
+    var r = Math.round(n * 100) / 100;
+    return r.toLocaleString("en-US", {maximumFractionDigits: 2});
+  }
+
+  function fmtDays(n){
+    return (Math.round(n * 10) / 10).toLocaleString("en-US", {maximumFractionDigits: 1});
+  }
+
+  function esc(s){
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function readInputs(){
+    var d = {direction: direction};
+    COUNT_IDS.forEach(function(id){ d[id] = val(id); });
+    d.utilityNetwork = document.getElementById("flag-utilityNetwork").checked;
+    d.versioned = document.getElementById("flag-versioned").checked;
+    d.soe = document.getElementById("flag-soe").checked;
+    d.geoevent = document.getElementById("flag-geoevent").checked;
+    d.noPython = document.getElementById("flag-noPython").checked;
+    d.unaudited = document.getElementById("flag-unaudited").checked;
+    return d;
+  }
+
+  function setDirection(dir){
+    direction = dir;
+    document.getElementById("dir-e2o").classList.toggle("selected", dir === "e2o");
+    document.getElementById("dir-o2e").classList.toggle("selected", dir === "o2e");
+  }
+
+  function calculate(){
+    var res = estimateMigration(readInputs());
+    var box = document.getElementById("result");
+    var dirLabel = res.direction === "e2o" ? "ArcGIS Enterprise to ArcGIS Online" : "ArcGIS Online to ArcGIS Enterprise";
+
+    var html = "<h2>Your estimate: " + esc(dirLabel) + "</h2>";
+    html += '<span class="pill ' + res.verdict.band + '">' + esc(res.verdict.label) + '</span>';
+    html += '<p class="big">' + fmt(res.low) + ' to ' + fmt(res.high) + ' <small>person-days</small></p>';
+    html += '<div class="stats">';
+    html += '<div class="stat"><div class="k">One person</div><div class="v">' + res.weeks1 + ' weeks</div><div class="s">calendar time, one person working it full time</div></div>';
+    html += '<div class="stat"><div class="k">Team of three</div><div class="v">' + res.weeks3 + ' weeks</div><div class="s">calendar time, three people working it full time</div></div>';
+    html += '<div class="stat"><div class="k">Biggest workstream</div><div class="v">' + esc(res.biggest.label) + '</div><div class="s">' + fmtDays(res.biggest.days) + ' person-days, ' + Math.round(res.biggest.days / res.total * 100) + '% of the total</div></div>';
+    html += '<div class="stat"><div class="k">Items counted</div><div class="v">' + fmt(res.items) + '</div><div class="s">content items in scope, before users and groups</div></div>';
+    html += "</div>";
+    html += "<p>" + esc(res.verdict.text) + "</p>";
+
+    html += "<h3>Where the days go</h3>";
+    html += '<table><thead><tr><th>Workstream</th><th class="num">Person-days</th></tr></thead><tbody>';
+    res.rows.forEach(function(r){
+      html += '<tr' + (r.label === res.biggest.label ? ' class="top"' : "") + '><td>' + esc(r.label) + (r.label === res.biggest.label ? ' <span class="driver">Biggest workstream</span>' : "") + '</td><td class="num">' + fmtDays(r.days) + '</td></tr>';
+    });
+    html += '<tr class="top"><td>Total (mid estimate)</td><td class="num">' + fmtDays(res.total) + '</td></tr>';
+    html += "</tbody></table>";
+
+    if (res.flagNotes.length){
+      html += "<h3>Flags that set the schedule</h3><ul>";
+      res.flagNotes.forEach(function(f){
+        html += "<li><b>" + esc(f.label) + (f.days > 0 ? " (" + fmtDays(f.days) + " days)" : "") + ":</b> " + esc(f.note) + "</li>";
+      });
+      html += "</ul>";
+    }
+
+    html += "<h3>Recommended approach</h3>";
+    if (res.direction === "e2o"){
+      html += "<p>Audit and retire first, then set up users and groups in ArcGIS Online, move hosted content with distributed collaboration or group export, republish what referenced registered data, and rebuild Web AppBuilder apps in Experience Builder before the cutover. " + (readInputs().utilityNetwork ? "The Utility Network stays on Enterprise: keep it running there and plan the network as its own project." : "If a Utility Network appears mid-inventory, stop and re-scope: it cannot move to ArcGIS Online.") + "</p>";
+    } else {
+      html += "<p>Stand up the Enterprise deployment first, set up users with the right licences and privileges, move content through distributed collaboration, and rebuild the items collaboration does not carry. Expect dashboards and apps built on Online-only services to need rework, and keep the Online organisation readable until the Enterprise deployment is proven.</p>";
+    }
+
+    html += "<h3>Two fixes that cut the effort fastest</h3><ul>";
+    res.fixes.forEach(function(r){
+      html += "<li><b>" + esc(r.label) + " (" + fmtDays(r.days) + " days):</b> " + esc(r.tip) + "</li>";
+    });
+    html += "</ul>";
+
+    html += "<h3>Phased plan</h3><ol>";
+    var phases = [
+      ["Phase 0, Scope and inventory", res.rows[0].days, "Count everything, retire what is unused, and write down what the move actually covers."],
+      ["Phase 1, Users, groups, licences", res.rows[3].days, "User types, privileges, and groups on the target, before any content moves."],
+      ["Phase 2, Data migration waves", res.rows[1].days, "Hosted data in waves by owner, validated wave by wave."],
+      ["Phase 3, Apps rebuild", res.rows[2].days, "Web AppBuilder rebuilds first, then the repoint and test of everything else."],
+      ["Phase 4, Flags and exceptions", res.rows[4].days, "The network, the versioned data, the extensions, and the feeds, each closed out."],
+      ["Phase 5, Testing and validation", res.rows[5].days, "Real users opening real maps and apps, not just admins checking that services start."],
+      ["Phase 6, Cutover and rollback", res.rows[6].days, "Switch over with the old deployment readable and the rollback rehearsed."],
+      ["Phase 7, Training and docs", res.rows[7].days, "New URLs, new sharing model, and the runbook for the team that inherits it."]
+    ];
+    var cumDays = 0;
+    phases.forEach(function(ph){
+      var startWeek = Math.max(1, Math.floor(cumDays / 15) + 1);
+      cumDays += ph[1];
+      var endWeek = Math.max(startWeek, Math.ceil(cumDays / 15));
+      html += "<li><b>" + esc(ph[0]) + " (" + fmtDays(ph[1]) + " days, week " + startWeek + (endWeek > startWeek ? " to " + endWeek : "") + "):</b> " + esc(ph[2]) + "</li>";
+    });
+    html += "</ol>";
+
+    html += "<h3>Checklist before you start</h3><ul>";
+    ["Inventory the portal and write down every item in scope.", "Retire content and accounts nobody uses, and do not recreate them out of habit.", "Decide the Utility Network question in writing.", "Decide the approach: collaboration, group export, scripting, or a mix, per wave.", "Confirm user types, licences, and privileges on the target.", "Confirm what referenced data becomes hosted, and where the source data lives.", "Rebuild Web AppBuilder apps in Experience Builder before the move.", "Rebuild scene layer caches on the target.", "Test with the people who use the maps, on their own workflows.", "Rehearse the rollback before the cutover.", "Keep the old deployment readable until the new one is proven.", "Train the team on the new URLs and the new sharing model."].forEach(function(c){
+      html += "<li>" + esc(c) + "</li>";
+    });
+    html += "</ul>";
+
+    html += '<div class="cta noprint"><a class="btn" href="mailto:gjanaki360@gmail.com?subject=ArcGIS%20migration%20estimate">Email Janaki my estimate</a> <a class="btn-dark" href="https://janakigattu.github.io/#book">Book a session</a></div>';
+    html += '<p style="margin-top:14px">Email Janaki with your direction, your total, and your biggest workstream, and she will tell you whether the move is a project, a rebuild, or a smaller job than the estimate says.</p>';
+    box.innerHTML = html;
+    box.style.display = "block";
+    box.scrollIntoView({behavior: "smooth", block: "start"});
+  }
+
+  function applyPreset(name){
+    var p = PRESETS[name];
+    if (!p) return;
+    setDirection(p.direction);
+    COUNT_IDS.forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) el.value = p[id];
+    });
+    FLAG_IDS.forEach(function(id){
+      document.getElementById(id).checked = !!p.flags[id];
+    });
+    document.querySelectorAll(".preset").forEach(function(b){ b.classList.remove("active"); });
+    var btn = document.getElementById("preset-" + name);
+    if (btn) btn.classList.add("active");
+    calculate();
+  }
+
+  function clearAll(){
+    COUNT_IDS.forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) el.value = 0;
+    });
+    FLAG_IDS.forEach(function(id){ document.getElementById(id).checked = false; });
+    setDirection("e2o");
+    document.querySelectorAll(".preset").forEach(function(b){ b.classList.remove("active"); });
+    var box = document.getElementById("result");
+    box.style.display = "none";
+    box.innerHTML = "";
+    window.scrollTo({top: 0, behavior: "smooth"});
+  }
+
+  document.getElementById("dir-e2o").addEventListener("click", function(){ setDirection("e2o"); });
+  document.getElementById("dir-o2e").addEventListener("click", function(){ setDirection("o2e"); });
+  document.getElementById("dir-e2o").addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " "){ e.preventDefault(); setDirection("e2o"); } });
+  document.getElementById("dir-o2e").addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " "){ e.preventDefault(); setDirection("o2e"); } });
+  document.getElementById("calcBtn").addEventListener("click", calculate);
+  document.getElementById("printBtn").addEventListener("click", function(){ calculate(); window.print(); });
+  document.getElementById("resetBtn").addEventListener("click", clearAll);
+  document.getElementById("preset-small").addEventListener("click", function(){ applyPreset("small"); });
+  document.getElementById("preset-mid").addEventListener("click", function(){ applyPreset("mid"); });
+  document.getElementById("preset-large").addEventListener("click", function(){ applyPreset("large"); });
+  document.getElementById("preset-clear").addEventListener("click", clearAll);
+})();
+</script>
+</body>
+</html>
