@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Assistant Rollout Planner: turn a working pilot into a rollout that holds, by Janaki Gattu</title>
+<meta name="description" content="A working AI Assistant Rollout Planner by Janaki Gattu. Take a pilot that proved itself and get a phased rollout plan: the waves, the review capacity, the training, the gaps to close, and the effort in person-days. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 6px}
+  h2:first-child{margin-top:0}
+  .secnote{color:var(--muted);margin-bottom:16px}
+  .presets{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+  .preset{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:10px 18px;color:var(--text);cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700}
+  .preset:hover{border-color:var(--accent)}
+  .preset.active{border-color:var(--accent);background:#052e16}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .field{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .field label{display:block;font-weight:700;font-size:1rem;margin-bottom:2px}
+  .field .hint{color:var(--muted);font-size:.88rem;margin-bottom:10px}
+  .field .hint b{color:#d4d4d4}
+  .field input,.field select{width:100%;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:8px;padding:10px 12px;font-size:1rem;font-family:inherit}
+  .field input:focus,.field select:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+  .checks{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-top:12px}
+  .checks p{font-weight:700;margin-bottom:10px}
+  .checks label{display:flex;gap:10px;align-items:flex-start;color:#d4d4d4;padding:7px 0;border-top:1px solid var(--line);cursor:pointer}
+  .checks label:first-of-type{border-top:0}
+  .checks input{margin-top:4px;accent-color:var(--accent);width:18px;height:18px;flex:none}
+  .checks small{display:block;color:var(--muted)}
+  .actions{margin-top:26px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer}
+  .btn-dark{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a;border:0;cursor:pointer}
+  .result{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px;margin-top:28px}
+  .result h2{margin-top:0}
+  .pill{display:inline-block;font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:6px}
+  .pill.green{background:#14532d;color:#bbf7d0}
+  .pill.amber{background:#451a03;color:#fde68a}
+  .pill.red{background:#450a0a;color:#fecaca}
+  .big{font-size:2.2rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+  .big small{font-size:1rem;color:var(--muted);font-weight:600}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:18px 0 6px}
+  .stat{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .stat .k{color:var(--faint);font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .stat .v{font-size:1.35rem;font-weight:800;margin-top:2px}
+  .stat .s{color:var(--muted);font-size:.88rem}
+  table{width:100%;border-collapse:collapse;margin-top:14px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);font-size:.95rem}
+  th{color:var(--faint);text-transform:uppercase;letter-spacing:.06em;font-size:.8rem}
+  td.num,th.num{text-align:right;white-space:nowrap}
+  .result h3{margin:24px 0 8px;font-size:1.1rem}
+  .result p{color:var(--muted)}
+  .result ul,.result ol{margin-left:20px;color:#d4d4d4}
+  .result li{margin-bottom:6px}
+  .result .cta{margin-top:24px}
+  .sources{margin-top:26px;border-top:1px solid var(--line);padding-top:18px}
+  .sources p{font-size:.92rem}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+  @media print{
+    body{background:#fff;color:#000}
+    .noprint{display:none !important}
+    .result,.field,.checks,.stat{background:#fff;border-color:#ccc;color:#000}
+    .result p,.secnote,.lede{color:#333}
+    a{color:#000}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu&rsquo;s portfolio</a>
+    <p class="eyebrow">Working planner &middot; Live demo</p>
+    <h1>AI Assistant Rollout Planner</h1>
+    <p class="lede">The pilot worked for five people. <b>Now fifty want the assistant, and the rollout is where pilots go to die.</b> It is not the model that breaks at fifty users. It is the review queue, the training, and the guardrails. Plan the waves before you switch the whole team on.</p>
+    <p class="honest"><b>How this planner works, honestly:</b> it runs entirely in your browser. There is no server, no API key, no account, and nothing you enter leaves this page. The score is a planning rule from practice, not a vendor benchmark: pilot evidence 30, data and guardrails 25, review capacity 25, training and change 20. Change any number and the plan follows.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <h2>Start from a preset, or enter your own numbers</h2>
+    <p class="secnote">The presets are typical rollouts, not promises. Edit any field and the plan follows.</p>
+    <div class="presets noprint">
+      <button type="button" class="preset active" id="preset-small">Small team, proven pilot</button>
+      <button type="button" class="preset" id="preset-dept">Department rollout</button>
+      <button type="button" class="preset" id="preset-regulated">Regulated rollout, gaps to close</button>
+      <button type="button" class="preset" id="preset-clear">Clear all</button>
+    </div>
+
+    <h2>Your pilot</h2>
+    <p class="secnote">What the pilot actually proved, measured on real work, not on a demo.</p>
+    <div class="grid">
+      <div class="field">
+        <label for="pilotHours">Hours saved per pilot user, per week</label>
+        <p class="hint">The success number from the pilot, in hours. <b>Zero means the pilot has not proved anything yet.</b></p>
+        <input type="number" id="pilotHours" min="0" step="0.5" value="6">
+      </div>
+      <div class="field">
+        <label for="pilotUsers">Pilot users</label>
+        <p class="hint">How many people used it on real work. <b>Five or more is a pilot. One is a demo.</b></p>
+        <input type="number" id="pilotUsers" min="0" step="1" value="5">
+      </div>
+      <div class="field">
+        <label for="totalUsers">Total users to reach</label>
+        <p class="hint">Everyone who will get the assistant when the rollout is done.</p>
+        <input type="number" id="totalUsers" min="0" step="1" value="25">
+      </div>
+      <div class="field">
+        <label for="teams">Teams or departments</label>
+        <p class="hint">How many teams the rollout has to reach. Each one needs a champion in the room.</p>
+        <input type="number" id="teams" min="0" step="1" value="2">
+      </div>
+    </div>
+
+    <h2>Your data and guardrails</h2>
+    <p class="secnote">The four gates come from the Harness Readiness Check: logging, a cost ceiling, a fallback, and scoped access. A gate left open in pilot stays open at fifty users, and costs more there.</p>
+    <div class="grid">
+      <div class="field">
+        <label for="sensitivity">Data sensitivity</label>
+        <p class="hint">The most sensitive data the assistant will touch.</p>
+        <select id="sensitivity">
+          <option value="internal" selected>Internal, day to day work</option>
+          <option value="confidential">Confidential, staff and commercial</option>
+          <option value="regulated">Regulated, health, legal, or personal data</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="dataSources">Data sources to connect</label>
+        <p class="hint">Document stores, databases, and systems the assistant reads from. <b>Each one is a connection to build and a set of answers to check.</b></p>
+        <input type="number" id="dataSources" min="0" step="1" value="2">
+      </div>
+    </div>
+    <div class="checks">
+      <p>The four harness gates</p>
+      <label><input type="checkbox" id="gateLogging" checked> <span>Full logging is on <small>Every call, every answer, and every error is recorded, so a bad answer can be traced.</small></span></label>
+      <label><input type="checkbox" id="gateCost" checked> <span>Cost ceiling is set <small>Spend stops at a number someone approved, instead of running until the bill arrives.</small></span></label>
+      <label><input type="checkbox" id="gateFallback" checked> <span>Fallback is defined <small>The third failed call hands the work to a person, with the context attached.</small></span></label>
+      <label><input type="checkbox" id="gateAccess" checked> <span>Access is scoped <small>The assistant can only read what its users are allowed to read.</small></span></label>
+      <label><input type="checkbox" id="comms" checked> <span>Announcement and support channel are ready <small>Everyone knows what is coming, what it does, and where to report a wrong answer.</small></span></label>
+    </div>
+
+    <h2>Review and training</h2>
+    <p class="secnote">At rollout scale, one in five answers still needs a human look. If the reviewers cannot keep up, the queue becomes the bottleneck, and people stop trusting the answers.</p>
+    <div class="grid">
+      <div class="field">
+        <label for="reviewers">Named reviewers</label>
+        <p class="hint">People who will actually read answers and correct them. <b>Named, not hoped for.</b></p>
+        <input type="number" id="reviewers" min="0" step="1" value="2">
+      </div>
+      <div class="field">
+        <label for="reviewCapacity">Reviews per reviewer, per day</label>
+        <p class="hint">How many answers one reviewer can read properly in a day, alongside their own work.</p>
+        <input type="number" id="reviewCapacity" min="0" step="1" value="20">
+      </div>
+      <div class="field">
+        <label for="dailyRequests">Assistant requests per day, at full rollout</label>
+        <p class="hint">How many times a day the whole team will ask it something, once everyone is on it.</p>
+        <input type="number" id="dailyRequests" min="0" step="10" value="100">
+      </div>
+      <div class="field">
+        <label for="trainingHours">Training hours per user</label>
+        <p class="hint">Hands on training with their own work, not a recorded video. <b>Two hours is the floor.</b></p>
+        <input type="number" id="trainingHours" min="0" step="0.5" value="2">
+      </div>
+      <div class="field">
+        <label for="champions">Champions named</label>
+        <p class="hint">One per team is the target. A champion answers the first questions in the room, so the rollout does not stall on the first error.</p>
+        <input type="number" id="champions" min="0" step="1" value="2">
+      </div>
+    </div>
+
+    <div class="actions noprint">
+      <button type="button" class="btn" id="planBtn">Plan my rollout</button>
+      <button type="button" class="btn-dark" onclick="window.print()">Print this plan</button>
+    </div>
+
+    <div class="result" id="result">
+      <p class="pill green" id="verdictPill">Start here</p>
+      <h2 id="verdictTitle">Your rollout is ready to go</h2>
+      <p id="verdictText">This is the plan for the small team preset: a proven pilot, five users, twenty five to reach. Change any number and press Plan my rollout again.</p>
+      <div class="stats">
+        <div class="stat"><div class="k">Rollout score</div><div class="v" id="statScore">97 / 100</div><div class="s" id="statScoreNote">Pilot 27, data 25, review 25, training 20</div></div>
+        <div class="stat"><div class="k">Hours saved at full rollout</div><div class="v" id="statHours">7,200 / year</div><div class="s">At the pilot rate, 48 working weeks</div></div>
+        <div class="stat"><div class="k">Rollout length</div><div class="v" id="statWeeks">10 weeks</div><div class="s" id="statWeeksNote">Prep plus three waves</div></div>
+        <div class="stat"><div class="k">Effort to roll out</div><div class="v" id="statEffort">15 person-days</div><div class="s">Prep, enablement, connections, training</div></div>
+      </div>
+      <h3>Your waves</h3>
+      <table id="wavesTable">
+        <thead><tr><th>Wave</th><th>Who</th><th class="num">Users</th><th class="num">Weeks</th></tr></thead>
+        <tbody>
+          <tr><td>Wave 1</td><td>Champions and pilot users</td><td class="num">5</td><td class="num">3 to 4</td></tr>
+          <tr><td>Wave 2</td><td>Early teams, 40 percent of the rest</td><td class="num">8</td><td class="num">5 to 7</td></tr>
+          <tr><td>Wave 3</td><td>Everyone else</td><td class="num">12</td><td class="num">8 to 10</td></tr>
+        </tbody>
+      </table>
+      <h3>Review capacity</h3>
+      <p id="reviewText">At full rollout, 100 requests a day means about 20 answers to review. Two reviewers at 20 a day cover 40, so the queue stays clear.</p>
+      <h3>The gaps to close first</h3>
+      <ul id="gapsList"><li>No gaps. The pilot proved the hours, the gates are closed, the reviewers can keep up, and every team has a champion.</li></ul>
+      <h3>Your phased plan</h3>
+      <ol id="phasesList">
+        <li><b>Weeks 1 to 2, prep:</b> confirm the four gates, name the champions, book the training, send the announcement, set the cost ceiling alert.</li>
+        <li><b>Weeks 3 to 4, wave 1:</b> champions and pilot users go live, review every flagged answer, fix what the pilot missed.</li>
+        <li><b>Weeks 5 to 7, wave 2:</b> eight early team members join, champions answer questions in the room, review stays inside capacity.</li>
+        <li><b>Weeks 8 to 10, wave 3:</b> the remaining twelve join, the support channel takes the questions, and the first month is measured against the success number.</li>
+      </ol>
+      <h3>Checklist</h3>
+      <ul id="checklist">
+        <li>Four harness gates confirmed: logging, cost ceiling, fallback, scoped access.</li>
+        <li>Champions named, one per team, and briefed on the fallback.</li>
+        <li>Training booked, two hours per user, hands on with their own work.</li>
+        <li>Announcement sent, support channel named, cost ceiling alert set.</li>
+        <li>Review rota published, so the queue never waits on one person.</li>
+        <li>Success number agreed: hours saved per week, measured at week 4 and week 10.</li>
+      </ul>
+      <p class="cta"><b>What to do next:</b> email Janaki with your rollout size, your score, and your verdict, and she will tell you what to fix first. <a href="mailto:gjanaki360@gmail.com?subject=AI%20assistant%20rollout%20plan">Email Janaki &rarr;</a> or <a href="https://janakigattu.github.io/#book">book a session &rarr;</a></p>
+      <div class="sources">
+        <p>Sources: Janaki Gattu, Harness Engineering: The Discipline That Separates Production AI Agents from Demos, LinkedIn, 24 Nov 2026 (<a href="https://www.linkedin.com/pulse/harness-engineering-discipline-separates-production-ai-janaki-gattu-jdcdc/" target="_blank" rel="noopener">read the article</a>). The four gates in this planner are the article's Harness Readiness Check. The step before this plan is the <a href="https://janakigattu.github.io/projects/ai-pilot-planner/">AI Pilot Planner</a>, and the check before that is the <a href="https://janakigattu.github.io/projects/ai-readiness-assessment-agent/">AI Readiness Assessment</a>. The running cost of the assistant is priced by the <a href="https://janakigattu.github.io/projects/ai-cost-estimator/">AI Cost Estimator</a>. Scoring weights, the one in five review rate, and the wave sizes are planning rules from practice, not vendor numbers.</p>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><a href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu&rsquo;s portfolio</a></p>
+    <p>Built by <a href="https://www.linkedin.com/in/janaki-gis-enterprise">Janaki Gattu</a>, Enterprise GIS Consultant. Questions about rolling an assistant out to your team? <a href="mailto:gjanaki360@gmail.com">Email Janaki</a> or <a href="https://janakigattu.github.io/#book">book a session</a>.</p>
+  </div>
+</footer>
+<script>
+function computePlan(v){
+  var hoursScore = v.pilotHours >= 5 ? 15 : v.pilotHours >= 3 ? 12 : v.pilotHours >= 1 ? 8 : v.pilotHours > 0 ? 4 : 0;
+  var usersScore = v.pilotUsers >= 8 ? 15 : v.pilotUsers >= 5 ? 12 : v.pilotUsers >= 3 ? 8 : v.pilotUsers >= 1 ? 4 : 0;
+  var pilot = hoursScore + usersScore;
+  var sensScore = v.sensitivity === "internal" ? 9 : v.sensitivity === "confidential" ? 6 : 3;
+  var srcScore = v.dataSources <= 2 ? 8 : v.dataSources <= 5 ? 5 : 2;
+  var gatesChecked = (v.gates.logging ? 1 : 0) + (v.gates.cost ? 1 : 0) + (v.gates.fallback ? 1 : 0) + (v.gates.access ? 1 : 0);
+  var gateScore = gatesChecked * 2;
+  var data = sensScore + srcScore + gateScore;
+  var needed = Math.ceil(v.dailyRequests * 0.2);
+  var capacity = v.reviewers * v.reviewCapacity;
+  var review = needed === 0 ? 25 : Math.round(Math.min(1, capacity / needed) * 25);
+  var trainScore = v.trainingHours >= 2 ? 8 : v.trainingHours >= 1 ? 5 : v.trainingHours > 0 ? 2 : 0;
+  var champScore = v.teams === 0 ? 0 : v.champions >= v.teams ? 7 : v.champions >= Math.ceil(v.teams / 2) ? 4 : v.champions > 0 ? 2 : 0;
+  var commsScore = v.comms ? 5 : 0;
+  var training = trainScore + champScore + commsScore;
+  var total = pilot + data + review + training;
+  var verdict = total >= 75 ? "Roll out now" : total >= 50 ? "Roll out in waves" : "Fix the gaps first";
+  var annualHours = Math.round(v.pilotHours * v.totalUsers * 48);
+  var wave1Users = Math.min(v.totalUsers, Math.max(v.pilotUsers, v.champions));
+  var remaining = v.totalUsers - wave1Users;
+  var wave2Users = Math.round(remaining * 0.4);
+  var wave3Users = remaining - wave2Users;
+  var wave2Weeks = v.teams <= 3 ? 3 : 4;
+  var wave3Weeks = v.totalUsers <= 50 ? 3 : 4;
+  var totalWeeks = 4 + (wave2Users > 0 ? wave2Weeks : 0) + (wave3Users > 0 ? wave3Weeks : 0);
+  var effort = 5 + v.teams * 2 + v.dataSources + (v.sensitivity === "regulated" ? 4 : v.sensitivity === "confidential" ? 2 : 0) + Math.ceil(v.trainingHours * v.totalUsers / 16);
+  var gaps = [];
+  if(hoursScore < 12){gaps.push({lost: 15 - hoursScore, area: "The pilot has not proved the hours yet", fix: "Run the pilot two more weeks on real work and measure the hours saved per user before you scale it."});}
+  if(usersScore < 12){gaps.push({lost: 15 - usersScore, area: "Too few pilot users to trust the result", fix: "Widen the pilot to at least five users on real work first."});}
+  if(sensScore < 9){gaps.push({lost: 9 - sensScore, area: "Sensitive data raises the bar", fix: v.sensitivity === "regulated" ? "Get the data owner and the security review to sign off the data the assistant can touch before wave 1." : "Name the data the assistant may not touch and put it in the access rules."});}
+  if(srcScore < 8){gaps.push({lost: 8 - srcScore, area: "More data sources than the team has connected before", fix: "Connect one source at a time and check the answers against the source before adding the next."});}
+  if(gateScore < 8){gaps.push({lost: 8 - gateScore, area: "Guardrails are missing", fix: "Close the open gates, logging, cost ceiling, fallback, and scoped access, before the first wave."});}
+  if(review < 25){gaps.push({lost: 25 - review, area: "Review capacity is short", fix: "Add reviewers, or slow the rollout so the reviews a day stay inside what the reviewers can actually read."});}
+  if(trainScore < 8){gaps.push({lost: 8 - trainScore, area: "No training time booked", fix: "Book at least two hours per user, hands on, with their own work."});}
+  if(champScore < 7){gaps.push({lost: 7 - champScore, area: "Not every team has a champion", fix: "Name one champion per team. A rollout without a champion in the room stalls at the first error."});}
+  if(!v.comms){gaps.push({lost: 5, area: "Nobody has been told what is coming", fix: "Send the announcement and name the support channel before wave 1, or the first error becomes a rumour."});}
+  gaps.sort(function(a, b){return b.lost - a.lost;});
+  return {scores: {pilot: pilot, data: data, review: review, training: training, total: total}, verdict: verdict, annualHours: annualHours, needed: needed, capacity: capacity, review: review, waves: [wave1Users, wave2Users, wave3Users], wave2Weeks: wave2Weeks, wave3Weeks: wave3Weeks, totalWeeks: totalWeeks, effort: effort, gaps: gaps.slice(0, 3), hoursScore: hoursScore, usersScore: usersScore};
+}
+var PRESETS = {
+  small: {pilotHours: 6, pilotUsers: 5, totalUsers: 25, teams: 2, sensitivity: "internal", dataSources: 2, gates: {logging: true, cost: true, fallback: true, access: true}, comms: true, reviewers: 2, reviewCapacity: 20, dailyRequests: 100, trainingHours: 2, champions: 2},
+  dept: {pilotHours: 4, pilotUsers: 8, totalUsers: 120, teams: 6, sensitivity: "confidential", dataSources: 4, gates: {logging: true, cost: true, fallback: false, access: true}, comms: true, reviewers: 3, reviewCapacity: 15, dailyRequests: 400, trainingHours: 1, champions: 3},
+  regulated: {pilotHours: 2, pilotUsers: 3, totalUsers: 200, teams: 8, sensitivity: "regulated", dataSources: 7, gates: {logging: true, cost: false, fallback: false, access: false}, comms: false, reviewers: 1, reviewCapacity: 10, dailyRequests: 600, trainingHours: 0, champions: 0},
+  clear: {pilotHours: 0, pilotUsers: 0, totalUsers: 0, teams: 0, sensitivity: "internal", dataSources: 0, gates: {logging: false, cost: false, fallback: false, access: false}, comms: false, reviewers: 0, reviewCapacity: 0, dailyRequests: 0, trainingHours: 0, champions: 0}
+};
+// ---- DOM wiring below ----
+function $(id){return document.getElementById(id);}
+function num(id){var n = parseFloat($(id).value); return isNaN(n) ? 0 : n;}
+function fmt(n){return n.toLocaleString("en-US");}
+function readInputs(){
+  return {pilotHours: num("pilotHours"), pilotUsers: num("pilotUsers"), totalUsers: num("totalUsers"), teams: num("teams"), sensitivity: $("sensitivity").value, dataSources: num("dataSources"), gates: {logging: $("gateLogging").checked, cost: $("gateCost").checked, fallback: $("gateFallback").checked, access: $("gateAccess").checked}, comms: $("comms").checked, reviewers: num("reviewers"), reviewCapacity: num("reviewCapacity"), dailyRequests: num("dailyRequests"), trainingHours: num("trainingHours"), champions: num("champions")};
+}
+function setInputs(p){
+  $("pilotHours").value = p.pilotHours; $("pilotUsers").value = p.pilotUsers; $("totalUsers").value = p.totalUsers; $("teams").value = p.teams;
+  $("sensitivity").value = p.sensitivity; $("dataSources").value = p.dataSources;
+  $("gateLogging").checked = p.gates.logging; $("gateCost").checked = p.gates.cost; $("gateFallback").checked = p.gates.fallback; $("gateAccess").checked = p.gates.access;
+  $("comms").checked = p.comms; $("reviewers").value = p.reviewers; $("reviewCapacity").value = p.reviewCapacity; $("dailyRequests").value = p.dailyRequests;
+  $("trainingHours").value = p.trainingHours; $("champions").value = p.champions;
+}
+function render(){
+  var v = readInputs();
+  var r = computePlan(v);
+  var pill = $("verdictPill");
+  pill.className = "pill " + (r.verdict === "Roll out now" ? "green" : r.verdict === "Roll out in waves" ? "amber" : "red");
+  pill.textContent = r.verdict;
+  var titles = {"Roll out now": "Your rollout is ready to go", "Roll out in waves": "Roll out in waves, and fix the gaps between them", "Fix the gaps first": "Fix the gaps first, then roll out"};
+  $("verdictTitle").textContent = titles[r.verdict];
+  $("verdictText").textContent = r.verdict === "Roll out now"
+    ? "The pilot proved the hours, the gates are closed, the reviewers can keep up, and every team has a champion. Roll it out in the waves below."
+    : r.verdict === "Roll out in waves"
+    ? "The pilot is good enough to start, but the gaps below will bite if you roll everyone on at once. Wave 1 goes ahead, and each gap is closed before the next wave."
+    : "The pilot has not proved enough yet, or the rollout is bigger than the review and training behind it. Close the gaps below before wave 1, or the rollout will stall in public.";
+  $("statScore").textContent = r.scores.total + " / 100";
+  $("statScoreNote").textContent = "Pilot " + r.scores.pilot + ", data " + r.scores.data + ", review " + r.scores.review + ", training " + r.scores.training;
+  $("statHours").textContent = fmt(r.annualHours) + " / year";
+  $("statWeeks").textContent = r.totalWeeks + " weeks";
+  $("statWeeksNote").textContent = "Prep plus " + (r.waves[2] > 0 ? "three waves" : r.waves[1] > 0 ? "two waves" : "one wave");
+  $("statEffort").textContent = r.effort + " person-days";
+  var w1End = 4, w2Start = 5, w2End = 4 + r.wave2Weeks, w3Start = 5 + r.wave2Weeks, w3End = 4 + r.wave2Weeks + r.wave3Weeks;
+  var rows = "";
+  rows += "<tr><td>Wave 1</td><td>Champions and pilot users</td><td class=\"num\">" + r.waves[0] + "</td><td class=\"num\">3 to " + w1End + "</td></tr>";
+  if(r.waves[1] > 0){rows += "<tr><td>Wave 2</td><td>Early teams, 40 percent of the rest</td><td class=\"num\">" + r.waves[1] + "</td><td class=\"num\">" + w2Start + " to " + w2End + "</td></tr>";}
+  if(r.waves[2] > 0){rows += "<tr><td>Wave 3</td><td>Everyone else</td><td class=\"num\">" + r.waves[2] + "</td><td class=\"num\">" + w3Start + " to " + w3End + "</td></tr>";}
+  $("wavesTable").querySelector("tbody").innerHTML = rows;
+  $("reviewText").textContent = r.needed === 0
+    ? "No requests a day means no reviews a day. The moment requests start, one in five answers still needs a human look, so name the reviewers before wave 1."
+    : r.capacity >= r.needed
+    ? "At full rollout, " + fmt(v.dailyRequests) + " requests a day means about " + fmt(r.needed) + " answers to review. " + v.reviewers + " reviewer" + (v.reviewers === 1 ? "" : "s") + " at " + v.reviewCapacity + " a day cover " + fmt(r.capacity) + ", so the queue stays clear."
+    : "At full rollout, " + fmt(v.dailyRequests) + " requests a day means about " + fmt(r.needed) + " answers to review, but " + v.reviewers + " reviewer" + (v.reviewers === 1 ? "" : "s") + " at " + v.reviewCapacity + " a day cover only " + fmt(r.capacity) + ", a shortfall of " + fmt(r.needed - r.capacity) + " a day. Add reviewers, or slow the rollout so the queue never decides for you.";
+  var gapsHtml = "";
+  if(r.gaps.length === 0){gapsHtml = "<li>No gaps. The pilot proved the hours, the gates are closed, the reviewers can keep up, and every team has a champion.</li>";}
+  else{r.gaps.forEach(function(g){gapsHtml += "<li><b>" + g.area + ".</b> " + g.fix + "</li>";});}
+  $("gapsList").innerHTML = gapsHtml;
+  var phases = "<li><b>Weeks 1 to 2, prep:</b> confirm the four gates, name the champions, book the training, send the announcement, set the cost ceiling alert.</li>";
+  phases += "<li><b>Weeks 3 to 4, wave 1:</b> champions and pilot users go live, review every flagged answer, fix what the pilot missed.</li>";
+  if(r.waves[1] > 0){phases += "<li><b>Weeks " + w2Start + " to " + w2End + ", wave 2:</b> " + fmt(r.waves[1]) + " early team members join, champions answer questions in the room, review stays inside capacity.</li>";}
+  if(r.waves[2] > 0){phases += "<li><b>Weeks " + w3Start + " to " + w3End + ", wave 3:</b> the remaining " + fmt(r.waves[2]) + " join, the support channel takes the questions, and the first month is measured against the success number.</li>";}
+  $("phasesList").innerHTML = phases;
+  document.querySelector(".result .cta").innerHTML = "<b>What to do next:</b> email Janaki with your rollout size, your score of " + r.scores.total + " out of 100, and your verdict, " + r.verdict.toLowerCase() + ", and she will tell you what to fix first. <a href=\"mailto:gjanaki360@gmail.com?subject=AI%20assistant%20rollout%20plan\">Email Janaki &rarr;</a> or <a href=\"https://janakigattu.github.io/#book\">book a session &rarr;</a>";
+}
+$("planBtn").addEventListener("click", render);
+["preset-small", "preset-dept", "preset-regulated", "preset-clear"].forEach(function(id){
+  $(id).addEventListener("click", function(){
+    document.querySelectorAll(".preset").forEach(function(b){b.classList.remove("active");});
+    $(id).classList.add("active");
+    setInputs(PRESETS[id.replace("preset-", "")]);
+    render();
+  });
+});
+</script>
+</body>
+</html>
