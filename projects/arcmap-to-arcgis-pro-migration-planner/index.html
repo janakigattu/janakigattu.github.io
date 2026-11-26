@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArcMap to ArcGIS Pro Migration Planner: count the move before the renewal date counts it for you, by Janaki Gattu</title>
+<meta name="description" content="A working ArcMap to ArcGIS Pro Migration Planner by Janaki Gattu. Enter your MXDs, scripts, custom tools, and services, and get a phased migration plan with a person-day estimate, compatibility flags, and a printable checklist. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 6px}
+  h2:first-child{margin-top:0}
+  .secnote{color:var(--muted);margin-bottom:16px}
+  .presets{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+  .preset{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:10px 18px;color:var(--text);cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700}
+  .preset:hover{border-color:var(--accent)}
+  .preset.active{border-color:var(--accent);background:#052e16}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .field{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .field label{display:block;font-weight:700;font-size:1rem;margin-bottom:2px}
+  .field .hint{color:var(--muted);font-size:.88rem;margin-bottom:10px}
+  .field .hint b{color:#d4d4d4}
+  .field input,.field select{width:100%;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:8px;padding:10px 12px;font-size:1rem;font-family:inherit}
+  .field input:focus,.field select:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+  .field .rate{color:var(--faint);font-size:.85rem;margin-top:8px}
+  .checks{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .checks p{font-weight:700;font-size:1rem;margin-bottom:2px}
+  .checks .hint{color:var(--muted);font-size:.88rem;margin-bottom:10px}
+  .check{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--line);color:#d4d4d4;cursor:pointer}
+  .check:first-of-type{border-top:0}
+  .check input{margin-top:4px;accent-color:var(--accent);width:16px;height:16px;flex:none}
+  .actions{margin-top:26px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer}
+  .btn-dark{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a;border:0;cursor:pointer}
+  .btn-outline{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;border:1px solid #525252;color:var(--text);background:none;cursor:pointer}
+  .result{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px;margin-top:28px}
+  .result h2{margin-top:0}
+  .pill{display:inline-block;font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:6px}
+  .pill.green{background:#14532d;color:#bbf7d0}
+  .pill.amber{background:#451a03;color:#fde68a}
+  .pill.red{background:#450a0a;color:#fecaca}
+  .big{font-size:2.2rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+  .big small{font-size:1rem;color:var(--muted);font-weight:600}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:18px 0 6px}
+  .stat{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .stat .k{color:var(--faint);font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .stat .v{font-size:1.35rem;font-weight:800;margin-top:2px}
+  .stat .s{color:var(--muted);font-size:.88rem}
+  table{width:100%;border-collapse:collapse;margin-top:14px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);font-size:.95rem}
+  th{color:var(--faint);text-transform:uppercase;letter-spacing:.06em;font-size:.8rem}
+  td.num,th.num{text-align:right;white-space:nowrap}
+  tr.top td{color:#fff;font-weight:700}
+  .driver{color:var(--amber);font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+  .result h3{margin:24px 0 8px;font-size:1.1rem}
+  .result p{color:var(--muted)}
+  .result ul,.result ol{margin-left:20px;color:#d4d4d4}
+  .result li{margin-bottom:6px}
+  .result .cta{margin-top:24px}
+  .warn{margin-top:16px;background:#450a0a;border:1px solid #7f1d1d;border-radius:12px;padding:14px 18px;color:#fecaca;font-size:.95rem}
+  .warn b{color:#fff}
+  .flag{border-left:3px solid var(--amber);padding:10px 14px;margin:10px 0;background:var(--bg2);border-radius:0 8px 8px 0}
+  .flag b{color:#fff}
+  .flag p{color:var(--muted)}
+  .checklist label{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--line);color:#d4d4d4;cursor:pointer}
+  .checklist label:first-of-type{border-top:0}
+  .checklist input{margin-top:4px;accent-color:var(--accent);width:16px;height:16px;flex:none}
+  .sources{margin-top:26px;border-top:1px solid var(--line);padding-top:18px}
+  .sources p{font-size:.92rem}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+  @media print{
+    body{background:#fff;color:#000}
+    .noprint{display:none !important}
+    .result,.field,.stat,.checks{background:#fff;border-color:#ccc;color:#000}
+    .result p,.secnote,.lede{color:#333}
+    a{color:#000}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu&rsquo;s portfolio</a>
+    <p class="eyebrow">Working planner &middot; Live demo</p>
+    <h1>ArcMap to ArcGIS Pro Migration Planner</h1>
+    <p class="lede">ArcMap retired on March 1, 2026, and the maps, scripts, and custom tools built on it did not retire with it. <b>Count what you have, price the move, and plan it before the renewal date does it for you.</b> Enter your ArcMap estate below and this planner builds a phased migration plan with a person-day estimate, the compatibility flags that set the schedule, and a checklist you can print.</p>
+    <p class="honest"><b>How this planner works, honestly:</b> it runs entirely in your browser. There is no server, no API key, no account, and nothing you enter leaves this page. The compatibility rules come from Esri&rsquo;s published migration guidance, checked 25 November 2026. The effort numbers are planning ranges from typical migration work, not a quote and not Esri&rsquo;s numbers, so treat them as the size of the job, not the price of it.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <h2>Start from a preset, or enter your own numbers</h2>
+    <p class="secnote">The presets are typical ArcMap estates, not promises. Change any number and the plan follows.</p>
+    <div class="presets noprint">
+      <button type="button" class="preset active" id="presetSmall">Small team</button>
+      <button type="button" class="preset" id="presetMid">Mid-size department</button>
+      <button type="button" class="preset" id="presetLarge">Large enterprise</button>
+      <button type="button" class="preset" id="presetClear">Clear all</button>
+    </div>
+
+    <h2>What you have in ArcMap</h2>
+    <p class="secnote">Counts, not guesses. If you do not know a number yet, put your best estimate and refine it after Phase 0, the inventory.</p>
+    <div class="grid">
+      <div class="field">
+        <label for="mxdCount">Map documents (.mxd files)</label>
+        <p class="hint">Every .mxd, .sxd, and .3dd your team still opens. Include the ones in shared drives.</p>
+        <input type="number" id="mxdCount" min="0" step="1" value="20">
+        <p class="rate">Conversion is priced per map, by complexity below</p>
+      </div>
+      <div class="field">
+        <label for="mapComplexity">Map complexity</label>
+        <p class="hint">How hard are the maps to rebuild? Data driven pages, annotation, and custom symbology push a map toward complex.</p>
+        <select id="mapComplexity">
+          <option value="simple">Mostly simple maps</option>
+          <option value="mixed" selected>Mixed, some simple and some complex</option>
+          <option value="complex">Mostly complex maps</option>
+        </select>
+        <p class="rate">Simple 0.25 to 0.5 days per map, mixed 0.5 to 1, complex 1 to 2</p>
+      </div>
+      <div class="field">
+        <label for="scriptCount">Python 2 scripts</label>
+        <p class="hint">Standalone scripts and script tools written for ArcMap. ArcMap uses Python 2.7, Pro uses Python 3.</p>
+        <input type="number" id="scriptCount" min="0" step="1" value="5">
+        <p class="rate">0.5 to 1.5 days per script, 2to3 plus arcpy.mapping to arcpy.mp plus testing</p>
+      </div>
+      <div class="field">
+        <label for="modelCount">ModelBuilder models</label>
+        <p class="hint">Models in toolboxes that still run in ArcMap, including models inside script tools.</p>
+        <input type="number" id="modelCount" min="0" step="1" value="2">
+        <p class="rate">0.25 to 0.75 days per model, rebuild and retest in Pro</p>
+      </div>
+      <div class="field">
+        <label for="toolCount">Custom .NET add-ins and ArcObjects tools</label>
+        <p class="hint">Add-ins and custom tools written against ArcMap. These do not run in Pro at all and must be rebuilt.</p>
+        <input type="number" id="toolCount" min="0" step="1" value="0">
+        <p class="rate">3 to 8 days per tool, rebuild with the ArcGIS Pro SDK</p>
+      </div>
+      <div class="field">
+        <label for="serviceCount">Map services published from ArcMap</label>
+        <p class="hint">Services on ArcGIS Server that were published from ArcMap documents and still serve maps or data.</p>
+        <input type="number" id="serviceCount" min="0" step="1" value="3">
+        <p class="rate">0.5 to 1 day per service, republish from Pro and validate</p>
+      </div>
+      <div class="field">
+        <label for="userCount">ArcGIS Pro users to train</label>
+        <p class="hint">Everyone who opens ArcMap today and will open Pro tomorrow, including occasional users.</p>
+        <input type="number" id="userCount" min="0" step="1" value="8">
+        <p class="rate">2 to 3 days of sessions and materials, plus 0.1 to 0.25 days of desk-side help per user</p>
+      </div>
+      <div class="field">
+        <label for="arcmapVersion">Current ArcMap version</label>
+        <p class="hint">The version on the desktops today. Older versions carry more surprises in the inventory.</p>
+        <select id="arcmapVersion">
+          <option value="10.8.2" selected>10.8.2, the final release</option>
+          <option value="10.8.1">10.8.1</option>
+          <option value="10.7">10.7 or earlier</option>
+          <option value="unknown">Not sure</option>
+        </select>
+        <p class="rate">ArcGIS Desktop 10.8.2 was the final release of ArcMap</p>
+      </div>
+      <div class="field">
+        <label for="licenseType">ArcGIS Desktop licence type</label>
+        <p class="hint">This sets the deadline. Subscription access to ArcMap ends when the subscription expires.</p>
+        <select id="licenseType">
+          <option value="subscription" selected>Subscription licence</option>
+          <option value="perpetual">Perpetual licence, on maintenance</option>
+          <option value="unknown">Not sure</option>
+        </select>
+        <p class="rate">ArcMap retired March 1, 2026. Maintenance is no longer quoted.</p>
+      </div>
+    </div>
+
+    <h2>Known blockers</h2>
+    <p class="secnote">Tick anything your estate contains. Each one changes the plan, and the plan names the fix for each.</p>
+    <div class="checks">
+      <p>Data and tools that do not move cleanly to Pro</p>
+      <p class="hint">Leave them all unticked if you are not sure. Phase 0, the inventory, finds them with Analyze Tools For Pro.</p>
+      <label class="check"><input type="checkbox" id="blockPersonal"> <span><b>Personal geodatabases (.mdb)</b> - not supported in ArcGIS Pro.</span></label>
+      <label class="check"><input type="checkbox" id="blockGeometric"> <span><b>Geometric networks</b> - must be converted to trace networks in Pro.</span></label>
+      <label class="check"><input type="checkbox" id="blockExtensions"> <span><b>ArcMap-based extensions</b> - for example Data Reviewer classic, or other extensions that retire with ArcMap.</span></label>
+      <label class="check"><input type="checkbox" id="blockVb"> <span><b>VB expressions in Calculate Field</b> - not supported in Pro.</span></label>
+      <label class="check"><input type="checkbox" id="blockScenes"> <span><b>ArcScene or ArcGlobe documents (.sxd, .3dd)</b> - 3D documents that import as Pro scenes.</span></label>
+    </div>
+
+    <div class="actions noprint">
+      <button type="button" class="btn" id="buildBtn">Build my migration plan</button>
+      <button type="button" class="btn-outline" id="printBtn">Print my plan</button>
+    </div>
+
+    <div class="result" id="result" hidden>
+      <p class="pill green" id="verdictPill">Straightforward</p>
+      <h2 id="verdictTitle">Your migration plan</h2>
+      <p class="big"><span id="totalDays">0</span> <small>person-days, planning range</small></p>
+      <div class="stats">
+        <div class="stat"><div class="k">Calendar, one person</div><div class="v" id="weeksOne">0 weeks</div><div class="s">Five working days a week, no other duties</div></div>
+        <div class="stat"><div class="k">Calendar, team of three</div><div class="v" id="weeksThree">0 weeks</div><div class="s">Roughly a third of the one-person time</div></div>
+        <div class="stat"><div class="k">Biggest workstream</div><div class="v" id="driverName" style="font-size:1.05rem">Maps</div><div class="s" id="driverNote">Where most of the effort sits</div></div>
+      </div>
+      <div class="warn" id="retireWarn" hidden><b>ArcMap is retired.</b> <span id="retireText"></span></div>
+      <h3>Effort by workstream</h3>
+      <table>
+        <thead><tr><th>Workstream</th><th class="num">Low, days</th><th class="num">High, days</th><th></th></tr></thead>
+        <tbody id="rowsBody"></tbody>
+      </table>
+      <h3>Compatibility flags</h3>
+      <div id="flagsBox"></div>
+      <h3>The two fixes that cut the effort fastest</h3>
+      <ol id="cutsList"></ol>
+      <h3>Your phased plan</h3>
+      <ol id="phasesList"></ol>
+      <h3>Checklist, print this page and tick it off</h3>
+      <div class="checklist" id="checklistBox"></div>
+      <div class="cta">
+        <p><b>What to do next:</b> run Phase 0 first. Install ArcGIS Pro, run Analyze Tools For Pro over your maps and toolboxes, and bring the report to the conversation. If you would rather have someone who has done this run the migration, email Janaki with your total person-days and your biggest workstream.</p>
+        <p style="margin-top:12px"><a class="btn" id="emailCta" href="mailto:gjanaki360@gmail.com?subject=ArcMap%20to%20ArcGIS%20Pro%20migration%20plan">Email Janaki my plan</a>
+        <a class="btn-dark" href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Connect on LinkedIn</a></p>
+      </div>
+      <div class="sources">
+        <p><b>Sources:</b> <a href="https://support.esri.com/en-us/knowledge-base/deprecation-arcgis-desktop-000032677" target="_blank" rel="noopener">ArcGIS Desktop retirement, Esri Support</a> &middot; <a href="https://www.esri.com/en-us/arcgis/products/arcgis-desktop/overview" target="_blank" rel="noopener">ArcGIS Desktop retirement, plan your migration, Esri</a> &middot; <a href="https://doc.esri.com/en/arcgis-pro/latest/get-started/migrate-existing-work.html" target="_blank" rel="noopener">Migrate existing work, ArcGIS Pro documentation</a> &middot; <a href="https://support.esri.com/en-us/knowledge-base/automating-map-documents-mxd-to-arcgis-pro-projects-apr-000033590" target="_blank" rel="noopener">Automate conversion of ArcMap MXDs to ArcGIS Pro projects, Esri Support</a>. Effort ranges are planning estimates from typical migration work, not Esri figures.</p>
+      </div>
+    </div>
+
+  </div>
+</main>
+<footer>
+  <div class="wrap">
+    <p>Built by <a href="https://janakigattu.github.io/">Janaki Gattu</a>, Enterprise GIS Consultant and GIS Solutions Architect. <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">LinkedIn</a> &middot; <a href="https://github.com/janakigattu" target="_blank" rel="noopener">GitHub</a> &middot; <a href="mailto:gjanaki360@gmail.com">gjanaki360@gmail.com</a></p>
+  </div>
+</footer>
+<script>
+// --- PURE LOGIC (tested in Node) ---
+var MAP_RATES = {simple: [0.25, 0.5], mixed: [0.5, 1], complex: [1, 2]};
+var SCRIPT_RATE = [0.5, 1.5];
+var MODEL_RATE = [0.25, 0.75];
+var TOOL_RATE = [3, 8];
+var SERVICE_RATE = [0.5, 1];
+var TRAIN_FIXED = [2, 3];
+var TRAIN_PER_USER = [0.1, 0.25];
+var CUTOVER = [2, 3];
+var VALIDATION_PCT = 0.15;
+
+function round1(x) { return Math.round(x * 10) / 10; }
+
+function computePlan(inp) {
+  var mxd = Math.max(0, Math.floor(inp.mxd || 0));
+  var scripts = Math.max(0, Math.floor(inp.scripts || 0));
+  var models = Math.max(0, Math.floor(inp.models || 0));
+  var tools = Math.max(0, Math.floor(inp.tools || 0));
+  var services = Math.max(0, Math.floor(inp.services || 0));
+  var users = Math.max(0, Math.floor(inp.users || 0));
+  var mapRate = MAP_RATES[inp.complexity] || MAP_RATES.mixed;
+  var blockers = inp.blockers || [];
+  var rows = [];
+  function add(name, low, high) {
+    rows.push({name: name, low: round1(low), high: round1(high)});
+  }
+  add("Inventory: Analyze Tools For Pro, catalog every map, script, and tool", 2 + Math.floor(mxd / 100), 4 + Math.floor(mxd / 50));
+  add("Map conversion: import MXDs to Pro projects", mxd * mapRate[0], mxd * mapRate[1]);
+  add("Python scripts: Python 2 to Python 3, arcpy.mapping to arcpy.mp", scripts * SCRIPT_RATE[0], scripts * SCRIPT_RATE[1]);
+  add("ModelBuilder models: rebuild and retest in Pro", models * MODEL_RATE[0], models * MODEL_RATE[1]);
+  add("Custom .NET tools: rebuild with the ArcGIS Pro SDK", tools * TOOL_RATE[0], tools * TOOL_RATE[1]);
+  add("Map services: republish from Pro and validate", services * SERVICE_RATE[0], services * SERVICE_RATE[1]);
+  add("Training: sessions and materials, plus desk-side help", TRAIN_FIXED[0] + users * TRAIN_PER_USER[0], TRAIN_FIXED[1] + users * TRAIN_PER_USER[1]);
+  var convLow = mxd * mapRate[0] + scripts * SCRIPT_RATE[0] + models * MODEL_RATE[0] + tools * TOOL_RATE[0] + services * SERVICE_RATE[0];
+  var convHigh = mxd * mapRate[1] + scripts * SCRIPT_RATE[1] + models * MODEL_RATE[1] + tools * TOOL_RATE[1] + services * SERVICE_RATE[1];
+  add("Validation: side-by-side checks on converted maps and outputs", convLow * VALIDATION_PCT, convHigh * VALIDATION_PCT);
+  add("Cutover and ArcMap retirement", CUTOVER[0], CUTOVER[1]);
+  var totalLow = 0, totalHigh = 0, driver = null, driverHigh = -1;
+  rows.forEach(function(r) {
+    totalLow += r.low;
+    totalHigh += r.high;
+    if (r.high > driverHigh) { driverHigh = r.high; driver = r; }
+  });
+  totalLow = round1(totalLow);
+  totalHigh = round1(totalHigh);
+  var weeksOneLow = Math.max(1, Math.round(totalLow / 5));
+  var weeksOneHigh = Math.max(1, Math.round(totalHigh / 5));
+  var weeksThreeLow = Math.max(1, Math.round(totalLow / 15));
+  var weeksThreeHigh = Math.max(1, Math.round(totalHigh / 15));
+  var verdict, verdictClass, verdictText;
+  if (tools === 0 && blockers.length === 0) {
+    verdict = "Straightforward";
+    verdictClass = "green";
+    verdictText = "No custom tools and no data blockers. This is mostly import, convert, and validate, and the pilot will confirm the pace.";
+  } else if (tools <= 2 && blockers.length <= 2) {
+    verdict = "Tight but doable";
+    verdictClass = "amber";
+    verdictText = "A few things need rebuilding, and the custom tools and blockers set the schedule. Run the pilot on the hardest map and the most-used tool first.";
+  } else {
+    verdict = "Rebuild-first";
+    verdictClass = "red";
+    verdictText = "Custom tools and data blockers dominate this migration. Plan the rebuilds before the conversion, not after, or the converted maps will wait on tools that are not ready.";
+  }
+  var flags = [];
+  if (tools > 0) {
+    flags.push({title: tools + (tools === 1 ? " custom .NET tool" : " custom .NET tools") + " to rebuild", text: "Application-level .NET add-ins written for ArcMap will not run in ArcGIS Pro. Each one is a rebuild with the ArcGIS Pro SDK, and this is usually the longest workstream in the plan."});
+  }
+  if (blockers.indexOf("personal") !== -1) {
+    flags.push({title: "Personal geodatabases", text: "Personal geodatabases (.mdb) are not supported in ArcGIS Pro. Move the data to a file geodatabase before the maps that read it are converted."});
+  }
+  if (blockers.indexOf("geometric") !== -1) {
+    flags.push({title: "Geometric networks", text: "Geometric networks do not migrate to Pro as they are. Convert them to trace networks, and plan that conversion as its own workstream with its own validation."});
+  }
+  if (blockers.indexOf("extensions") !== -1) {
+    flags.push({title: "ArcMap-based extensions", text: "ArcMap-based extensions retire with ArcMap. Check the Pro equivalent for each one, or find another way to do the job, before you promise a date."});
+  }
+  if (blockers.indexOf("vb") !== -1) {
+    flags.push({title: "VB expressions in Calculate Field", text: "Calculate Field does not support VB expressions in Pro. Rewrite the expressions in Python or Arcade, and retest every field they touch."});
+  }
+  if (blockers.indexOf("scenes") !== -1) {
+    flags.push({title: "ArcScene and ArcGlobe documents", text: "ArcScene and ArcGlobe documents import as Pro scenes, but 3D symbology and navigation need a fresh pass after the import."});
+  }
+  if (inp.version === "10.7" || inp.version === "unknown") {
+    flags.push({title: "ArcMap version " + (inp.version === "10.7" ? "10.7 or earlier" : "unknown"), text: "Run Analyze Tools For Pro first. Older versions carry more surprises, and some data and tools may need an interim step before they import cleanly."});
+  }
+  if (scripts > 0) {
+    flags.push({title: scripts + (scripts === 1 ? " Python 2 script" : " Python 2 scripts") + " to migrate", text: "ArcMap uses Python 2.7 and Pro uses Python 3. Run the 2to3 utility, replace arcpy.mapping with arcpy.mp, and test every script against real data."});
+  }
+  if (models > 0 && inp.version !== "10.8.2") {
+    flags.push({title: "ModelBuilder models need a retest", text: "Once a model is edited and saved in Pro it cannot be used in ArcMap again. Keep a copy of every toolbox until the migration is validated."});
+  }
+  var cuts = [];
+  if (mxd >= 10) {
+    cuts.push("Consolidate MXDs before converting. Esri's own advice is to combine maps by topic, geography, or purpose, and every map you retire is conversion work you never do.");
+  }
+  if (mxd >= 5) {
+    cuts.push("Batch the conversion. The arcpy importDocument script converts a folder of MXDs to APRX files without opening each one by hand.");
+  }
+  if (scripts >= 5) {
+    cuts.push("Run 2to3 across the whole script library first, then fix the common arcpy.mapping to arcpy.mp patterns once, not once per script.");
+  }
+  if (tools >= 1) {
+    cuts.push("Rebuild the most-used custom tool first as the pilot, and retire the tools nobody has opened in a year. A tool nobody uses costs nothing to drop.");
+  }
+  if (users >= 10) {
+    cuts.push("Train in groups by workflow, not one user at a time, and record the sessions so the next hire watches the recording instead of asking for the same hour.");
+  }
+  if (cuts.length === 0) {
+    cuts.push("Batch the conversion. The arcpy importDocument script converts a folder of MXDs to APRX files without opening each one by hand.");
+    cuts.push("Run 2to3 across the whole script library first, then fix the common arcpy.mapping to arcpy.mp patterns once, not once per script.");
+  }
+  var pilotMaps = Math.min(10, Math.max(5, Math.ceil(mxd * 0.05)));
+  var phases = [
+    {t: "Phase 0: Inventory", d: "Install ArcGIS Pro, run Analyze Tools For Pro over every MXD, toolbox, and script, and log every blocker. " + mxd + " maps, " + scripts + " scripts, " + models + " models, " + tools + " custom tools, " + services + " services. Nothing is promised until this report exists."},
+    {t: "Phase 1: Pilot", d: "Convert " + pilotMaps + " representative maps, including the hardest one, plus one or two scripts. Validate the outputs side by side with ArcMap. The pilot sets the real pace for the rest of the plan."},
+    {t: "Phase 2: Convert", d: "Batch-import the MXDs with the arcpy script, rebuild the models, and migrate the Python library with 2to3 and arcpy.mp. Convert in batches by team or by topic, and validate each batch before starting the next."},
+    {t: "Phase 3: Rebuild", d: "Rebuild the custom .NET tools with the ArcGIS Pro SDK, republish the map services from Pro, and convert any geometric networks to trace networks. This is the phase that sets the finish date."},
+    {t: "Phase 4: Validate", d: "Side-by-side checks on converted maps and outputs, user acceptance on the pilot set, and a sign-off per team. A map is done when its owner says the Pro version matches the ArcMap version."},
+    {t: "Phase 5: Train and cut over", d: "Train the " + users + " Pro users by workflow, cut over team by team, and keep ArcMap read-only during the cutover so nobody edits in two places."},
+    {t: "Phase 6: Retire ArcMap", d: "Remove ArcMap from the desktops, archive the MXDs and the old toolboxes, and close the project. The retirement is the point: no more unsupported software on the network."}
+  ];
+  var checklist = [
+    "Phase 0: Analyze Tools For Pro report saved and reviewed",
+    "Phase 0: every blocker named, with an owner and a fix",
+    "Phase 0: licence position confirmed, renewal date on the calendar",
+    "Phase 1: pilot maps converted and validated side by side",
+    "Phase 1: pilot pace recorded, plan re-estimated from real numbers",
+    "Phase 2: MXDs batch-converted, batch by batch",
+    "Phase 2: Python library migrated, every script tested on real data",
+    "Phase 2: models rebuilt and retested in Pro",
+    "Phase 3: custom tools rebuilt with the Pro SDK",
+    "Phase 3: map services republished from Pro and validated",
+    "Phase 4: user acceptance signed off per team",
+    "Phase 5: training delivered, sessions recorded",
+    "Phase 5: cutover complete, ArcMap read-only",
+    "Phase 6: ArcMap removed, MXDs and toolboxes archived"
+  ];
+  return {
+    rows: rows, totalLow: totalLow, totalHigh: totalHigh,
+    weeksOneLow: weeksOneLow, weeksOneHigh: weeksOneHigh,
+    weeksThreeLow: weeksThreeLow, weeksThreeHigh: weeksThreeHigh,
+    driver: driver, verdict: verdict, verdictClass: verdictClass, verdictText: verdictText,
+    flags: flags, cuts: cuts.slice(0, 2), phases: phases, checklist: checklist
+  };
+}
+// --- END PURE LOGIC ---
+
+function readInputs() {
+  function num(id) {
+    var v = parseInt(document.getElementById(id).value, 10);
+    return isNaN(v) ? 0 : Math.max(0, v);
+  }
+  var blockers = [];
+  if (document.getElementById("blockPersonal").checked) blockers.push("personal");
+  if (document.getElementById("blockGeometric").checked) blockers.push("geometric");
+  if (document.getElementById("blockExtensions").checked) blockers.push("extensions");
+  if (document.getElementById("blockVb").checked) blockers.push("vb");
+  if (document.getElementById("blockScenes").checked) blockers.push("scenes");
+  return {
+    mxd: num("mxdCount"), complexity: document.getElementById("mapComplexity").value,
+    scripts: num("scriptCount"), models: num("modelCount"), tools: num("toolCount"),
+    services: num("serviceCount"), users: num("userCount"),
+    version: document.getElementById("arcmapVersion").value,
+    license: document.getElementById("licenseType").value,
+    blockers: blockers
+  };
+}
+
+function build() {
+  var inp = readInputs();
+  var p = computePlan(inp);
+  var res = document.getElementById("result");
+  res.hidden = false;
+  var pill = document.getElementById("verdictPill");
+  pill.textContent = p.verdict;
+  pill.className = "pill " + p.verdictClass;
+  document.getElementById("verdictTitle").textContent = p.verdictText;
+  document.getElementById("totalDays").textContent = p.totalLow + " to " + p.totalHigh;
+  document.getElementById("weeksOne").textContent = p.weeksOneLow + " to " + p.weeksOneHigh + " weeks";
+  document.getElementById("weeksThree").textContent = p.weeksThreeLow + " to " + p.weeksThreeHigh + " weeks";
+  document.getElementById("driverName").textContent = p.driver.name.split(":")[0];
+  document.getElementById("driverNote").textContent = p.driver.low + " to " + p.driver.high + " days, the largest share of the plan";
+  var warn = document.getElementById("retireWarn");
+  if (inp.license === "subscription") {
+    warn.hidden = false;
+    document.getElementById("retireText").textContent = "With a subscription licence, access to ArcMap ends when the subscription expires, and Esri no longer quotes ArcGIS Desktop maintenance. The renewal date sets the deadline for this migration, not the project plan.";
+  } else if (inp.license === "perpetual") {
+    warn.hidden = false;
+    document.getElementById("retireText").textContent = "With a perpetual licence you can keep running ArcMap while you migrate, but there are no patches, no hot fixes, and no support since March 1, 2026. Every month on ArcMap is a month without a safety net.";
+  } else {
+    warn.hidden = true;
+  }
+  var body = document.getElementById("rowsBody");
+  body.innerHTML = "";
+  p.rows.forEach(function(r) {
+    var tr = document.createElement("tr");
+    if (r === p.driver) tr.className = "top";
+    var td1 = document.createElement("td");
+    td1.textContent = r.name;
+    if (r === p.driver) {
+      var s = document.createElement("span");
+      s.className = "driver";
+      s.textContent = " Biggest driver";
+      td1.appendChild(s);
+    }
+    var td2 = document.createElement("td"); td2.className = "num"; td2.textContent = r.low;
+    var td3 = document.createElement("td"); td3.className = "num"; td3.textContent = r.high;
+    var td4 = document.createElement("td"); td4.className = "num"; td4.textContent = "";
+    tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3); tr.appendChild(td4);
+    body.appendChild(tr);
+  });
+  var tr = document.createElement("tr");
+  tr.className = "top";
+  var t1 = document.createElement("td"); t1.textContent = "Total";
+  var t2 = document.createElement("td"); t2.className = "num"; t2.textContent = p.totalLow;
+  var t3 = document.createElement("td"); t3.className = "num"; t3.textContent = p.totalHigh;
+  var t4 = document.createElement("td"); t4.className = "num"; t4.textContent = "";
+  tr.appendChild(t1); tr.appendChild(t2); tr.appendChild(t3); tr.appendChild(t4);
+  body.appendChild(tr);
+  var flagsBox = document.getElementById("flagsBox");
+  flagsBox.innerHTML = "";
+  if (p.flags.length === 0) {
+    var none = document.createElement("p");
+    none.textContent = "No compatibility flags from your answers. Phase 0, the inventory, may still find some, so treat this as a clean start, not a clean bill of health.";
+    flagsBox.appendChild(none);
+  } else {
+    p.flags.forEach(function(f) {
+      var d = document.createElement("div");
+      d.className = "flag";
+      var b = document.createElement("b"); b.textContent = f.title;
+      var pp = document.createElement("p"); pp.textContent = f.text;
+      d.appendChild(b); d.appendChild(pp);
+      flagsBox.appendChild(d);
+    });
+  }
+  var cuts = document.getElementById("cutsList");
+  cuts.innerHTML = "";
+  p.cuts.forEach(function(c) {
+    var li = document.createElement("li"); li.textContent = c; cuts.appendChild(li);
+  });
+  var phases = document.getElementById("phasesList");
+  phases.innerHTML = "";
+  p.phases.forEach(function(ph) {
+    var li = document.createElement("li");
+    var b = document.createElement("b"); b.textContent = ph.t + ". ";
+    li.appendChild(b);
+    li.appendChild(document.createTextNode(ph.d));
+    phases.appendChild(li);
+  });
+  var cl = document.getElementById("checklistBox");
+  cl.innerHTML = "";
+  p.checklist.forEach(function(item) {
+    var lab = document.createElement("label");
+    var cb = document.createElement("input"); cb.type = "checkbox";
+    lab.appendChild(cb);
+    lab.appendChild(document.createTextNode(item));
+    cl.appendChild(lab);
+  });
+  var subj = "ArcMap to ArcGIS Pro migration plan: " + p.totalLow + " to " + p.totalHigh + " person-days";
+  var bodyText = "Hi Janaki,%0A%0AMy ArcMap to ArcGIS Pro migration plan totals " + p.totalLow + " to " + p.totalHigh + " person-days. The biggest workstream is " + encodeURIComponent(p.driver.name.split(":")[0]) + ".%0A%0ACan we talk through the plan?";
+  document.getElementById("emailCta").href = "mailto:gjanaki360@gmail.com?subject=" + encodeURIComponent(subj) + "&body=" + bodyText;
+}
+
+var PRESETS = {
+  small: {mxd: 20, complexity: "mixed", scripts: 5, models: 2, tools: 0, services: 3, users: 8, version: "10.8.2", license: "subscription", blockers: []},
+  mid: {mxd: 120, complexity: "mixed", scripts: 25, models: 10, tools: 2, services: 15, users: 25, version: "10.8.1", license: "perpetual", blockers: ["personal", "vb"]},
+  large: {mxd: 500, complexity: "complex", scripts: 80, models: 40, tools: 6, services: 60, users: 80, version: "10.7", license: "subscription", blockers: ["personal", "geometric", "extensions", "vb", "scenes"]}
+};
+
+function applyPreset(name) {
+  var pr = PRESETS[name];
+  if (!pr) return;
+  document.getElementById("mxdCount").value = pr.mxd;
+  document.getElementById("mapComplexity").value = pr.complexity;
+  document.getElementById("scriptCount").value = pr.scripts;
+  document.getElementById("modelCount").value = pr.models;
+  document.getElementById("toolCount").value = pr.tools;
+  document.getElementById("serviceCount").value = pr.services;
+  document.getElementById("userCount").value = pr.users;
+  document.getElementById("arcmapVersion").value = pr.version;
+  document.getElementById("licenseType").value = pr.license;
+  document.getElementById("blockPersonal").checked = pr.blockers.indexOf("personal") !== -1;
+  document.getElementById("blockGeometric").checked = pr.blockers.indexOf("geometric") !== -1;
+  document.getElementById("blockExtensions").checked = pr.blockers.indexOf("extensions") !== -1;
+  document.getElementById("blockVb").checked = pr.blockers.indexOf("vb") !== -1;
+  document.getElementById("blockScenes").checked = pr.blockers.indexOf("scenes") !== -1;
+  build();
+}
+
+function setActivePreset(id) {
+  document.querySelectorAll(".preset").forEach(function(b) { b.classList.remove("active"); });
+  var el = document.getElementById(id);
+  if (el) el.classList.add("active");
+}
+
+document.getElementById("presetSmall").addEventListener("click", function() { setActivePreset("presetSmall"); applyPreset("small"); });
+document.getElementById("presetMid").addEventListener("click", function() { setActivePreset("presetMid"); applyPreset("mid"); });
+document.getElementById("presetLarge").addEventListener("click", function() { setActivePreset("presetLarge"); applyPreset("large"); });
+document.getElementById("presetClear").addEventListener("click", function() {
+  setActivePreset("presetClear");
+  document.getElementById("mxdCount").value = 0;
+  document.getElementById("mapComplexity").value = "mixed";
+  document.getElementById("scriptCount").value = 0;
+  document.getElementById("modelCount").value = 0;
+  document.getElementById("toolCount").value = 0;
+  document.getElementById("serviceCount").value = 0;
+  document.getElementById("userCount").value = 0;
+  document.getElementById("arcmapVersion").value = "10.8.2";
+  document.getElementById("licenseType").value = "subscription";
+  document.querySelectorAll(".checks input").forEach(function(c) { c.checked = false; });
+  build();
+});
+document.getElementById("buildBtn").addEventListener("click", function() { setActivePreset(""); build(); });
+document.getElementById("printBtn").addEventListener("click", function() { build(); window.print(); });
+build();
+</script>
+</body>
+</html>
