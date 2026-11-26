@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Field Data Collection Planner: plan the offline maps, the sync, and the QA before the crew leaves, by Janaki Gattu</title>
+<meta name="description" content="A working Field Data Collection Planner by Janaki Gattu. Size a Field Maps and Survey123 deployment, get a readiness score, an offline area and sync plan, a setup estimate in person-days, and a printable checklist. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 6px}
+  h2:first-child{margin-top:0}
+  .secnote{color:var(--muted);margin-bottom:16px}
+  .presets{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+  .preset{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:10px 18px;color:var(--text);cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700}
+  .preset:hover{border-color:var(--accent)}
+  .preset.active{border-color:var(--accent);background:#052e16}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .field{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .field label{display:block;font-weight:700;font-size:1rem;margin-bottom:2px}
+  .field .hint{color:var(--muted);font-size:.88rem;margin-bottom:10px}
+  .field .hint b{color:#d4d4d4}
+  .field input,.field select{width:100%;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:8px;padding:10px 12px;font-size:1rem;font-family:inherit}
+  .field input:focus,.field select:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+  .field .rate{color:var(--faint);font-size:.85rem;margin-top:8px}
+  .checks{display:flex;flex-direction:column;gap:10px}
+  .check{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer}
+  .check input{margin-top:4px;accent-color:var(--accent);width:18px;height:18px;flex-shrink:0}
+  .check b{display:block;font-size:1rem}
+  .check span{color:var(--muted);font-size:.9rem}
+  .radios{display:flex;flex-wrap:wrap;gap:10px}
+  .radio{flex:1;min-width:140px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;text-align:left;color:var(--text);font-family:inherit}
+  .radio b{display:block;font-size:1rem}
+  .radio span{color:var(--muted);font-size:.88rem}
+  .radio.selected{border-color:var(--accent);background:#052e16}
+  .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+  .btn{background:var(--accent);color:#052e16;border:none;border-radius:999px;padding:13px 26px;font-size:1rem;font-weight:800;cursor:pointer;font-family:inherit}
+  .btn:hover{background:#86efac}
+  .btn-dark{background:transparent;color:var(--text);border:1px solid var(--line);border-radius:999px;padding:13px 26px;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-block}
+  .btn-dark:hover{border-color:var(--accent)}
+  #result{display:none;margin-top:34px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:24px 26px}
+  #result h2{margin-top:0}
+  #result h3{font-size:1.1rem;margin:26px 0 8px}
+  #result p{color:var(--muted);margin-bottom:10px}
+  #result p b,#result li b{color:#d4d4d4}
+  .pill{display:inline-block;border-radius:999px;padding:4px 14px;font-weight:800;font-size:.9rem;margin:6px 0 12px}
+  .pill.green{background:#052e16;color:var(--accent)}
+  .pill.amber{background:#451a03;color:var(--amber)}
+  .pill.red{background:#450a0a;color:var(--red)}
+  .big{font-size:2.2rem;font-weight:800;color:var(--text);line-height:1.1;margin:4px 0 14px}
+  .big small{font-size:1rem;font-weight:600;color:var(--muted)}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+  @media (max-width:640px){.stats{grid-template-columns:1fr}}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .stat .k{color:var(--muted);font-size:.88rem;font-weight:700}
+  .stat .v{font-size:1.25rem;font-weight:800;margin:2px 0}
+  .stat .s{color:var(--muted);font-size:.88rem}
+  .scorebar{height:10px;background:var(--line);border-radius:999px;overflow:hidden;margin:8px 0 4px}
+  .scorebar div{height:100%;background:var(--accent)}
+  .scorebar.amber div{background:var(--amber)}
+  .scorebar.red div{background:var(--red)}
+  table{width:100%;border-collapse:collapse;margin:10px 0}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);font-size:.95rem}
+  th{color:var(--muted);font-weight:700}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  tr.top td{font-weight:800}
+  .driver{color:var(--accent);font-size:.85rem;font-weight:700}
+  ul,ol{margin:6px 0 6px 22px;color:var(--muted)}
+  li{margin-bottom:6px}
+  .cta{margin-top:26px;display:flex;flex-wrap:wrap;gap:10px}
+  .sources{margin-top:40px;border-top:1px solid var(--line);padding-top:18px;color:var(--faint);font-size:.88rem}
+  .sources a{color:var(--muted)}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--muted);font-size:.92rem}
+  footer a{color:var(--accent)}
+  @media print{.actions,.cta,.presets,header .back{display:none!important}body{background:#fff;color:#000}#result{display:block!important;border:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu</a>
+  <p class="eyebrow">Field Data Collection Planner</p>
+  <h1>The crew finds out the map does not work offline at the first dead zone, not in the office.</h1>
+  <p class="lede">Plan a Field Maps and Survey123 deployment before anyone leaves: the offline areas, the sync plan, the QA, and the setup effort, from the numbers you already know. <b>Built by Janaki Gattu, Enterprise GIS Consultant.</b></p>
+  <p class="honest"><b>Runs entirely in your browser.</b> Nothing you enter leaves your device. No account, no API key, no upload. Day rates and storage figures are planning rules from practice, labelled as such, not Esri numbers. The Esri facts are cited at the bottom of the page.</p>
+</header>
+<main>
+  <h2>Start with a preset, or fill in your own numbers</h2>
+  <p class="secnote">Three common deployments. Pick the closest one, change what does not fit, and the plan rebuilds itself.</p>
+  <div class="presets">
+    <button class="preset" id="preset-small" type="button">Small inspection crew</button>
+    <button class="preset" id="preset-utility" type="button">Utility asset survey</button>
+    <button class="preset" id="preset-disaster" type="button">Disaster assessment</button>
+    <button class="preset" id="preset-clear" type="button">Clear all</button>
+  </div>
+
+  <h2>The crew and the field days</h2>
+  <div class="grid">
+    <div class="field">
+      <label for="crews">Field workers</label>
+      <p class="hint">People collecting data in the field, each with a device.</p>
+      <input id="crews" type="number" min="0" value="4">
+    </div>
+    <div class="field">
+      <label for="devices">Devices with the areas downloaded</label>
+      <p class="hint">Tablets or phones that will carry the offline areas.</p>
+      <input id="devices" type="number" min="0" value="4">
+    </div>
+    <div class="field">
+      <label for="fieldDays">Days in the field</label>
+      <p class="hint">Collection days for this deployment, not counting the pilot day.</p>
+      <input id="fieldDays" type="number" min="0" value="5">
+    </div>
+    <div class="field">
+      <label for="recordsPerDay">Records per person per day</label>
+      <p class="hint">Assets inspected, observations recorded, or forms completed.</p>
+      <input id="recordsPerDay" type="number" min="0" value="40">
+    </div>
+    <div class="field">
+      <label for="photosPerRecord">Photos per record</label>
+      <p class="hint">Photos are the storage. Count them honestly.</p>
+      <input id="photosPerRecord" type="number" min="0" value="2">
+    </div>
+    <div class="field">
+      <label for="basemapMB">Basemap size per offline area (MB)</label>
+      <p class="hint">The tile package or basemap downloaded with each area.</p>
+      <input id="basemapMB" type="number" min="0" value="150">
+    </div>
+  </div>
+
+  <h2>The maps and forms</h2>
+  <div class="grid">
+    <div class="field">
+      <label for="forms">Survey123 forms</label>
+      <p class="hint">Smart forms the crew fills in, online or offline.</p>
+      <input id="forms" type="number" min="0" value="1">
+    </div>
+    <div class="field">
+      <label for="maps">Field Maps web maps</label>
+      <p class="hint">One map per workflow is the usual shape.</p>
+      <input id="maps" type="number" min="0" value="1">
+    </div>
+    <div class="field">
+      <label for="areasPerMap">Offline areas per map</label>
+      <p class="hint">Areas defined in Field Maps Designer, or on demand in the app.</p>
+      <input id="areasPerMap" type="number" min="0" value="2">
+    </div>
+    <div class="field">
+      <label for="audience">Who collects the data</label>
+      <p class="hint">Staff sign in. The public does not, but the form must be shared publicly.</p>
+      <select id="audience">
+        <option value="staff" selected>Named staff, signed in</option>
+        <option value="public">Public, no sign-in</option>
+      </select>
+    </div>
+  </div>
+
+  <h2>Connectivity in the field</h2>
+  <p class="secnote">This sets the sync plan. Auto-sync runs every 15 minutes while the app is open and connected, and it is on by default.</p>
+  <div class="radios" id="connectivityGroup">
+    <button class="radio" id="conn-good" type="button"><b>Good</b><span>Signal most of the day</span></button>
+    <button class="radio selected" id="conn-spotty" type="button"><b>Spotty</b><span>Signal at some stops only</span></button>
+    <button class="radio" id="conn-none" type="button"><b>None</b><span>Offline for the whole day</span></button>
+  </div>
+
+  <h2>The data behind the map</h2>
+  <p class="secnote">Offline only works if the data is prepared for it. Hosted feature layers are already prepared; enterprise geodatabase data needs sync enabled, a Global ID field, and one versioning model across the whole map.</p>
+  <div class="grid">
+    <div class="field">
+      <label for="dataState">Feature service state</label>
+      <p class="hint">Sync must be enabled on the service before anyone downloads a map.</p>
+      <select id="dataState">
+        <option value="hosted" selected>Hosted feature layer, sync enabled</option>
+        <option value="egdbSync">Enterprise geodatabase, sync enabled</option>
+        <option value="egdbNoSync">Enterprise geodatabase, sync NOT enabled</option>
+        <option value="unsure">Not sure yet</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="versioning">Versioning model</label>
+      <p class="hint">All data in one offline map must use the same model. Mixed models do not sync.</p>
+      <select id="versioning">
+        <option value="nonversioned" selected>Non-versioned, archiving on</option>
+        <option value="traditional">Traditional versioned</option>
+        <option value="branch">Branch versioned</option>
+        <option value="mixed">Mixed, or unknown</option>
+      </select>
+    </div>
+  </div>
+
+  <h2>Ready checks</h2>
+  <p class="secnote">Tick what is already true. Unticked items become flags in your plan.</p>
+  <div class="checks">
+    <label class="check"><input id="chk-reviewer" type="checkbox" checked><span><b>A reviewer is assigned</b><span>Someone posts the synced replica versions and runs the QA checks.</span></span></label>
+    <label class="check"><input id="chk-pilot" type="checkbox" checked><span><b>A pilot day is planned</b><span>One crew, one day, a real area, a real sync, before the full deployment.</span></span></label>
+    <label class="check"><input id="chk-tested" type="checkbox" checked><span><b>Devices tested with the real areas</b><span>The actual map areas downloaded on the actual devices, not a demo map in the office.</span></span></label>
+    <label class="check"><input id="chk-paper" type="checkbox"><span><b>Paper fallback forms are ready</b><span>Printed forms in the truck, so a dead device does not end the day.</span></span></label>
+  </div>
+
+  <div class="actions">
+    <button class="btn" id="calcBtn" type="button">Build my field plan</button>
+    <button class="btn-dark" id="printBtn" type="button">Print plan</button>
+    <button class="btn-dark" id="resetBtn" type="button">Clear all</button>
+  </div>
+
+  <div id="result" aria-live="polite"></div>
+
+  <div class="sources">
+    <p><b>Sources.</b> Field Maps sync, including the 15-minute auto-sync: <a href="https://doc.esri.com/en/arcgis-field-maps/latest/use-maps/sync.html?pivots=mobile-android">doc.esri.com, Sync, ArcGIS Field Maps</a>. Offline map areas and mobile map packages: <a href="https://www.esri.com/arcgis-blog/products/field-maps/field-mobility/work-offline-with-field-maps">Esri, Work offline with Field Maps</a>. Preparing referenced feature services for offline areas: <a href="https://support.esri.com/en-us/knowledge-base/create-offline-areas-in-referenced-feature-services-usi-000039810">Esri Support, Create Offline Areas in Referenced Feature Services</a>. Survey123 offline collection: <a href="https://www.esri.com/en-us/arcgis/products/arcgis-survey123/overview?rsource=%2Fen-us%2Farcgis%2Fproducts%2Fsurvey123%2Foverview">Esri, ArcGIS Survey123 overview</a>. Day rates, storage figures, and score weights are planning rules from practice, not Esri numbers.</p>
+  </div>
+</main>
+<footer>
+  <p>Built by <a href="https://www.linkedin.com/in/janaki-gis-enterprise">Janaki Gattu</a>, Enterprise GIS Consultant. Questions about your field deployment? <a href="mailto:gjanaki360@gmail.com">Email Janaki</a> or <a href="https://janakigattu.github.io/#book">book a session</a>.</p>
+</footer>
+</div>
+<script>
+function planField(d){
+  var totalAreas = d.maps * d.areasPerMap;
+  var totalRecords = d.crews * d.fieldDays * d.recordsPerDay;
+  var totalPhotos = totalRecords * d.photosPerRecord;
+  var storageMB = totalRecords * 0.002 + totalPhotos * 3;
+  var downloadMB = d.areasPerMap * d.basemapMB + 5;
+
+  var dataScore = 0;
+  if (d.dataState === "hosted"){ dataScore = 30; }
+  else if (d.dataState === "egdbSync"){ dataScore = 25; }
+  else if (d.dataState === "egdbNoSync"){ dataScore = 5; }
+  else { dataScore = 10; }
+  if (d.versioning === "mixed"){ dataScore = Math.max(0, dataScore - 10); }
+
+  var offlineScore = 0;
+  if (d.areasPerMap > 0){ offlineScore = 15 + (d.basemapMB <= 500 ? 10 : 4); }
+
+  var syncScore = 0;
+  if (d.connectivity === "good"){ syncScore = 20; }
+  else if (d.connectivity === "spotty"){ syncScore = 14; }
+  else { syncScore = 8; }
+
+  var qaScore = (d.reviewer ? 8 : 0) + (d.pilot ? 7 : 0);
+  var deviceScore = (d.devices >= d.crews ? 6 : 4) + (d.tested ? 4 : 0);
+  var total = dataScore + offlineScore + syncScore + qaScore + deviceScore;
+
+  var verdict;
+  if (total >= 75){
+    verdict = {band: "green", label: "Ready to go", text: "The data, the offline areas, and the sync plan are in place. Run the pilot day, fix what it finds, and send the crew."};
+  } else if (total >= 50){
+    verdict = {band: "amber", label: "Fix the gaps first", text: "The deployment is close, but the flags below will bite in the field. Close them before the first field day, not after."};
+  } else {
+    verdict = {band: "red", label: "Not ready, do the data work first", text: "The data is not ready for offline work yet. Fix the service and the versioning first, or the crew will collect data that never reaches the office."};
+  }
+
+  var flags = [];
+  if (d.dataState === "egdbNoSync"){
+    flags.push({label: "Sync is not enabled on the feature service", note: "Enable sync when you publish, with archiving on non-versioned data or a version for each downloaded map on versioned data. Nothing syncs until this is done."});
+  }
+  if (d.dataState === "unsure"){
+    flags.push({label: "Data state is not confirmed", note: "Open the service and check: sync enabled, a Global ID field present, and one versioning model across the whole map."});
+  }
+  if (d.versioning === "mixed"){
+    flags.push({label: "Mixed versioning in one map", note: "All data in an offline map must use the same configuration. Pick one model and republish the rest."});
+  }
+  if (d.areasPerMap === 0){
+    flags.push({label: "No offline areas defined", note: "Create map areas in Field Maps Designer before the crew leaves, or the map only works where there is signal."});
+  }
+  if (d.basemapMB > 500){
+    flags.push({label: "Basemap over 500 MB per area", note: "Large downloads fail on slow connections and eat device storage. Split the area or use a lighter basemap."});
+  }
+  if (d.devices < d.crews){
+    flags.push({label: "Fewer devices than crew", note: "Every person in the field needs a device with the areas downloaded. Sharing one device means sharing one queue."});
+  }
+  if (!d.reviewer){
+    flags.push({label: "No reviewer assigned", note: "Synced edits land in replica versions. Someone has to review and post them, or the office map never gets the field data."});
+  }
+  if (!d.pilot){
+    flags.push({label: "No pilot day planned", note: "Run one crew for one day first. The pilot finds the sync and form problems while they are still cheap."});
+  }
+  if (!d.tested){
+    flags.push({label: "Devices not tested with the real areas", note: "Download the actual map areas on the actual devices before departure. A download that works in the office is not the same as one that works on site."});
+  }
+  if (d.connectivity === "none"){
+    flags.push({label: "No connectivity in the field", note: "Plan the whole day offline: sync at base each evening, and keep the outbox discipline so nothing is lost."});
+  }
+  if (d.audience === "public"){
+    flags.push({label: "Public survey", note: "Public surveys need no sign-in, but the form must be shared publicly and the data it collects must be safe to receive from anyone."});
+  }
+  if (d.photosPerRecord >= 4){
+    flags.push({label: "Photo-heavy forms", note: "Photos are the storage. At this rate, check device storage and the sync time at the end of each day."});
+  }
+
+  var syncPlan;
+  if (d.connectivity === "good"){
+    syncPlan = "Auto-sync is on by default and runs every 15 minutes while the app is open and connected, so edits flow to the office during the day. The reviewer checks the posted versions each evening.";
+  } else if (d.connectivity === "spotty"){
+    syncPlan = "Auto-sync runs whenever there is a connection, and the crew syncs manually at every stop with signal. End each day with a full sync before anyone leaves the site, and confirm the edit count before the devices go home.";
+  } else {
+    syncPlan = "Nothing syncs in the field. The crew works fully offline, syncs at base each evening over office Wi-Fi, and the reviewer posts the replica versions the next morning before the next crew goes out.";
+  }
+
+  var dataFix = 0;
+  if (d.dataState === "egdbNoSync"){ dataFix += 4; }
+  if (d.dataState === "unsure"){ dataFix += 2; }
+  if (d.versioning === "mixed"){ dataFix += 2; }
+
+  var rows = [
+    {label: "Data preparation", days: dataFix + 1, tip: "Sync on, Global IDs in, one versioning model, and attachments on a Global ID key. This is the work that decides whether anything else works."},
+    {label: "Maps and forms", days: d.forms * 1.5 + d.maps * 1, tip: "Build the web map and the Survey123 form together, with the same fields and the same choice lists, so the office and the field never disagree."},
+    {label: "Offline configuration", days: totalAreas * 0.5 + 1, tip: "Areas in Field Maps Designer, the basemap, the sync settings, then a download test on the real devices. A mobile map package is read-only and does not support collection, so use map areas where the crew edits."},
+    {label: "Pilot day", days: 1, tip: "One crew, one day, a real area. The pilot is where the sync, form, and battery problems show up while they are still cheap."},
+    {label: "Field coordination and QA", days: 1, tip: "Daily sync discipline, outbox checks, and the reviewer posting versions. The QA is a daily habit, not a task at the end."}
+  ];
+  var effort = 0;
+  rows.forEach(function(r){ effort += r.days; });
+  var low = Math.round(effort * 0.8 * 10) / 10;
+  var high = Math.round(effort * 1.3 * 10) / 10;
+  var biggest = rows.slice().sort(function(a, b){ return b.days - a.days; })[0];
+  var fixes = rows.slice().sort(function(a, b){ return b.days - a.days; }).slice(0, 2);
+
+  return {
+    totalAreas: totalAreas, totalRecords: totalRecords, totalPhotos: totalPhotos,
+    storageMB: storageMB, downloadMB: downloadMB,
+    dataScore: dataScore, offlineScore: offlineScore, syncScore: syncScore,
+    qaScore: qaScore, deviceScore: deviceScore, total: total, verdict: verdict,
+    flags: flags, syncPlan: syncPlan, rows: rows, effort: effort, low: low, high: high,
+    biggest: biggest, fixes: fixes
+  };
+}
+
+(function(){
+  "use strict";
+
+  var connectivity = "spotty";
+  var COUNT_IDS = ["crews","devices","fieldDays","recordsPerDay","photosPerRecord","forms","maps","areasPerMap","basemapMB"];
+  var CHECK_IDS = ["chk-reviewer","chk-pilot","chk-tested","chk-paper"];
+
+  var PRESETS = {
+    small: {crews: 2, devices: 2, fieldDays: 3, recordsPerDay: 25, photosPerRecord: 1, forms: 1, maps: 1, areasPerMap: 2, basemapMB: 150, connectivity: "good", dataState: "hosted", versioning: "nonversioned", audience: "staff", checks: {"chk-reviewer": true, "chk-pilot": true, "chk-tested": true, "chk-paper": false}},
+    utility: {crews: 8, devices: 8, fieldDays: 10, recordsPerDay: 60, photosPerRecord: 3, forms: 2, maps: 2, areasPerMap: 4, basemapMB: 200, connectivity: "spotty", dataState: "egdbSync", versioning: "traditional", audience: "staff", checks: {"chk-reviewer": true, "chk-pilot": true, "chk-tested": true, "chk-paper": true}},
+    disaster: {crews: 20, devices: 20, fieldDays: 5, recordsPerDay: 80, photosPerRecord: 4, forms: 3, maps: 3, areasPerMap: 6, basemapMB: 250, connectivity: "none", dataState: "unsure", versioning: "mixed", audience: "staff", checks: {"chk-reviewer": false, "chk-pilot": false, "chk-tested": false, "chk-paper": false}}
+  };
+
+  function val(id){
+    var el = document.getElementById(id);
+    var n = parseFloat(el.value);
+    return (isNaN(n) || n < 0) ? 0 : n;
+  }
+
+  function fmt(n){
+    var r = Math.round(n * 100) / 100;
+    return r.toLocaleString("en-US", {maximumFractionDigits: 2});
+  }
+
+  function fmtDays(n){
+    return (Math.round(n * 10) / 10).toLocaleString("en-US", {maximumFractionDigits: 1});
+  }
+
+  function fmtSize(mb){
+    if (mb >= 1024){ return fmt(mb / 1024) + " GB"; }
+    return fmt(mb) + " MB";
+  }
+
+  function esc(s){
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function readInputs(){
+    var d = {connectivity: connectivity};
+    COUNT_IDS.forEach(function(id){ d[id] = val(id); });
+    d.dataState = document.getElementById("dataState").value;
+    d.versioning = document.getElementById("versioning").value;
+    d.audience = document.getElementById("audience").value;
+    d.reviewer = document.getElementById("chk-reviewer").checked;
+    d.pilot = document.getElementById("chk-pilot").checked;
+    d.tested = document.getElementById("chk-tested").checked;
+    d.paper = document.getElementById("chk-paper").checked;
+    return d;
+  }
+
+  function setConnectivity(c){
+    connectivity = c;
+    document.getElementById("conn-good").classList.toggle("selected", c === "good");
+    document.getElementById("conn-spotty").classList.toggle("selected", c === "spotty");
+    document.getElementById("conn-none").classList.toggle("selected", c === "none");
+  }
+
+  function calculate(){
+    var res = planField(readInputs());
+    var box = document.getElementById("result");
+
+    var html = "<h2>Your field plan</h2>";
+    html += '<span class="pill ' + res.verdict.band + '">' + esc(res.verdict.label) + '</span>';
+    html += '<p class="big">' + res.total + ' <small>/ 100 readiness</small></p>';
+    html += '<div class="scorebar ' + res.verdict.band + '"><div style="width:' + res.total + '%"></div></div>';
+    html += '<div class="stats">';
+    html += '<div class="stat"><div class="k">Data readiness</div><div class="v">' + res.dataScore + ' / 30</div><div class="s">Sync, Global IDs, one versioning model</div></div>';
+    html += '<div class="stat"><div class="k">Offline setup</div><div class="v">' + res.offlineScore + ' / 25</div><div class="s">Map areas defined, basemap sized</div></div>';
+    html += '<div class="stat"><div class="k">Sync plan</div><div class="v">' + res.syncScore + ' / 20</div><div class="s">Matched to the connectivity in the field</div></div>';
+    html += '<div class="stat"><div class="k">QA and review</div><div class="v">' + res.qaScore + ' / 15</div><div class="s">Reviewer assigned, pilot day planned</div></div>';
+    html += '<div class="stat"><div class="k">Devices and crew</div><div class="v">' + res.deviceScore + ' / 10</div><div class="s">One device per person, tested with the real areas</div></div>';
+    html += '<div class="stat"><div class="k">Setup effort</div><div class="v">' + fmtDays(res.low) + ' to ' + fmtDays(res.high) + ' days</div><div class="s">Person-days to get the deployment ready</div></div>';
+    html += "</div>";
+    html += "<p>" + esc(res.verdict.text) + "</p>";
+
+    html += "<h3>What the crew will collect</h3>";
+    html += '<table><thead><tr><th>Measure</th><th class="num">Total</th></tr></thead><tbody>';
+    html += '<tr><td>Offline areas to build</td><td class="num">' + fmt(res.totalAreas) + '</td></tr>';
+    html += '<tr><td>Records expected</td><td class="num">' + fmt(res.totalRecords) + '</td></tr>';
+    html += '<tr><td>Photos expected</td><td class="num">' + fmt(res.totalPhotos) + '</td></tr>';
+    html += '<tr><td>Storage for records and photos</td><td class="num">' + esc(fmtSize(res.storageMB)) + '</td></tr>';
+    html += '<tr><td>Download per device</td><td class="num">' + esc(fmtSize(res.downloadMB)) + '</td></tr>';
+    html += "</tbody></table>";
+
+    html += "<h3>Sync plan</h3><p>" + esc(res.syncPlan) + "</p>";
+
+    if (res.flags.length){
+      html += "<h3>Flags to close before the first field day</h3><ul>";
+      res.flags.forEach(function(f){
+        html += "<li><b>" + esc(f.label) + ":</b> " + esc(f.note) + "</li>";
+      });
+      html += "</ul>";
+    } else {
+      html += "<h3>Flags to close before the first field day</h3><p>None. Every check is in place.</p>";
+    }
+
+    html += "<h3>Where the setup days go</h3>";
+    html += '<table><thead><tr><th>Workstream</th><th class="num">Person-days</th></tr></thead><tbody>';
+    res.rows.forEach(function(r){
+      html += '<tr' + (r.label === res.biggest.label ? ' class="top"' : "") + '><td>' + esc(r.label) + (r.label === res.biggest.label ? ' <span class="driver">Biggest workstream</span>' : "") + '</td><td class="num">' + fmtDays(r.days) + '</td></tr>';
+    });
+    html += '<tr class="top"><td>Total (mid estimate)</td><td class="num">' + fmtDays(res.effort) + '</td></tr>';
+    html += "</tbody></table>";
+
+    html += "<h3>Two fixes that cut the effort fastest</h3><ul>";
+    res.fixes.forEach(function(r){
+      html += "<li><b>" + esc(r.label) + " (" + fmtDays(r.days) + " days):</b> " + esc(r.tip) + "</li>";
+    });
+    html += "</ul>";
+
+    html += "<h3>Phased plan</h3><ol>";
+    var phases = [
+      ["Phase 0, Prepare the data", res.rows[0].days, "Sync on, Global IDs in, one versioning model, attachments on a Global ID key."],
+      ["Phase 1, Author the maps and forms", res.rows[1].days, "Web map, Field Maps form, and Survey123 form, built together with the same fields."],
+      ["Phase 2, Configure offline", res.rows[2].days, "Areas in Field Maps Designer, the basemap, the sync settings, and a download test on the real devices."],
+      ["Phase 3, Pilot day", res.rows[3].days, "One crew, one day, a real area, a real sync. Fix what breaks."],
+      ["Phase 4, Field days and QA", res.rows[4].days, "Daily sync discipline, outbox checks, and the reviewer posting versions each evening."]
+    ];
+    var cumDays = 0;
+    phases.forEach(function(ph){
+      var startWeek = Math.max(1, Math.floor(cumDays / 5) + 1);
+      cumDays += ph[1];
+      var endWeek = Math.max(startWeek, Math.ceil(cumDays / 5));
+      html += "<li><b>" + esc(ph[0]) + " (" + fmtDays(ph[1]) + " days, week " + startWeek + (endWeek > startWeek ? " to " + endWeek : "") + "):</b> " + esc(ph[2]) + "</li>";
+    });
+    html += "</ol>";
+
+    html += "<h3>Checklist before the crew leaves</h3><ul>";
+    ["Sync is enabled on every feature service in the map.", "Every layer has a Global ID field.", "One versioning model across the whole map.", "Offline areas are created in Field Maps Designer.", "Areas are downloaded on the real devices, and the download finishes.", "Auto-sync is on, and the crew knows the manual sync steps.", "A reviewer is assigned to post the replica versions.", "A pilot day ran, and its fixes are in.", "Paper fallback forms are printed and in the truck.", "Devices are charged, with chargers and spares.", "The end-of-day sync time is agreed, and everyone knows it.", "The office knows who to call when a sync fails."].forEach(function(c){
+      html += "<li>" + esc(c) + "</li>";
+    });
+    html += "</ul>";
+
+    html += '<div class="cta noprint"><a class="btn" href="mailto:gjanaki360@gmail.com?subject=Field%20data%20collection%20plan">Email Janaki my plan</a> <a class="btn-dark" href="https://janakigattu.github.io/#book">Book a session</a></div>';
+    html += '<p style="margin-top:14px">Email Janaki with your crew size, your offline areas, and your readiness score, and she will tell you whether the deployment is a week of setup or a data project first.</p>';
+    box.innerHTML = html;
+    box.style.display = "block";
+    box.scrollIntoView({behavior: "smooth", block: "start"});
+  }
+
+  function applyPreset(name){
+    var p = PRESETS[name];
+    if (!p) return;
+    setConnectivity(p.connectivity);
+    COUNT_IDS.forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) el.value = p[id];
+    });
+    document.getElementById("dataState").value = p.dataState;
+    document.getElementById("versioning").value = p.versioning;
+    document.getElementById("audience").value = p.audience;
+    CHECK_IDS.forEach(function(id){
+      document.getElementById(id).checked = !!p.checks[id];
+    });
+    document.querySelectorAll(".preset").forEach(function(b){ b.classList.remove("active"); });
+    var btn = document.getElementById("preset-" + name);
+    if (btn) btn.classList.add("active");
+    calculate();
+  }
+
+  function clearAll(){
+    COUNT_IDS.forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) el.value = 0;
+    });
+    document.getElementById("dataState").value = "unsure";
+    document.getElementById("versioning").value = "mixed";
+    document.getElementById("audience").value = "staff";
+    CHECK_IDS.forEach(function(id){ document.getElementById(id).checked = false; });
+    setConnectivity("none");
+    document.querySelectorAll(".preset").forEach(function(b){ b.classList.remove("active"); });
+    var box = document.getElementById("result");
+    box.style.display = "none";
+    box.innerHTML = "";
+    window.scrollTo({top: 0, behavior: "smooth"});
+  }
+
+  document.getElementById("conn-good").addEventListener("click", function(){ setConnectivity("good"); });
+  document.getElementById("conn-spotty").addEventListener("click", function(){ setConnectivity("spotty"); });
+  document.getElementById("conn-none").addEventListener("click", function(){ setConnectivity("none"); });
+  document.getElementById("calcBtn").addEventListener("click", calculate);
+  document.getElementById("printBtn").addEventListener("click", function(){ calculate(); window.print(); });
+  document.getElementById("resetBtn").addEventListener("click", clearAll);
+  document.getElementById("preset-small").addEventListener("click", function(){ applyPreset("small"); });
+  document.getElementById("preset-utility").addEventListener("click", function(){ applyPreset("utility"); });
+  document.getElementById("preset-disaster").addEventListener("click", function(){ applyPreset("disaster"); });
+  document.getElementById("preset-clear").addEventListener("click", clearAll);
+})();
+</script>
+</body>
+</html>
