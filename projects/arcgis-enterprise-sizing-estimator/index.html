@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArcGIS Enterprise Sizing Estimator: size the deployment from the load, by Janaki Gattu</title>
+<meta name="description" content="A working ArcGIS Enterprise Sizing Estimator by Janaki Gattu. Enter your users, services, and data volumes and get the deployment pattern, per-machine specs, and totals at Esri's published 11.5 minimums. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 6px}
+  h2:first-child{margin-top:0}
+  .secnote{color:var(--muted);margin-bottom:16px}
+  .presets{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+  .preset{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:10px 18px;color:var(--text);cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700}
+  .preset:hover{border-color:var(--accent)}
+  .preset.active{border-color:var(--accent);background:#052e16}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .field{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .field label{display:block;font-weight:700;font-size:1rem;margin-bottom:2px}
+  .field .hint{color:var(--muted);font-size:.88rem;margin-bottom:10px}
+  .field .hint b{color:#d4d4d4}
+  .field input{width:100%;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:8px;padding:10px 12px;font-size:1rem;font-family:inherit}
+  .field input:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+  .field .rate{color:var(--faint);font-size:.85rem;margin-top:8px}
+  .checkrow{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--line)}
+  .checkrow:last-child{border-bottom:0}
+  .checkrow input{width:18px;height:18px;margin-top:3px;accent-color:var(--accent);flex:none}
+  .checkrow b{display:block;font-size:.98rem}
+  .checkrow span{color:var(--muted);font-size:.88rem}
+  .radiorow{display:flex;flex-wrap:wrap;gap:10px}
+  .radiorow label{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;cursor:pointer;font-weight:700;font-size:.95rem;display:flex;gap:8px;align-items:center}
+  .radiorow label:has(input:checked){border-color:var(--accent);background:#052e16}
+  .radiorow input{accent-color:var(--accent);width:16px;height:16px}
+  .actions{margin-top:26px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer;font-family:inherit}
+  .btn-dark{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a;border:0;cursor:pointer;font-family:inherit}
+  .btn-outline{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;border:1px solid #525252;color:var(--text);background:none;cursor:pointer;font-family:inherit}
+  .result{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px;margin-top:28px}
+  .result h2{margin-top:0}
+  .pill{display:inline-block;font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:6px}
+  .pill.green{background:#14532d;color:#bbf7d0}
+  .pill.amber{background:#451a03;color:#fde68a}
+  .pill.red{background:#450a0a;color:#fecaca}
+  .big{font-size:2.2rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+  .big small{font-size:1rem;color:var(--muted);font-weight:600}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:18px 0 6px}
+  .stat{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .stat .k{color:var(--faint);font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .stat .v{font-size:1.35rem;font-weight:800;margin-top:2px}
+  .stat .s{color:var(--muted);font-size:.88rem}
+  table{width:100%;border-collapse:collapse;margin-top:14px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);font-size:.95rem}
+  th{color:var(--faint);text-transform:uppercase;letter-spacing:.06em;font-size:.8rem}
+  td.num,th.num{text-align:right;white-space:nowrap}
+  tr.top td{color:#fff;font-weight:700}
+  .result h3{margin:24px 0 8px;font-size:1.1rem}
+  .result p{color:var(--muted)}
+  .result ul,.result ol{margin-left:20px;color:#d4d4d4}
+  .result li{margin-bottom:6px}
+  .result .cta{margin-top:24px}
+  .sources{margin-top:26px;border-top:1px solid var(--line);padding-top:18px}
+  .sources p{font-size:.92rem}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+  @media print{
+    body{background:#fff;color:#000}
+    .noprint{display:none !important}
+    .result,.field,.stat{background:#fff;border-color:#ccc;color:#000}
+    .result p,.secnote,.lede{color:#333}
+    a{color:#000}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="back" href="../../index.html">&larr; Back to Janaki Gattu</a>
+  <p class="eyebrow">ArcGIS Enterprise Sizing Estimator</p>
+  <h1>Most Enterprise GIS servers are sized by habit: whatever the last project bought.</h1>
+  <p class="lede">Size yours from the load instead. Enter your users, services, and data volumes, and get the deployment pattern, the spec for every machine, and the totals, built on Esri's published 11.5 minimums. <b>Nothing leaves your browser.</b></p>
+  <div class="honest"><b>Honest note:</b> this page runs entirely in your browser. There is no backend, no API key, and nothing is sent anywhere. Esri publishes minimums, not production sizing, so the numbers above the minimums are planning rules from fifteen years of running Enterprise GIS, and the page labels them as rules, not Esri numbers. Confirm the final spec with a load test before you buy hardware.</div>
+</header>
+<main>
+  <h2>Your deployment</h2>
+  <p class="secnote">Start with a preset, or fill in your own numbers. All fields are optional. Leave a field at zero if it does not apply.</p>
+  <div class="presets noprint">
+    <button class="preset" type="button" data-preset="small">Small team</button>
+    <button class="preset" type="button" data-preset="dept">Department</button>
+    <button class="preset" type="button" data-preset="ent">Enterprise</button>
+  </div>
+
+  <h2>People</h2>
+  <div class="grid">
+    <div class="field">
+      <label for="users">Named users</label>
+      <p class="hint">Everyone with a named user account, viewers included.</p>
+      <input id="users" type="number" min="0" value="150">
+      <p class="rate">Drives the Portal spec. Portal minimum: 8 GB RAM.</p>
+    </div>
+    <div class="field">
+      <label for="concurrent">Peak concurrent users</label>
+      <p class="hint">The most people using maps and apps at the same time.</p>
+      <input id="concurrent" type="number" min="0" value="60">
+      <p class="rate">Drives the hosting server spec. Over 50 at once is not a single-machine load.</p>
+    </div>
+    <div class="field">
+      <label for="editors">Concurrent editors</label>
+      <p class="hint">People editing hosted feature layers at the same time.</p>
+      <input id="editors" type="number" min="0" value="15">
+      <p class="rate">Editors are the heaviest load on a hosting server. Over 25 adds 4 cores and 8 GB RAM.</p>
+    </div>
+    <div class="field">
+      <label for="services">Hosted feature services</label>
+      <p class="hint">Published hosted feature layers, map services, and scene services.</p>
+      <input id="services" type="number" min="0" value="120">
+      <p class="rate">Drives hosting server disk: 10 GB per 100 services for configs, logs, and job directories.</p>
+    </div>
+  </div>
+
+  <h2>Data volumes</h2>
+  <div class="grid">
+    <div class="field">
+      <label for="reldata">Relational data (GB)</label>
+      <p class="hint">Hosted feature data in the relational data store.</p>
+      <input id="reldata" type="number" min="0" value="60">
+      <p class="rate">Disk rule: install 13 GB, plus one copy live, one copy growth headroom, one copy backup.</p>
+    </div>
+    <div class="field">
+      <label for="tiledata">Tile cache (GB)</label>
+      <p class="hint">Hosted tile layers and scene layer caches, if you have any.</p>
+      <input id="tiledata" type="number" min="0" value="40">
+      <p class="rate">Tile cache data store minimum: 8 GB RAM. Caches belong on fast disk.</p>
+    </div>
+    <div class="field">
+      <label for="filedata">File uploads (GB)</label>
+      <p class="hint">Files stored in Portal: uploads, packages, attachments, item files.</p>
+      <input id="filedata" type="number" min="0" value="15">
+      <p class="rate">Portal disk rule: 20 GB install, plus your file volume.</p>
+    </div>
+    <div class="field">
+      <label>Extra server roles</label>
+      <p class="hint">Each federated role needs its own machine, at the ArcGIS Server minimum or above.</p>
+      <div class="checkrow"><input type="checkbox" id="role-geoevent"><label for="role-geoevent"><b>GeoEvent Server</b><span>Real-time feeds and alerts. 4 cores, 8 GB RAM.</span></label></div>
+      <div class="checkrow"><input type="checkbox" id="role-notebook" checked><label for="role-notebook"><b>Notebook Server</b><span>Scheduled and shared notebooks. 4 cores, 16 GB RAM.</span></label></div>
+      <div class="checkrow"><input type="checkbox" id="role-image"><label for="role-image"><b>ArcGIS Image Server</b><span>Imagery and raster analytics. 8 cores, 16 GB RAM.</span></label></div>
+      <div class="checkrow"><input type="checkbox" id="role-wfm"><label for="role-wfm"><b>Workflow Manager Server</b><span>Job tracking and step workflows. 4 cores, 8 GB RAM.</span></label></div>
+      <div class="checkrow"><input type="checkbox" id="role-ga"><label for="role-ga"><b>GeoAnalytics Server</b><span>Big data analysis. 8 cores, 16 GB RAM.</span></label></div>
+    </div>
+  </div>
+
+  <h2>Availability</h2>
+  <p class="secnote">Single machine is one box for everything. Base is one machine per component. Highly available doubles the core machines and adds a load balancer and shared storage.</p>
+  <div class="radiorow">
+    <label><input type="radio" name="avail" value="single"> Single machine</label>
+    <label><input type="radio" name="avail" value="base" checked> Base deployment</label>
+    <label><input type="radio" name="avail" value="ha"> Highly available</label>
+  </div>
+
+  <div class="actions noprint">
+    <button class="btn" type="button" id="calc">Size my deployment</button>
+    <button class="btn-outline" type="button" id="clear">Clear all</button>
+    <button class="btn-dark" type="button" id="print">Print spec sheet</button>
+  </div>
+
+  <div class="result" id="result" hidden>
+    <span class="pill green" id="verdict-pill">Sized</span>
+    <h2 id="pattern-name">Base deployment</h2>
+    <p class="big"><span id="total-machines">0</span> machines <small>&middot; <span id="total-cores">0</span> cores &middot; <span id="total-ram">0</span> GB RAM &middot; <span id="total-disk">0</span> GB disk</small></p>
+    <p class="secnote" id="pattern-note"></p>
+    <div class="stats">
+      <div class="stat"><div class="k">Machines</div><div class="v" id="stat-machines">0</div><div class="s" id="stat-machines-sub"></div></div>
+      <div class="stat"><div class="k">Total cores</div><div class="v" id="stat-cores">0</div><div class="s">Across all machines</div></div>
+      <div class="stat"><div class="k">Total RAM</div><div class="v" id="stat-ram">0 GB</div><div class="s">Summed, not shared</div></div>
+      <div class="stat"><div class="k">Total disk</div><div class="v" id="stat-disk">0 GB</div><div class="s">Install plus data plus headroom</div></div>
+    </div>
+    <h3>Machine specs</h3>
+    <table>
+      <thead><tr><th>Machine</th><th class="num">Count</th><th class="num">Cores</th><th class="num">RAM</th><th class="num">Disk</th></tr></thead>
+      <tbody id="spec-rows"></tbody>
+    </table>
+    <h3>Flags that change the answer</h3>
+    <ul id="flags"></ul>
+    <h3>What Esri publishes, and what this adds</h3>
+    <p>Esri publishes minimums only. Portal 11.5: 2 cores minimum, 4 highly recommended for production, 8 GB RAM, 20 GB disk. ArcGIS Server 11.5: 8 GB RAM per machine minimum, 10 GB disk, and no published production numbers. Data Store 11.5: 13 GB disk to install one empty type, and minimum free RAM of 8 GB for a relational store, 8 GB for a tile cache store, 16 GB for a spatiotemporal store, and 32 GB for a graph store. Below 10 GB free disk the data store logs warnings. Below 5 GB free the relational, spatiotemporal, and object stores go read-only and the graph store shuts down. Everything above those minimums on this page is a planning rule from practice: Portal scales with named users, the hosting server scales with concurrent users and editors, the relational store scales with data volume, and disk carries a full backup copy plus growth headroom. Treat the totals as the spec to take to procurement, then confirm with a load test.</p>
+    <div class="cta">
+      <p><b>Next step:</b> email Janaki your totals (machines, cores, RAM, disk) and she will sense-check the spec before you buy hardware, or book a session and walk through the load together.</p>
+      <p style="margin-top:12px"><a class="btn" id="cta-mail" href="mailto:gjanaki360@gmail.com?subject=ArcGIS%20Enterprise%20sizing%20check">Email Janaki my totals &rarr;</a></p>
+    </div>
+    <div class="sources">
+      <p><b>Sources:</b> <a href="https://enterprise.arcgis.com/en/system-requirements/11.5/windows/portal-for-arcgis-system-requirements.htm" target="_blank" rel="noopener">Portal for ArcGIS 11.5 system requirements</a> &middot; <a href="https://enterprise.arcgis.com/en/system-requirements/11.5/windows/arcgis-server-system-requirements.htm" target="_blank" rel="noopener">ArcGIS Server 11.5 system requirements</a> &middot; <a href="https://enterprise.arcgis.com/en/system-requirements/11.5/windows/arcgis-data-store-system-requirements.htm" target="_blank" rel="noopener">ArcGIS Data Store 11.5 system requirements</a> &middot; Built by <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Janaki Gattu</a>, Enterprise GIS Consultant. Runs entirely in your browser: no backend, no API key, nothing sent anywhere.</p>
+    </div>
+  </div>
+</main>
+<footer>
+  <p>ArcGIS Enterprise Sizing Estimator by <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Janaki Gattu</a> &middot; Enterprise GIS Consultant &middot; <a href="../../index.html">Back to the portfolio</a></p>
+</footer>
+</div>
+<script>
+// LOGIC-START
+function sizeDeployment(inp) {
+  var users = Math.max(0, Math.floor(inp.users || 0));
+  var conc = Math.max(0, Math.floor(inp.concurrent || 0));
+  var editors = Math.max(0, Math.floor(inp.editors || 0));
+  var services = Math.max(0, Math.floor(inp.services || 0));
+  var relGB = Math.max(0, inp.relGB || 0);
+  var tileGB = Math.max(0, inp.tileGB || 0);
+  var fileGB = Math.max(0, inp.fileGB || 0);
+  var roles = inp.roles || [];
+  var avail = inp.avail || 'base';
+
+  // Portal: scales with named users. Esri minimum 8 GB RAM, 20 GB disk, 2 cores (4 recommended for production).
+  var portalCores = users > 1000 ? 16 : users > 250 ? 8 : 4;
+  var portalRam = users > 1000 ? 32 : users > 250 ? 16 : 8;
+  var portalDisk = 20 + fileGB;
+
+  // Hosting server: scales with concurrent users and editors. Esri minimum 8 GB RAM, 10 GB disk.
+  var serverCores = conc > 200 ? 16 : conc > 50 ? 8 : 4;
+  if (editors > 25) serverCores += 4;
+  var serverRam = conc > 200 ? 32 : conc > 50 ? 16 : 8;
+  if (editors > 25) serverRam += 8;
+  var serverDisk = 10 + Math.ceil(services / 100) * 10;
+
+  // Relational data store: scales with data volume. Esri minimum 8 GB RAM, 13 GB disk to install.
+  var relRam = relGB > 500 ? 64 : relGB > 100 ? 32 : relGB > 25 ? 16 : 8;
+  var relCores = relGB > 500 ? 8 : 4;
+  var relDisk = Math.ceil((13 + relGB * 3) / 10) * 10;
+
+  // Tile cache data store, only when there is cache to hold. Esri minimum 8 GB RAM, 13 GB disk to install.
+  var tileRam = tileGB > 500 ? 16 : 8;
+  var tileDisk = Math.ceil((13 + tileGB * 1.2) / 10) * 10;
+
+  // Extra federated roles, each on its own machine at the ArcGIS Server minimum or above (planning rules).
+  var ROLE_SPECS = {
+    geoevent: {name: 'GeoEvent Server', cores: 4, ram: 8, disk: 10},
+    notebook: {name: 'Notebook Server', cores: 4, ram: 16, disk: 10},
+    image: {name: 'ArcGIS Image Server', cores: 8, ram: 16, disk: 10},
+    wfm: {name: 'Workflow Manager Server', cores: 4, ram: 8, disk: 10},
+    ga: {name: 'GeoAnalytics Server', cores: 8, ram: 16, disk: 10}
+  };
+
+  var rows = [];
+  var flags = [];
+  var patternName, patternNote, verdict, pillClass;
+
+  if (avail === 'single') {
+    patternName = 'Single machine';
+    // One box carries everything: RAM and disk add up, cores take the hosting server number plus four for Portal and the data store.
+    var cores = serverCores + 4;
+    var ram = portalRam + serverRam + relRam + (tileGB > 0 ? tileRam : 0);
+    roles.forEach(function (r) { if (ROLE_SPECS[r]) { ram += ROLE_SPECS[r].ram; cores += 2; } });
+    var disk = portalDisk + serverDisk + relDisk + (tileGB > 0 ? tileDisk : 0);
+    roles.forEach(function (r) { if (ROLE_SPECS[r]) disk += ROLE_SPECS[r].disk; });
+    rows.push({name: 'Single machine (Portal, hosting Server, Data Store, roles)', count: 1, cores: cores, ram: ram, disk: disk});
+    patternNote = 'Everything on one machine. Fine for a development or test system, and for a very small production load. Not a production answer at real load.';
+    verdict = 'Single machine';
+    pillClass = 'amber';
+    if (conc > 50 || services > 100 || relGB > 100 || users > 250 || roles.length > 0) {
+      flags.push('This load is too big for one machine. Move to a base deployment before production: one machine per component, and the hosting server sized from the concurrent users and editors.');
+      verdict = 'Single machine, with a warning';
+    }
+    if (conc > 200 || users > 1000) {
+      flags.push('At this size a single machine is a development answer only. Production needs at least a base deployment, and a highly available deployment if the platform cannot go down.');
+    }
+  } else if (avail === 'ha') {
+    patternName = 'Highly available deployment';
+    rows.push({name: 'Portal for ArcGIS', count: 2, cores: portalCores, ram: portalRam, disk: portalDisk});
+    rows.push({name: 'ArcGIS Server (hosting)', count: 2, cores: serverCores, ram: serverRam, disk: serverDisk});
+    rows.push({name: 'ArcGIS Data Store (relational)', count: 2, cores: relCores, ram: relRam, disk: relDisk});
+    if (tileGB > 0) rows.push({name: 'ArcGIS Data Store (tile cache)', count: 2, cores: 4, ram: tileRam, disk: tileDisk});
+    roles.forEach(function (r) { if (ROLE_SPECS[r]) rows.push({name: ROLE_SPECS[r].name, count: 1, cores: ROLE_SPECS[r].cores, ram: ROLE_SPECS[r].ram, disk: ROLE_SPECS[r].disk}); });
+    patternNote = 'Two of every core machine, plus a load balancer in front of Portal and Server and shared storage behind the data store. The Web Adaptor sits in front of Portal and Server. Extra server roles stay single unless you make them highly available too.';
+    verdict = 'Highly available';
+    pillClass = 'green';
+    if (users <= 250 && conc <= 50 && relGB <= 100 && roles.length === 0) {
+      flags.push('This load fits a base deployment. Highly available is the right call only if the platform genuinely cannot go down, because it doubles the hardware for the core machines.');
+    }
+  } else {
+    patternName = 'Base deployment';
+    rows.push({name: 'Portal for ArcGIS', count: 1, cores: portalCores, ram: portalRam, disk: portalDisk});
+    rows.push({name: 'ArcGIS Server (hosting)', count: 1, cores: serverCores, ram: serverRam, disk: serverDisk});
+    rows.push({name: 'ArcGIS Data Store (relational)', count: 1, cores: relCores, ram: relRam, disk: relDisk});
+    if (tileGB > 0) rows.push({name: 'ArcGIS Data Store (tile cache)', count: 1, cores: 4, ram: tileRam, disk: tileDisk});
+    roles.forEach(function (r) { if (ROLE_SPECS[r]) rows.push({name: ROLE_SPECS[r].name, count: 1, cores: ROLE_SPECS[r].cores, ram: ROLE_SPECS[r].ram, disk: ROLE_SPECS[r].disk}); });
+    patternNote = 'One machine per component. This is the standard production shape for most teams: Portal, the hosting server, and the data store each get their own box.';
+    verdict = 'Base deployment';
+    pillClass = 'green';
+    if (users > 1000 || conc > 500) {
+      flags.push('At this size, plan for a highly available deployment instead. A base deployment has a single point of failure in every component, and the user count leaves no headroom.');
+      verdict = 'Base deployment, consider highly available';
+      pillClass = 'amber';
+    }
+  }
+
+  if (tileGB > 0) flags.push('Tile caches belong on fast disk. Slow disk shows up as slow maps, not as an error, so budget for SSD storage on the tile cache machine.');
+  if (editors > 25) flags.push('Editors are the heaviest load on a hosting server. This spec sizes the hosting server from the editor count, not the viewer count. If editing peaks at a known hour, size for the peak, not the average.');
+  if (users > 500) flags.push('Portal carries the named-user load. At this size it gets its own machine and 16 GB or more, and the content store grows with every file your users upload.');
+  if (roles.indexOf('notebook') !== -1) flags.push('Notebook Server runs user notebooks in containers. It gets its own machine and shares nothing with the hosting server. Give it room: notebooks that run out of memory fail silently for the user.');
+  if (roles.indexOf('geoevent') !== -1) flags.push('GeoEvent is a real-time workload. It gets its own machine and its own monitoring, because a stalled feed looks like a data problem, not a server problem.');
+  if (relGB > 0) flags.push('Keep the relational data store above 10 GB free disk. Esri logs warnings below 10 GB, and below 5 GB free the stores go read-only. The disk figure above already carries a full backup copy plus growth headroom.');
+  if (avail !== 'single' && relGB === 0 && tileGB === 0) flags.push('No data volumes entered, so the data store is sized at the Esri minimum only. Enter your real hosted feature data volume and the disk figure will move a lot.');
+
+  var totalMachines = 0, totalCores = 0, totalRam = 0, totalDisk = 0;
+  rows.forEach(function (r) { totalMachines += r.count; totalCores += r.count * r.cores; totalRam += r.count * r.ram; totalDisk += r.count * r.disk; });
+
+  return {
+    patternName: patternName, patternNote: patternNote, verdict: verdict, pillClass: pillClass,
+    rows: rows, flags: flags,
+    totalMachines: totalMachines, totalCores: totalCores, totalRam: totalRam, totalDisk: totalDisk
+  };
+}
+// LOGIC-END
+
+var PRESETS = {
+  small: {users: 25, concurrent: 10, editors: 2, services: 20, relGB: 5, tileGB: 0, fileGB: 2, roles: [], avail: 'single'},
+  dept: {users: 150, concurrent: 60, editors: 15, services: 120, relGB: 60, tileGB: 40, fileGB: 15, roles: ['notebook'], avail: 'base'},
+  ent: {users: 800, concurrent: 300, editors: 60, services: 400, relGB: 300, tileGB: 250, fileGB: 80, roles: ['geoevent', 'notebook', 'image'], avail: 'ha'}
+};
+
+function readInputs() {
+  var roles = [];
+  ['geoevent', 'notebook', 'image', 'wfm', 'ga'].forEach(function (r) {
+    if (document.getElementById('role-' + r).checked) roles.push(r);
+  });
+  var avail = 'base';
+  document.querySelectorAll('input[name="avail"]').forEach(function (el) { if (el.checked) avail = el.value; });
+  return {
+    users: parseFloat(document.getElementById('users').value) || 0,
+    concurrent: parseFloat(document.getElementById('concurrent').value) || 0,
+    editors: parseFloat(document.getElementById('editors').value) || 0,
+    services: parseFloat(document.getElementById('services').value) || 0,
+    relGB: parseFloat(document.getElementById('reldata').value) || 0,
+    tileGB: parseFloat(document.getElementById('tiledata').value) || 0,
+    fileGB: parseFloat(document.getElementById('filedata').value) || 0,
+    roles: roles,
+    avail: avail
+  };
+}
+
+function applyPreset(name) {
+  var p = PRESETS[name];
+  if (!p) return;
+  document.getElementById('users').value = p.users;
+  document.getElementById('concurrent').value = p.concurrent;
+  document.getElementById('editors').value = p.editors;
+  document.getElementById('services').value = p.services;
+  document.getElementById('reldata').value = p.relGB;
+  document.getElementById('tiledata').value = p.tileGB;
+  document.getElementById('filedata').value = p.fileGB;
+  ['geoevent', 'notebook', 'image', 'wfm', 'ga'].forEach(function (r) {
+    document.getElementById('role-' + r).checked = p.roles.indexOf(r) !== -1;
+  });
+  document.querySelectorAll('input[name="avail"]').forEach(function (el) { el.checked = (el.value === p.avail); });
+  document.querySelectorAll('.preset').forEach(function (b) { b.classList.toggle('active', b.dataset.preset === name); });
+  calculate();
+}
+
+function calculate() {
+  var res = sizeDeployment(readInputs());
+  var box = document.getElementById('result');
+  box.hidden = false;
+  var pill = document.getElementById('verdict-pill');
+  pill.textContent = res.verdict;
+  pill.className = 'pill ' + res.pillClass;
+  document.getElementById('pattern-name').textContent = res.patternName;
+  document.getElementById('total-machines').textContent = res.totalMachines;
+  document.getElementById('total-cores').textContent = res.totalCores;
+  document.getElementById('total-ram').textContent = res.totalRam;
+  document.getElementById('total-disk').textContent = res.totalDisk.toLocaleString('en-US');
+  document.getElementById('pattern-note').textContent = res.patternNote;
+  document.getElementById('stat-machines').textContent = res.totalMachines;
+  document.getElementById('stat-machines-sub').textContent = res.patternName;
+  document.getElementById('stat-cores').textContent = res.totalCores;
+  document.getElementById('stat-ram').textContent = res.totalRam + ' GB';
+  document.getElementById('stat-disk').textContent = res.totalDisk.toLocaleString('en-US') + ' GB';
+  var rowsHtml = '';
+  res.rows.forEach(function (r) {
+    rowsHtml += '<tr><td>' + r.name + '</td><td class="num">' + r.count + '</td><td class="num">' + r.cores + '</td><td class="num">' + r.ram + ' GB</td><td class="num">' + r.disk.toLocaleString('en-US') + ' GB</td></tr>';
+  });
+  rowsHtml += '<tr class="top"><td>Total</td><td class="num">' + res.totalMachines + '</td><td class="num">' + res.totalCores + '</td><td class="num">' + res.totalRam + ' GB</td><td class="num">' + res.totalDisk.toLocaleString('en-US') + ' GB</td></tr>';
+  document.getElementById('spec-rows').innerHTML = rowsHtml;
+  var flagsHtml = '';
+  res.flags.forEach(function (f) { flagsHtml += '<li>' + f + '</li>'; });
+  document.getElementById('flags').innerHTML = flagsHtml || '<li>No flags. This spec fits the load as entered.</li>';
+  var mail = document.getElementById('cta-mail');
+  mail.href = 'mailto:gjanaki360@gmail.com?subject=' + encodeURIComponent('ArcGIS Enterprise sizing check: ' + res.totalMachines + ' machines, ' + res.totalCores + ' cores, ' + res.totalRam + ' GB RAM, ' + res.totalDisk + ' GB disk') + '&body=' + encodeURIComponent('Hi Janaki,\n\nI sized my ArcGIS Enterprise deployment with your estimator:\n\nPattern: ' + res.patternName + '\nMachines: ' + res.totalMachines + '\nCores: ' + res.totalCores + '\nRAM: ' + res.totalRam + ' GB\nDisk: ' + res.totalDisk + ' GB\n\nPlease sense-check this spec before we buy hardware.\n\nThanks,\n');
+  box.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
+if (typeof document !== 'undefined') {
+  document.getElementById('calc').addEventListener('click', calculate);
+  document.getElementById('print').addEventListener('click', function () { calculate(); window.print(); });
+  document.getElementById('clear').addEventListener('click', function () {
+    ['users', 'concurrent', 'editors', 'services', 'reldata', 'tiledata', 'filedata'].forEach(function (id) { document.getElementById(id).value = 0; });
+    ['geoevent', 'notebook', 'image', 'wfm', 'ga'].forEach(function (r) { document.getElementById('role-' + r).checked = false; });
+    document.querySelectorAll('.preset').forEach(function (b) { b.classList.remove('active'); });
+    document.getElementById('result').hidden = true;
+  });
+  document.querySelectorAll('.preset').forEach(function (b) {
+    b.addEventListener('click', function () { applyPreset(b.dataset.preset); });
+  });
+}
+</script>
+</body>
+</html>
