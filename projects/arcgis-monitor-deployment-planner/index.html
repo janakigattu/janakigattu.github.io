@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArcGIS Monitor Deployment Planner: size the monitoring, pick the alerts, by Janaki Gattu</title>
+<meta name="description" content="A working ArcGIS Monitor Deployment Planner by Janaki Gattu. Enter your Enterprise deployment and get the Monitor Server and Agent layout, the components to register, a starter alert set, and the effort to deploy it. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 6px}
+  h2:first-child{margin-top:0}
+  .secnote{color:var(--muted);margin-bottom:16px}
+  .presets{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+  .preset{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:10px 18px;color:var(--text);cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700}
+  .preset:hover{border-color:var(--accent)}
+  .preset.active{border-color:var(--accent);background:#052e16}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .field{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .field label{display:block;font-weight:700;font-size:1rem;margin-bottom:2px}
+  .field .hint{color:var(--muted);font-size:.88rem;margin-bottom:10px}
+  .field .hint b{color:#d4d4d4}
+  .field input{width:100%;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:8px;padding:10px 12px;font-size:1rem;font-family:inherit}
+  .field input:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+  .field .rate{color:var(--faint);font-size:.85rem;margin-top:8px}
+  .checkrow{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--line)}
+  .checkrow:last-child{border-bottom:0}
+  .checkrow input{width:18px;height:18px;margin-top:3px;accent-color:var(--accent);flex:none}
+  .checkrow b{display:block;font-size:.98rem}
+  .checkrow span{color:var(--muted);font-size:.88rem}
+  .radiorow{display:flex;flex-wrap:wrap;gap:10px}
+  .radiorow label{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;cursor:pointer;font-weight:700;font-size:.95rem;display:flex;gap:8px;align-items:center}
+  .radiorow label:has(input:checked){border-color:var(--accent);background:#052e16}
+  .radiorow input{accent-color:var(--accent);width:16px;height:16px}
+  .actions{margin-top:26px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer;font-family:inherit}
+  .btn-dark{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a;border:0;cursor:pointer;font-family:inherit}
+  .btn-outline{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;border:1px solid #525252;color:var(--text);background:none;cursor:pointer;font-family:inherit}
+  .result{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px;margin-top:28px}
+  .result h2{margin-top:0}
+  .pill{display:inline-block;font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:6px}
+  .pill.green{background:#14532d;color:#bbf7d0}
+  .pill.amber{background:#451a03;color:#fde68a}
+  .pill.red{background:#450a0a;color:#fecaca}
+  .big{font-size:2.2rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+  .big small{font-size:1rem;color:var(--muted);font-weight:600}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:18px 0 6px}
+  .stat{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .stat .k{color:var(--faint);font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .stat .v{font-size:1.35rem;font-weight:800;margin-top:2px}
+  .stat .s{color:var(--muted);font-size:.88rem}
+  table{width:100%;border-collapse:collapse;margin-top:14px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);font-size:.95rem}
+  th{color:var(--faint);text-transform:uppercase;letter-spacing:.06em;font-size:.8rem}
+  td.num,th.num{text-align:right;white-space:nowrap}
+  tr.top td{color:#fff;font-weight:700}
+  .result h3{margin:24px 0 8px;font-size:1.1rem}
+  .result p{color:var(--muted)}
+  .result ul,.result ol{margin-left:20px;color:#d4d4d4}
+  .result li{margin-bottom:6px}
+  .result .cta{margin-top:24px}
+  .sources{margin-top:26px;border-top:1px solid var(--line);padding-top:18px}
+  .sources p{font-size:.92rem}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+  @media print{
+    body{background:#fff;color:#000}
+    .noprint{display:none !important}
+    .result,.field,.stat{background:#fff;border-color:#ccc;color:#000}
+    .result p,.secnote,.lede{color:#333}
+    a{color:#000}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="back" href="../../index.html">&larr; Back to Janaki Gattu</a>
+  <p class="eyebrow">ArcGIS Monitor Deployment Planner</p>
+  <h1>Monitor only earns its keep when it watches the right things and tells the right people.</h1>
+  <p class="lede">ArcGIS Monitor is Esri's monitoring for ArcGIS Enterprise: health, usage, and performance, with alerts when a metric crosses a threshold you set. This planner sizes the deployment, picks the components to register, and writes the first alert set. <b>Nothing leaves your browser.</b></p>
+  <div class="honest"><b>Honest note:</b> this page runs entirely in your browser. There is no backend, no API key, and nothing is sent anywhere. The deployment shape and the component list come from Esri's published ArcGIS Monitor documentation. The alert thresholds are starting points from practice, not Esri numbers, and the page labels them as such: run a two-week baseline first, then tune them to your own numbers.</div>
+</header>
+<main>
+  <h2>Your deployment</h2>
+  <p class="secnote">Start with a preset, or fill in your own numbers. All fields are optional. Leave a field at zero if it does not apply.</p>
+  <div class="presets noprint">
+    <button class="preset" type="button" data-preset="small">Small single site</button>
+    <button class="preset" type="button" data-preset="dept">Department multi-site</button>
+    <button class="preset" type="button" data-preset="ent">Enterprise distributed</button>
+    <button class="preset" type="button" data-preset="clear">Clear all</button>
+  </div>
+
+  <h2>The Enterprise deployment to watch</h2>
+  <div class="grid">
+    <div class="field">
+      <label for="portal">Portal for ArcGIS machines</label>
+      <p class="hint">Portal machines in the deployment. One in a base deployment, two in a highly available one.</p>
+      <input id="portal" type="number" min="0" value="1">
+      <p class="rate">Each Portal is registered as a component with its own metrics.</p>
+    </div>
+    <div class="field">
+      <label for="server">ArcGIS Server machines</label>
+      <p class="hint">Hosting Server machines, not counting the extra server roles below.</p>
+      <input id="server" type="number" min="0" value="1">
+      <p class="rate">Each Server site is registered, with its services underneath it.</p>
+    </div>
+    <div class="field">
+      <label for="datastore">ArcGIS Data Store machines</label>
+      <p class="hint">Relational, tile cache, and object store machines.</p>
+      <input id="datastore" type="number" min="0" value="1">
+      <p class="rate">A Data Store going read-only is the failure this planner exists to catch early.</p>
+    </div>
+    <div class="field">
+      <label for="geodb">Enterprise geodatabases</label>
+      <p class="hint">Registered enterprise geodatabases Monitor should connect to.</p>
+      <input id="geodb" type="number" min="0" value="1">
+      <p class="rate">Each one is registered as a database component.</p>
+    </div>
+    <div class="field">
+      <label for="networks">Networks and data centers</label>
+      <p class="hint">Separate network environments holding part of the deployment. One means a single data center.</p>
+      <input id="networks" type="number" min="1" value="1">
+      <p class="rate">Every network past the first needs a Monitor Agent of its own.</p>
+    </div>
+    <div class="field">
+      <label for="adaptors">Web adaptors</label>
+      <p class="hint">Web adaptors in front of Portal and Server, including behind a load balancer.</p>
+      <input id="adaptors" type="number" min="0" value="1">
+      <p class="rate">Adaptor logs are where failed sign-ins and 5xx errors show up first.</p>
+    </div>
+    <div class="field">
+      <label for="services">Hosted services</label>
+      <p class="hint">Hosted feature layers, map services, and scene services to report usage on.</p>
+      <input id="services" type="number" min="0" value="40">
+      <p class="rate">Usage reporting names the busiest services and the ones nobody uses.</p>
+    </div>
+    <div class="field">
+      <label for="users">Named users</label>
+      <p class="hint">Everyone with a named user account, viewers included.</p>
+      <input id="users" type="number" min="0" value="150">
+      <p class="rate">Drives the usage reports and the licence alerts.</p>
+    </div>
+  </div>
+
+  <h2>Extra server roles</h2>
+  <p class="secnote">Tick the federated server roles in the deployment. Each one is a site of its own, on its own machine, and Monitor registers it separately.</p>
+  <div class="field">
+    <label class="checkrow"><input type="checkbox" id="roleGeoevent"><span><b>ArcGIS GeoEvent Server</b><span>Real-time feeds. Watch event throughput and queue depth.</span></span></label>
+    <label class="checkrow"><input type="checkbox" id="roleNotebook"><span><b>ArcGIS Notebook Server</b><span>Scheduled notebooks. Watch failed runs and run duration.</span></span></label>
+    <label class="checkrow"><input type="checkbox" id="roleImage"><span><b>ArcGIS Image Server</b><span>Imagery services. Watch cache use and request time.</span></span></label>
+    <label class="checkrow"><input type="checkbox" id="roleWorkflow"><span><b>ArcGIS Workflow Manager Server</b><span>Job workflows. Watch stalled jobs and step failures.</span></span></label>
+    <label class="checkrow"><input type="checkbox" id="roleGeoanalytics"><span><b>ArcGIS GeoAnalytics Server</b><span>Big data analysis. Watch analysis job time and failures.</span></span></label>
+  </div>
+
+  <h2>What to watch</h2>
+  <p class="secnote">Tick the groups Monitor should cover. The alert set and the collections below are built from these ticks.</p>
+  <div class="field">
+    <label class="checkrow"><input type="checkbox" id="watchHost" checked><span><b>Host machines</b><span>CPU, memory, and disk on every deployment machine.</span></span></label>
+    <label class="checkrow"><input type="checkbox" id="watchPortal" checked><span><b>Portal</b><span>Availability, sign-ins, and item and user counts.</span></span></label>
+    <label class="checkrow"><input type="checkbox" id="watchServer" checked><span><b>Server sites and services</b><span>Response time, errors, requests, and busy instances.</span></span></label>
+    <label class="checkrow"><input type="checkbox" id="watchDatastore" checked><span><b>Data Store</b><span>Disk free, store status, and replication lag where it applies.</span></span></label>
+    <label class="checkrow"><input type="checkbox" id="watchDb" checked><span><b>Enterprise geodatabases</b><span>Connection health and database availability.</span></span></label>
+    <label class="checkrow"><input type="checkbox" id="watchAdaptor"><span><b>Web adaptor logs</b><span>HTTP errors and failed sign-ins from the adaptor logs.</span></span></label>
+    <label class="checkrow"><input type="checkbox" id="watchLicence" checked><span><b>Licences</b><span>Named user licence use against what was bought.</span></span></label>
+    <label class="checkrow"><input type="checkbox" id="watchUsage" checked><span><b>Service usage</b><span>Requests per service, top users, and unused services.</span></span></label>
+  </div>
+
+  <h2>Alerts and people</h2>
+  <div class="grid">
+    <div class="field">
+      <label for="retention">Months of metric history to keep</label>
+      <p class="hint">Three months is enough to troubleshoot. Twelve months is what trend reporting and capacity planning need.</p>
+      <input id="retention" type="number" min="1" value="12">
+      <p class="rate">Longer history means a bigger Monitor database. Plan the disk for it up front.</p>
+    </div>
+    <div class="field">
+      <label for="oncall">People on the alert rota</label>
+      <p class="hint">The people who get paged when a critical alert fires, not the whole team.</p>
+      <input id="oncall" type="number" min="0" value="2">
+      <p class="rate">Fewer than two means alerts depend on one person being available.</p>
+    </div>
+  </div>
+  <h2 style="margin-top:26px">How alerts reach people</h2>
+  <div class="radiorow" id="channelRow">
+    <label><input type="radio" name="channel" value="email" checked> Email</label>
+    <label><input type="radio" name="channel" value="emailwebhook"> Email plus webhook</label>
+    <label><input type="radio" name="channel" value="none"> No alert channel yet</label>
+  </div>
+
+  <h2>Ready to deploy</h2>
+  <p class="secnote">Five checks. Each one is worth 20 points of the readiness score, and each gap has a fix named in the result.</p>
+  <div class="field">
+    <label class="checkrow"><input type="checkbox" class="ready" id="rDb"><span><b>A dedicated database for Monitor</b><span>Esri recommends a dedicated database and database user for the Monitor repository.</span></span></label>
+    <label class="checkrow"><input type="checkbox" class="ready" id="rMachine"><span><b>Monitor Server on its own machine</b><span>Monitor watches the deployment. It should not share a machine with the thing it watches.</span></span></label>
+    <label class="checkrow"><input type="checkbox" class="ready" id="rFirewall"><span><b>Firewall rules between networks are open</b><span>Each Monitor Agent must reach the Monitor Server it reports to.</span></span></label>
+    <label class="checkrow"><input type="checkbox" class="ready" id="rOwner"><span><b>A named alert owner</b><span>One person owns the alert set, the tuning, and the weekly review.</span></span></label>
+    <label class="checkrow"><input type="checkbox" class="ready" id="rBaseline"><span><b>A two-week baseline is planned</b><span>Thresholds are tuned against two weeks of real numbers, not guessed on day one.</span></span></label>
+  </div>
+
+  <div class="actions noprint">
+    <button class="btn" type="button" id="go">Plan my Monitor deployment</button>
+    <button class="btn-outline" type="button" id="printBtn">Print the plan</button>
+  </div>
+
+  <div class="result" id="result" hidden></div>
+
+  <div class="sources">
+    <h2>Sources</h2>
+    <p>ArcGIS Monitor components, deployment shape, roles, alerts, collections, and observers: Esri, <a href="https://doc.arcgis.com/en/monitor/2025.1/get-started/linux/" target="_blank" rel="noopener">Introduction to ArcGIS Monitor</a> and <a href="https://doc.arcgis.com/en/monitor/2023.2/administration/linux/inside-an-arcgis-monitor-deployment.htm" target="_blank" rel="noopener">Inside an ArcGIS Monitor deployment</a>. The starter alert thresholds and the effort figures are planning rules from practice, not Esri numbers, and the page says so where they appear. The companion guide: <a href="../../resources/arcgis-monitor-guide.pdf">ArcGIS Monitor guide (PDF)</a>. The checks behind this planner: <a href="../enterprise-gis-health-check-agent/index.html">Enterprise GIS Health Check agent</a>.</p>
+  </div>
+</main>
+<footer>
+  <p>Built by <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Janaki Gattu</a>, Enterprise GIS Consultant. Runs entirely in your browser: no backend, no API key, nothing sent anywhere. Questions about your deployment: <a href="mailto:gjanaki360@gmail.com?subject=ArcGIS%20Monitor%20deployment">gjanaki360@gmail.com</a>.</p>
+</footer>
+</div>
+<script>
+function computePlan(d){
+  var roles = d.roles || 0;
+  var machines = d.portal + d.server + d.datastore + roles;
+  var serverSites = d.server + roles;
+  var registered = machines + d.portal + serverSites + d.datastore + d.geodb + d.adaptors;
+  var agents = Math.max(0, d.networks - 1);
+  var install = 1 + 0.5 * agents;
+  var register = Math.max(0.5, Math.round(registered * 0.1 * 10) / 10);
+  var alertsDays = 1.5, baseline = 1, reports = 1, handover = 0.5;
+  var total = Math.round((install + register + alertsDays + baseline + reports + handover) * 10) / 10;
+  var weeksOne = Math.round(total / 5 * 10) / 10;
+  var weeksTwo = Math.round(total / 10 * 10) / 10;
+  var readyCount = d.ready.filter(function(x){ return x; }).length;
+  var readiness = readyCount * 20;
+  var verdict = readiness >= 80 ? 'Ready to deploy' : readiness >= 50 ? 'Close the gaps first' : 'Not ready yet';
+  var verdictClass = readiness >= 80 ? 'green' : readiness >= 50 ? 'amber' : 'red';
+  var deployment = agents === 0 ? 'Monitor Server only' : 'Monitor Server plus ' + agents + ' Monitor Agent' + (agents > 1 ? 's' : '');
+  var components = [
+    {name: 'Host machines', count: machines},
+    {name: 'Portal sites', count: d.portal},
+    {name: 'Server sites (hosting plus extra roles)', count: serverSites},
+    {name: 'Data Store machines', count: d.datastore},
+    {name: 'Enterprise geodatabases', count: d.geodb},
+    {name: 'Web adaptors', count: d.adaptors}
+  ];
+  var allAlerts = [
+    {group: 'host', metric: 'Host CPU above 85% for 15 minutes', severity: 'Warning', why: 'A sustained high CPU means the machine is the bottleneck, not the service.'},
+    {group: 'host', metric: 'Host memory above 90%', severity: 'Critical', why: 'Memory pressure is what turns a slow map into a failed service.'},
+    {group: 'host', metric: 'Host disk free below 15%', severity: 'Warning', why: 'Disk fills quietly, then fills everything else with it.'},
+    {group: 'portal', metric: 'Portal site unreachable', severity: 'Critical', why: 'If Portal is down, sign-in and every app behind it is down.'},
+    {group: 'server', metric: 'Service response time above 5 seconds', severity: 'Warning', why: 'Slow responses are the first thing users feel and the last thing anyone reports.'},
+    {group: 'server', metric: 'Service errors above 5% of requests', severity: 'Critical', why: 'A rising error rate is a service failing in slow motion.'},
+    {group: 'datastore', metric: 'Data Store disk free below 10%', severity: 'Warning', why: 'A Data Store short on free disk can go read-only. Catch it before it does.'},
+    {group: 'db', metric: 'Enterprise geodatabase connection fails', severity: 'Critical', why: 'A database Monitor cannot reach is a database the services cannot reach either.'},
+    {group: 'adaptor', metric: 'Web adaptor returns 5xx errors', severity: 'Warning', why: 'Adaptor errors are the earliest sign of a backend problem.'},
+    {group: 'licence', metric: 'Named user licence use above 90%', severity: 'Warning', why: 'Licence use at 90% means the next hire has nowhere to sit.'}
+  ];
+  var alerts = allAlerts.filter(function(a){ return d.watch[a.group]; });
+  var gaps = [];
+  if(!d.ready[0]) gaps.push({gap: 'No dedicated database for Monitor', fix: 'Create a dedicated database and database user for the Monitor repository before installing Monitor Server.'});
+  if(!d.ready[1]) gaps.push({gap: 'Monitor Server shares a machine with the deployment', fix: 'Give Monitor Server its own machine, so a failure in the deployment cannot take the monitoring down with it.'});
+  if(!d.ready[2]) gaps.push({gap: 'Firewall rules between networks not confirmed', fix: 'Open the ports each Monitor Agent needs to reach Monitor Server, and test the connection from every network before registering components.'});
+  if(!d.ready[3]) gaps.push({gap: 'No named alert owner', fix: 'Name one person who owns the alert set, the tuning, and the weekly review. Alerts without an owner are alerts nobody reads.'});
+  if(!d.ready[4]) gaps.push({gap: 'No baseline period planned', fix: 'Plan two weeks of baseline collection first, then set the thresholds from the real numbers. The starter thresholds on this page are the starting point, not the answer.'});
+  var phases = [
+    {name: 'Phase 1: Install', days: install, text: 'Install Monitor Server on its own machine, create the dedicated database, and install a Monitor Agent in each extra network (' + agents + ' agent' + (agents === 1 ? '' : 's') + ').'},
+    {name: 'Phase 2: Register components', days: register, text: 'Register the ' + registered + ' components, starting with the host machines, then Portal, Server, Data Store, databases, and adaptors.'},
+    {name: 'Phase 3: Build collections', days: 0.5, text: 'Group the components into four collections: Infrastructure, ArcGIS, Database, and Usage, so alerts, reports, and SLAs follow the same shape.'},
+    {name: 'Phase 4: Set the starter alerts', days: alertsDays, text: 'Switch on the ' + alerts.length + ' starter alerts below, point them at the ' + (d.channel === 'none' ? 'alert channel you still need to choose' : d.channel === 'email' ? 'email rota' : 'email rota and webhook') + ', and confirm the first alert reaches a person.'},
+    {name: 'Phase 5: Baseline and tune', days: baseline, text: 'Collect two weeks of real numbers, then move each threshold to where your own deployment actually runs. Expect to change most of them.'},
+    {name: 'Phase 6: Reports and handover', days: reports + handover, text: 'Build the weekly health report and the monthly usage report, then hand the alert set, the collections, and the rota to the named owner.'}
+  ];
+  return {machines: machines, serverSites: serverSites, registered: registered, agents: agents, install: install, register: register, total: total, weeksOne: weeksOne, weeksTwo: weeksTwo, readiness: readiness, verdict: verdict, verdictClass: verdictClass, deployment: deployment, components: components, alerts: alerts, gaps: gaps, phases: phases};
+}
+var PRESETS = {
+  small: {portal: 1, server: 1, datastore: 1, geodb: 1, networks: 1, adaptors: 1, services: 40, users: 150, retention: 12, oncall: 2, roles: [], watch: {host: true, portal: true, server: true, datastore: true, db: true, adaptor: false, licence: true, usage: true}, channel: 'email', ready: [false, false, false, false, false]},
+  dept: {portal: 1, server: 2, datastore: 2, geodb: 2, networks: 2, adaptors: 2, services: 120, users: 400, retention: 12, oncall: 3, roles: ['Geoevent', 'Notebook'], watch: {host: true, portal: true, server: true, datastore: true, db: true, adaptor: true, licence: true, usage: true}, channel: 'emailwebhook', ready: [true, false, false, true, false]},
+  ent: {portal: 2, server: 4, datastore: 4, geodb: 4, networks: 3, adaptors: 3, services: 300, users: 1200, retention: 12, oncall: 4, roles: ['Geoevent', 'Notebook', 'Image', 'Workflow'], watch: {host: true, portal: true, server: true, datastore: true, db: true, adaptor: true, licence: true, usage: true}, channel: 'emailwebhook', ready: [true, true, true, true, false]}
+};
+function num(id){ var v = parseInt(document.getElementById(id).value, 10); return isNaN(v) ? 0 : Math.max(0, v); }
+function readForm(){
+  var roles = 0;
+  ['Geoevent', 'Notebook', 'Image', 'Workflow', 'Geoanalytics'].forEach(function(r){ if(document.getElementById('role' + r).checked) roles += 1; });
+  var ready = [];
+  document.querySelectorAll('.ready').forEach(function(c){ ready.push(c.checked); });
+  var channel = 'email';
+  var sel = document.querySelector('input[name="channel"]:checked');
+  if(sel) channel = sel.value;
+  return {
+    portal: num('portal'), server: num('server'), datastore: num('datastore'), geodb: num('geodb'),
+    networks: Math.max(1, num('networks')), adaptors: num('adaptors'), services: num('services'),
+    users: num('users'), retention: Math.max(1, num('retention')), oncall: num('oncall'),
+    roles: roles, ready: ready, channel: channel,
+    watch: {host: document.getElementById('watchHost').checked, portal: document.getElementById('watchPortal').checked, server: document.getElementById('watchServer').checked, datastore: document.getElementById('watchDatastore').checked, db: document.getElementById('watchDb').checked, adaptor: document.getElementById('watchAdaptor').checked, licence: document.getElementById('watchLicence').checked, usage: document.getElementById('watchUsage').checked}
+  };
+}
+function esc(s){ return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+function render(){
+  var d = readForm();
+  var p = computePlan(d);
+  var html = '';
+  html += '<h2>Your Monitor deployment plan</h2>';
+  html += '<p><span class="pill ' + p.verdictClass + '">' + esc(p.verdict) + '</span></p>';
+  html += '<p class="big">' + p.total + ' <small>person-days to deploy</small></p>';
+  html += '<p>Readiness ' + p.readiness + ' out of 100. About ' + p.weeksOne + ' weeks for one person, or ' + p.weeksTwo + ' weeks for a team of two.</p>';
+  html += '<div class="stats">';
+  html += '<div class="stat"><div class="k">Deployment shape</div><div class="v" style="font-size:1.1rem">' + esc(p.deployment) + '</div><div class="s">' + p.machines + ' deployment machines across ' + d.networks + ' network' + (d.networks === 1 ? '' : 's') + '</div></div>';
+  html += '<div class="stat"><div class="k">Components to register</div><div class="v">' + p.registered + '</div><div class="s">Host machines, sites, databases, and adaptors</div></div>';
+  html += '<div class="stat"><div class="k">Starter alerts</div><div class="v">' + p.alerts.length + '</div><div class="s">Thresholds are starting points, tuned in the baseline</div></div>';
+  html += '<div class="stat"><div class="k">Metric history</div><div class="v">' + d.retention + ' months</div><div class="s">' + d.services + ' services and ' + d.users + ' named users in the usage reports</div></div>';
+  html += '</div>';
+  html += '<h3>Components to register</h3>';
+  html += '<table><tr><th>Component group</th><th class="num">Count</th><th>What Monitor watches there</th></tr>';
+  var notes = {'Host machines': 'CPU, memory, disk, and process health on every machine.', 'Portal sites': 'Availability, sign-ins, and item and user counts.', 'Server sites (hosting plus extra roles)': 'Response time, errors, requests, and busy instances per service.', 'Data Store machines': 'Disk free, store status, and replication lag where it applies.', 'Enterprise geodatabases': 'Connection health and database availability.', 'Web adaptors': 'HTTP errors and failed sign-ins from the adaptor logs.'};
+  p.components.forEach(function(c){ html += '<tr><td>' + esc(c.name) + '</td><td class="num">' + c.count + '</td><td>' + esc(notes[c.name]) + '</td></tr>'; });
+  html += '<tr class="top"><td>Total components</td><td class="num">' + p.registered + '</td><td></td></tr></table>';
+  html += '<p style="margin-top:10px">Deployment: <b style="color:#fff">' + esc(p.deployment) + '</b>. ' + (p.agents === 0 ? 'One data center, so Monitor Server alone covers the whole deployment.' : 'One network holds Monitor Server. Each of the other ' + p.agents + ' network' + (p.agents === 1 ? '' : 's') + ' gets a Monitor Agent, so monitoring stays local and only the results travel back.') + ' Monitor Server also needs its own machine and a dedicated database, which the readiness checks cover below.</p>';
+  html += '<h3>Starter alert set</h3>';
+  html += '<p>Every threshold below is a starting point from practice, not an Esri number. Run the two-week baseline first, then move each one to where your own deployment actually runs.</p>';
+  if(p.alerts.length === 0){
+    html += '<p>No alert groups are ticked. Tick at least one group under What to watch, or the deployment will collect numbers nobody acts on.</p>';
+  } else {
+    html += '<table><tr><th>Alert</th><th>Severity</th><th>Why it matters</th></tr>';
+    p.alerts.forEach(function(a){ html += '<tr><td>' + esc(a.metric) + '</td><td>' + esc(a.severity) + '</td><td>' + esc(a.why) + '</td></tr>'; });
+    html += '</table>';
+  }
+  html += '<h3>Collections to build</h3>';
+  html += '<p>Collections group components so alerts, reports, and service level calculations follow the same shape. Start with four:</p><ul>';
+  html += '<li><b>Infrastructure:</b> the ' + p.machines + ' host machines.</li>';
+  html += '<li><b>ArcGIS:</b> Portal, Server sites, and Data Store.</li>';
+  html += '<li><b>Database:</b> the ' + d.geodb + ' enterprise geodatabase' + (d.geodb === 1 ? '' : 's') + ' and the Monitor database itself.</li>';
+  html += '<li><b>Usage:</b> the ' + d.services + ' services, licence use, and named user activity.</li></ul>';
+  if(d.oncall < 2) html += '<p style="margin-top:10px"><b style="color:var(--amber)">Watch out:</b> ' + d.oncall + ' ' + (d.oncall === 1 ? 'person' : 'people') + ' on the alert rota means alerts depend on one person being available. Two at minimum, three if the rota covers weekends.</p>';
+  if(d.channel === 'none') html += '<p style="margin-top:10px"><b style="color:var(--amber)">Watch out:</b> no alert channel is chosen yet. Alerts that reach nobody are the same as no alerts. Pick email at minimum before the first alert is switched on.</p>';
+  html += '<h3>Gaps to close before you deploy</h3>';
+  if(p.gaps.length === 0){
+    html += '<p>None. All five readiness checks are ticked. The baseline is still where the thresholds get set, so do not skip Phase 5.</p>';
+  } else {
+    html += '<ol>';
+    p.gaps.forEach(function(g){ html += '<li><b>' + esc(g.gap) + '.</b> ' + esc(g.fix) + '</li>'; });
+    html += '</ol>';
+  }
+  html += '<h3>Phased plan</h3><ol>';
+  p.phases.forEach(function(ph){ html += '<li><b>' + esc(ph.name) + ' (' + ph.days + ' day' + (ph.days === 1 ? '' : 's') + ').</b> ' + esc(ph.text) + '</li>'; });
+  html += '</ol>';
+  html += '<h3>Checklist</h3><ul>';
+  ['Monitor Server installed on its own machine, dedicated database created.', 'Monitor Agent installed in each extra network and connected to Monitor Server.', 'All ' + p.registered + ' components registered, starting with the host machines.', 'Four collections built: Infrastructure, ArcGIS, Database, Usage.', 'Starter alert set switched on and the first alert confirmed to reach a person.', 'Alert rota named, with at least two people on it.', 'Two-week baseline collected, thresholds tuned to the real numbers.', 'Weekly health report and monthly usage report scheduled.', 'Alert set, collections, and rota handed to the named owner.', 'Review date set: revisit the thresholds after the first month in production.'].forEach(function(item){ html += '<li>' + esc(item) + '</li>'; });
+  html += '</ul>';
+  html += '<p class="cta">Ready to put monitoring on your deployment? Email Janaki with your machine count and your networks: <a href="mailto:gjanaki360@gmail.com?subject=ArcGIS%20Monitor%20deployment%20plan">gjanaki360@gmail.com</a>, or <a href="../../index.html#book">book a session</a>.</p>';
+  var r = document.getElementById('result');
+  r.innerHTML = html;
+  r.hidden = false;
+  r.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+function applyPreset(name){
+  if(name === 'clear'){
+    ['portal', 'server', 'datastore', 'geodb', 'networks', 'adaptors', 'services', 'users', 'retention', 'oncall'].forEach(function(id){ document.getElementById(id).value = 0; });
+    document.getElementById('networks').value = 1;
+    document.getElementById('retention').value = 1;
+    ['Geoevent', 'Notebook', 'Image', 'Workflow', 'Geoanalytics'].forEach(function(r){ document.getElementById('role' + r).checked = false; });
+    ['Host', 'Portal', 'Server', 'Datastore', 'Db', 'Adaptor', 'Licence', 'Usage'].forEach(function(w){ document.getElementById('watch' + w).checked = false; });
+    document.querySelectorAll('.ready').forEach(function(c){ c.checked = false; });
+    document.querySelectorAll('.preset').forEach(function(b){ b.classList.remove('active'); });
+    document.getElementById('result').hidden = true;
+    return;
+  }
+  var p = PRESETS[name];
+  if(!p) return;
+  document.getElementById('portal').value = p.portal;
+  document.getElementById('server').value = p.server;
+  document.getElementById('datastore').value = p.datastore;
+  document.getElementById('geodb').value = p.geodb;
+  document.getElementById('networks').value = p.networks;
+  document.getElementById('adaptors').value = p.adaptors;
+  document.getElementById('services').value = p.services;
+  document.getElementById('users').value = p.users;
+  document.getElementById('retention').value = p.retention;
+  document.getElementById('oncall').value = p.oncall;
+  ['Geoevent', 'Notebook', 'Image', 'Workflow', 'Geoanalytics'].forEach(function(r){ document.getElementById('role' + r).checked = p.roles.indexOf(r) !== -1; });
+  document.getElementById('watchHost').checked = p.watch.host;
+  document.getElementById('watchPortal').checked = p.watch.portal;
+  document.getElementById('watchServer').checked = p.watch.server;
+  document.getElementById('watchDatastore').checked = p.watch.datastore;
+  document.getElementById('watchDb').checked = p.watch.db;
+  document.getElementById('watchAdaptor').checked = p.watch.adaptor;
+  document.getElementById('watchLicence').checked = p.watch.licence;
+  document.getElementById('watchUsage').checked = p.watch.usage;
+  var ch = document.querySelector('input[name="channel"][value="' + p.channel + '"]');
+  if(ch) ch.checked = true;
+  var boxes = document.querySelectorAll('.ready');
+  boxes.forEach(function(c, i){ c.checked = !!p.ready[i]; });
+  document.querySelectorAll('.preset').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-preset') === name); });
+  render();
+}
+document.getElementById('go').addEventListener('click', render);
+document.getElementById('printBtn').addEventListener('click', function(){ render(); setTimeout(function(){ window.print(); }, 150); });
+document.querySelectorAll('.preset').forEach(function(b){ b.addEventListener('click', function(){ applyPreset(b.getAttribute('data-preset')); }); });
+render();
+</script>
+</body>
+</html>
