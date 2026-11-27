@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArcGIS Enterprise Incident Response Playbook: the severity, the steps in order, and the words for your users, by Janaki Gattu</title>
+<meta name="description" content="A working ArcGIS Enterprise Incident Response Playbook by Janaki Gattu. Pick the incident and get the severity, the runbook steps in order, who to page, and the status message to send. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 6px}
+  h2:first-child{margin-top:0}
+  .secnote{color:var(--muted);margin-bottom:16px}
+  .presets{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+  .preset{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:10px 18px;color:var(--text);cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700}
+  .preset:hover{border-color:var(--accent)}
+  .preset.active{border-color:var(--accent);background:#052e16}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .field{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .field label{display:block;font-weight:700;font-size:1rem;margin-bottom:2px}
+  .field .hint{color:var(--muted);font-size:.88rem;margin-bottom:10px}
+  .field .hint b{color:#d4d4d4}
+  .field input,.field select{width:100%;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:8px;padding:10px 12px;font-size:1rem;font-family:inherit}
+  .field input:focus,.field select:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+  .checkrow{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--line)}
+  .checkrow:last-child{border-bottom:0}
+  .checkrow input{width:18px;height:18px;margin-top:3px;accent-color:var(--accent);flex:none}
+  .checkrow b{display:block;font-size:.98rem}
+  .checkrow span{color:var(--muted);font-size:.88rem}
+  .radiorow{display:flex;flex-wrap:wrap;gap:10px}
+  .radiorow label{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;cursor:pointer;font-weight:700;font-size:.95rem;display:flex;gap:8px;align-items:center}
+  .radiorow label:has(input:checked){border-color:var(--accent);background:#052e16}
+  .radiorow input{accent-color:var(--accent);width:16px;height:16px}
+  .actions{margin-top:26px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer;font-family:inherit}
+  .btn-dark{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a;border:0;cursor:pointer;font-family:inherit}
+  .btn-outline{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;border:1px solid #525252;color:var(--text);background:none;cursor:pointer;font-family:inherit}
+  .result{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px;margin-top:28px}
+  .result h2{margin-top:0}
+  .pill{display:inline-block;font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:6px}
+  .pill.green{background:#14532d;color:#bbf7d0}
+  .pill.amber{background:#451a03;color:#fde68a}
+  .pill.red{background:#450a0a;color:#fecaca}
+  .big{font-size:2.2rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+  .big small{font-size:1rem;color:var(--muted);font-weight:600}
+  .result h3{font-size:1.15rem;margin:26px 0 10px}
+  .result p{color:var(--muted);margin-bottom:10px}
+  .result p b{color:#d4d4d4}
+  .result ul,.result ol{margin:0 0 12px 20px;color:var(--muted)}
+  .result li{margin-bottom:8px}
+  .result li b{color:#d4d4d4}
+  .result ol li::marker{color:var(--accent);font-weight:800}
+  .comms{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px 18px;color:var(--text);font-size:.98rem;margin:8px 0 12px;white-space:pre-line}
+  .note{background:#451a03;border:1px solid #78350f;border-radius:12px;padding:14px 18px;color:#fde68a;font-size:.95rem;margin:10px 0}
+  .cta{margin-top:24px;padding-top:18px;border-top:1px solid var(--line)}
+  .sources{margin-top:28px;padding-top:18px;border-top:1px solid var(--line);color:var(--faint);font-size:.88rem}
+  .sources a{color:var(--muted)}
+  footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--faint);font-size:.88rem}
+  @media print{body{background:#fff;color:#111}.wrap{max-width:720px}header,.actions,.presets,.btn,.btn-dark,.btn-outline,.back{display:none}.result{border:1px solid #999}.result p,.result li{color:#333}.comms{border:1px solid #999;color:#111}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<a class="back" href="../../index.html">&larr; Back to Janaki Gattu</a>
+<p class="eyebrow">Working playbook &middot; ArcGIS Enterprise operations</p>
+<h1>ArcGIS Enterprise Incident Response Playbook</h1>
+<p class="lede"><b>An outage is not the time to work out what to do next.</b> This is the page you open when the system is down: the severity, the steps in order, who to page, and the words for your users. Pick the incident, answer five questions, and print the playbook.</p>
+<div class="honest"><b>Runs entirely in your browser.</b> No backend, no API key, nothing you type is sent or stored anywhere. Severity bands and response targets are planning rules from practice, not Esri numbers. The runbook steps come from Esri published guidance, cited below.</div>
+</header>
+<main>
+<h2>What is happening?</h2>
+<p class="secnote">Pick the incident that matches what users are reporting. The runbook changes with it.</p>
+<div class="radiorow" id="incidentRow">
+<label><input type="radio" name="incident" value="portal-down" checked> Portal will not load</label>
+<label><input type="radio" name="incident" value="services-slow"> Services slow or timing out</label>
+<label><input type="radio" name="incident" value="signin-fails"> Sign-in failing</label>
+<label><input type="radio" name="incident" value="datastore-readonly"> Data store read-only or disk full</label>
+<label><input type="radio" name="incident" value="federation-broken"> Federation broken</label>
+<label><input type="radio" name="incident" value="restore-needed"> Restore from backup (WebGISDR)</label>
+</div>
+
+<h2>The situation</h2>
+<p class="secnote">Five questions set the severity and the first call you make.</p>
+<div class="grid">
+<div class="field"><label for="users">Users affected</label><p class="hint">How many people cannot do their work right now.</p><input type="number" id="users" min="0" value="250"></div>
+<div class="field"><label>When is it?</label><p class="hint">Business hours change the severity. After hours, the same fault waits longer.</p><div class="radiorow"><label><input type="radio" name="hours" value="business" checked> Business hours</label><label><input type="radio" name="hours" value="after"> After hours</label></div></div>
+<div class="field"><label for="backup">Last successful WebGISDR export</label><p class="hint">How old is the newest backup you could restore from.</p><select id="backup"><option value="today">Today</option><option value="week">This week</option><option value="over">Over a week ago</option><option value="never">Never, or unknown</option></select></div>
+<div class="field"><label>Coverage</label><p class="hint">Two facts that change who you call first.</p>
+<div class="checkrow"><input type="checkbox" id="alerts" checked><div><b>ArcGIS Monitor alerted on this</b><span>An alert fired before users reported it.</span></div></div>
+<div class="checkrow"><input type="checkbox" id="oncall" checked><div><b>On-call admin is available</b><span>Someone with admin access can act now.</span></div></div>
+</div>
+</div>
+
+<h2>Three ways in</h2>
+<p class="secnote">Presets fill the form with a real situation. Change any answer after.</p>
+<div class="presets">
+<button class="preset" data-preset="portal">Portal down, business hours</button>
+<button class="preset" data-preset="datastore">Data store read-only, after hours</button>
+<button class="preset" data-preset="slow">Slow services, Monitor alerting</button>
+<button class="preset" data-preset="clear">Clear all</button>
+</div>
+<div class="actions">
+<button class="btn" id="planBtn">Build my playbook</button>
+<button class="btn-dark" id="printBtn">Print the playbook</button>
+</div>
+<div id="result"></div>
+
+<h2>How the severity is decided</h2>
+<p class="secnote">Three bands, and the rule behind each one. Severity is set by what users lose, not by which component failed.</p>
+<ul style="margin:0 0 12px 20px;color:var(--muted)">
+<li><b style="color:#d4d4d4">SEV-1:</b> core work is blocked for many users, or data loss is possible. Respond in 15 minutes, all hands, page the on-call admin now.</li>
+<li><b style="color:#d4d4d4">SEV-2:</b> work is degraded or a smaller group is blocked. Respond in 1 hour. One admin owns it, a second on standby.</li>
+<li><b style="color:#d4d4d4">SEV-3:</b> a small group, after hours, with a workaround. Respond within 4 business hours. One admin, no page.</li>
+</ul>
+<p class="secnote">A read-only data store and a restore are always SEV-1: edits cannot be saved, or the system is down until the restore finishes. Five hundred or more users affected is always SEV-1, whatever the fault.</p>
+
+<div class="sources">
+<p>Sources: Esri, ArcGIS Enterprise backups and WebGISDR restore, <a href="https://enterprise.arcgis.com/en/portal/11.5/administer/linux/overview-backup-restore-web-gis.htm">enterprise.arcgis.com</a> (settings that must match, what the restore keeps from the target). Esri, ArcGIS Data Store system requirements, <a href="https://enterprise.arcgis.com/en/data-store/latest/install/windows/arcgis-data-store-system-requirements.htm">enterprise.arcgis.com</a> (below 10 GB free the data store logs warnings, below 5 GB free the relational store goes read-only). Esri, ArcGIS Monitor, <a href="https://doc.arcgis.com/en/monitor/latest/get-started/introduction-to-arcgis-monitor.htm">doc.arcgis.com</a> (alerts fire when a metric crosses a threshold). Related tools on this site: <a href="../arcgis-enterprise-troubleshooting-agent/index.html">ArcGIS Enterprise Troubleshooting Agent</a> (find the cause), <a href="../webgisdr-backup-recovery-planner/index.html">WebGISDR Backup and Recovery Planner</a> (the backup schedule this playbook assumes), <a href="../arcgis-monitor-deployment-planner/index.html">ArcGIS Monitor Deployment Planner</a> (the alerts that should have fired).</p>
+</div>
+</main>
+<footer>
+<p>Built by Janaki Gattu, Enterprise GIS Consultant and GIS Solutions Architect. Fifteen years in enterprise GIS, ten years administering ArcGIS Enterprise. <a href="mailto:gjanaki360@gmail.com">gjanaki360@gmail.com</a> &middot; <a href="https://www.linkedin.com/in/janaki-gis-enterprise">LinkedIn</a></p>
+</footer>
+</div>
+<script>
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+var RUNBOOKS={
+"portal-down":{name:"Portal will not load",workaround:"Workaround: use the ArcGIS Server services directly, or wait for Portal.",steps:[
+{t:"Confirm it is down for everyone, not one browser",a:"Ask two users on different machines to open Portal.",c:"Both fail the same way."},
+{t:"Check the Portal machine answers",a:"Ping it and open a remote session.",c:"The machine is up and you can log in."},
+{t:"Check the Portal service is running",a:"Windows Services, or systemctl status arcgisportal on Linux.",c:"The service shows Running, not Stopped."},
+{t:"Check free disk on the Portal machine",a:"Look at the drive that holds the Portal content directory.",c:"At least a few GB free. A full disk stops Portal from starting."},
+{t:"Read the Portal logs",a:"Portal logs live under the Portal content directory.",c:"The newest error names the cause, often disk, memory, or the identity store."},
+{t:"Check the Web Adaptor",a:"Open the adaptor URL directly, then the Portal URL behind it.",c:"The adaptor answers and forwards to Portal."},
+{t:"Restart the Portal service, then watch the logs",a:"Restart, then tail the log as it comes back.",c:"Portal answers within a few minutes and the home page loads."},
+{t:"If it still does not start, open an Esri Support case",a:"Attach the version, the newest Portal logs, and the steps already tried.",c:"The case number is recorded and the users have a next update time."}]},
+"services-slow":{name:"Services slow or timing out",workaround:"Workaround: use a cached map or a smaller area until the service recovers.",steps:[
+{t:"Name the slow service",a:"Open Server Manager and sort by response time.",c:"You know whether one service is slow, or all of them are."},
+{t:"Check the machine",a:"CPU, memory, and disk on the hosting Server machine.",c:"You know whether one resource is pinned at the top."},
+{t:"Check the data store",a:"Free disk and the data store status in Server Manager.",c:"The store is validated and not read-only."},
+{t:"Check the database behind the service",a:"Open connections and slow queries on the source database.",c:"The database answers in normal time."},
+{t:"Check the network path",a:"Latency between the Server machine and the data source.",c:"The path is clean and the firewall did not change."},
+{t:"Restart the slow service, one service at a time",a:"Restart, then test the same request again.",c:"Response time returns to normal after the restart."},
+{t:"Add instances only after the cause is known",a:"Scale the service once the cause is fixed.",c:"The service stays fast under normal load, not just right after the restart."},
+{t:"If the slowness returns, open an Esri Support case",a:"Attach the service name, the machine, and the log lines from the slow window.",c:"The case number is recorded and the users have a next update time."}]},
+"signin-fails":{name:"Sign-in failing",workaround:"Workaround: none for named users. Built-in accounts still work for admins.",steps:[
+{t:"Try the built-in Portal administrator account",a:"Sign in with the built-in account, not a directory account.",c:"The built-in account signs in, which proves Portal itself is up."},
+{t:"Check the identity store",a:"LDAP or Active Directory, reachable from the Portal machine.",c:"The directory answers and the service account is not locked."},
+{t:"Check the token",a:"Sign in, then check the token expiry in the browser.",c:"The token is issued and not expired on arrival."},
+{t:"Check the identity provider",a:"SAML or OpenID Connect provider status and certificate dates.",c:"The provider answers and its certificate is still valid."},
+{t:"Check the Web Adaptor",a:"Sign in through the adaptor URL and the Portal URL behind it.",c:"Both paths fail the same way, or only one does."},
+{t:"Read the Portal logs for the failed sign-in",a:"Search the newest log for the failed authentication.",c:"The newest error names the store, the provider, or the account."},
+{t:"Fix the one broken link, then test with a normal member account",a:"Fix the store, the provider, or the account, then test.",c:"A member with no admin rights signs in and sees their content."},
+{t:"If sign-in stays broken, open an Esri Support case",a:"Attach the identity store type, the provider, and the log lines.",c:"The case number is recorded and the users have a next update time."}]},
+"datastore-readonly":{name:"Data store read-only or disk full",workaround:"Workaround: none. Edits cannot be saved until the store is writable again.",steps:[
+{t:"Check free disk on the data store machine",a:"Read the exact free space in GB on the data store drive.",c:"Below 10 GB free the data store logs warnings. Below 5 GB free the relational store goes read-only and the graph store shuts down."},
+{t:"Free space now",a:"Delete old logs and old backups first, then move data.",c:"Free space is back above 10 GB."},
+{t:"Check the data store status in Server Manager",a:"Open the data store and read its status.",c:"The store shows as validated and writable."},
+{t:"Validate the data store",a:"Run the validate operation from Server Manager.",c:"Validation passes with no errors."},
+{t:"Check what filled the disk",a:"Tile cache growth, log growth, or a runaway service.",c:"You know the biggest folder on the disk and what it holds."},
+{t:"Test an edit",a:"Save one small edit to a hosted feature layer.",c:"The edit saves and the layer is writable again."},
+{t:"Set the alert you did not have",a:"Disk free space below 15 GB, checked every day.",c:"The alert fires in a test."},
+{t:"If validation fails, open an Esri Support case",a:"Attach the data store type, the version, and the validation error.",c:"The case number is recorded and the users have a next update time."}]},
+"federation-broken":{name:"Federation broken",workaround:"Workaround: hosted content still works. Federated services are unavailable.",steps:[
+{t:"Open the federated Server admin URL directly",a:"Open the ArcGIS Server Administrator Directory URL.",c:"The Server site answers on its admin URL."},
+{t:"Check the federation token",a:"In Portal, open the federated server settings.",c:"The token is valid and not expired."},
+{t:"Check the certificates",a:"Server and Portal certificates and their expiry dates.",c:"No certificate expired yesterday."},
+{t:"Check the machine clocks",a:"Portal and Server machines within a few minutes of each other.",c:"The clocks agree."},
+{t:"Check the Server site is still healthy",a:"Server Manager shows the site running.",c:"The site is up and its services are started."},
+{t:"Re-federate only as a last resort",a:"Unfederating and re-federating re-registers services and can break item links. Have a WebGISDR backup from before the incident first.",c:"You have a backup from before the incident, and the re-federation is approved."},
+{t:"After re-federation, test a hosted service and a federated service",a:"Open one of each and test an edit.",c:"Both open and edit normally."},
+{t:"If federation will not hold, open an Esri Support case",a:"Attach both versions, the certificate dates, and the federation error.",c:"The case number is recorded and the users have a next update time."}]},
+"restore-needed":{name:"Restore from backup (WebGISDR)",workaround:"Workaround: none. The system stays down until the restore finishes.",steps:[
+{t:"Find the newest backup and read its date",a:"Locate the backup file and read the date it covers.",c:"The backup file exists and you know what date it covers."},
+{t:"Check the match rules before you start",a:"The version of Portal and each federated Server site, the organisation URL and service URLs, and the registered data stores must match the backup.",c:"Each one matches, or the restore is not supported."},
+{t:"Check what the restore keeps from the target",a:"Config store paths, Portal content directory path, security information, machine names, and site footprint stay as the target has them.",c:"Those are set correctly on the target."},
+{t:"Stop the services the restore will replace",a:"Stop Portal and the federated sites before the import starts.",c:"Portal and the federated sites are stopped."},
+{t:"Run the WebGISDR import",a:"webgisdr --import with the properties file that points at the backup.",c:"The import finishes with no errors."},
+{t:"Validate the restored deployment",a:"Open Portal, open a hosted service, and test one edit.",c:"Items, services, and data are back as of the backup date."},
+{t:"Tell users what was lost",a:"Edits made after the backup date are gone.",c:"The status message names the backup date and what to redo."},
+{t:"Fix the backup gap that made this hurt",a:"Schedule the next export and check the backup age every week.",c:"The next export is scheduled."}]}
+};
+var SEV={
+"SEV-1":{pill:"red",target:"Respond in 15 minutes",who:"All hands. Page the on-call admin now."},
+"SEV-2":{pill:"amber",target:"Respond in 1 hour",who:"One admin owns it. A second on standby."},
+"SEV-3":{pill:"green",target:"Respond within 4 business hours",who:"One admin. No page."}};
+function severityFor(inc,users,hours){
+  var sev;
+  if(inc==="datastore-readonly"||inc==="restore-needed"){sev="SEV-1";}
+  else if(inc==="portal-down"){sev=(hours==="business")?"SEV-1":"SEV-2";}
+  else if(inc==="services-slow"){sev=(hours==="business")?"SEV-2":"SEV-3";if(users>=200&&hours==="business"){sev="SEV-1";}}
+  else if(inc==="signin-fails"){sev=(hours==="business")?"SEV-2":"SEV-3";if(users>=100&&hours==="business"){sev="SEV-1";}}
+  else if(inc==="federation-broken"){sev="SEV-2";if(users>=200&&hours==="business"){sev="SEV-1";}}
+  else{sev="SEV-2";}
+  if(users>=500){sev="SEV-1";}
+  if(users<50&&hours==="after"&&sev==="SEV-2"&&(inc==="services-slow"||inc==="signin-fails")){sev="SEV-3";}
+  return sev;
+}
+function buildNotes(inc,sev,users,hours,backup,alerts,oncall){
+  var n=[];
+  if(sev==="SEV-1"&&!oncall){n.push("No on-call admin is available. Page the backup admin and the service owner now.");}
+  if((inc==="restore-needed"||inc==="datastore-readonly")&&(backup==="over"||backup==="never")){n.push("Your newest backup is old. A restore loses every edit since the backup date. Say so in the status message.");}
+  if((inc==="portal-down"||inc==="services-slow")&&!alerts){n.push("No Monitor alert fired. That is a gap to fix in the post-incident review.");}
+  if(inc==="federation-broken"){n.push("Do not re-federate in a hurry. Unfederating and re-federating re-registers services and can break item links.");}
+  if(inc==="restore-needed"&&backup==="never"){n.push("There is no backup you can name. Restore from the newest export you can find, then fix the backup schedule first.");}
+  return n;
+}
+function buildComms(rb,sev,users){
+  var next=(sev==="SEV-1")?"15 minutes":(sev==="SEV-2")?"1 hour":"4 business hours";
+  return "Status update: "+rb.name+". "+sev+" - "+users+" users affected. We are working on it now.\n"+rb.workaround+"\nNext update in "+next+".";
+}
+function buildReview(){
+  return ["Write the timeline: when it started, when it was found, when it was fixed.","Name the root cause in one sentence.","Name the Monitor alert that should have fired and did not.","Name the runbook step that was wrong or missing.","Check the backup age and the next export date.","Give every fix an owner and a date.","Share the review with the team within five working days."];
+}
+function readInputs(){
+  var inc=document.querySelector('input[name="incident"]:checked').value;
+  var hours=document.querySelector('input[name="hours"]:checked').value;
+  return {inc:inc,users:Math.max(0,parseInt(document.getElementById("users").value,10)||0),hours:hours,backup:document.getElementById("backup").value,alerts:document.getElementById("alerts").checked,oncall:document.getElementById("oncall").checked};
+}
+function render(){
+  var d=readInputs();
+  var rb=RUNBOOKS[d.inc];
+  var sev=severityFor(d.inc,d.users,d.hours);
+  var s=SEV[sev];
+  var notes=buildNotes(d.inc,sev,d.users,d.hours,d.backup,d.alerts,d.oncall);
+  var comms=buildComms(rb,sev,d.users);
+  var review=buildReview();
+  var html='<div class="result"><span class="pill '+s.pill+'">'+sev+'</span>';
+  html+='<h2>'+esc(rb.name)+'</h2>';
+  html+='<p class="big">'+esc(s.target)+'</p>';
+  html+='<p><b>'+esc(s.who)+'</b> '+esc(d.users)+' users affected. '+esc(rb.workaround)+'</p>';
+  if(notes.length>0){notes.forEach(function(x){html+='<div class="note">'+esc(x)+'</div>';});}
+  html+='<h3>Run the steps in order</h3><ol>';
+  rb.steps.forEach(function(st){html+='<li><b>'+esc(st.t)+'</b><br>'+esc(st.a)+'<br><span style="color:var(--faint)">Check: '+esc(st.c)+'</span></li>';});
+  html+='</ol>';
+  html+='<h3>Status message to send</h3><div class="comms" id="commsBox">'+esc(comms)+'</div>';
+  html+='<button class="btn-outline" id="copyBtn" type="button">Copy the status message</button>';
+  html+='<h3>Post-incident review</h3><ol>';
+  review.forEach(function(r){html+='<li>'+esc(r)+'</li>';});
+  html+='</ol>';
+  html+='<p class="cta">This playbook covers the first hours. For the full fix, email Janaki with the incident, the severity, and the step where the runbook stopped working: <a href="mailto:gjanaki360@gmail.com?subject=Incident%20response%20playbook">gjanaki360@gmail.com</a>, or <a href="../../index.html#book">book a session</a>.</p>';
+  html+='</div>';
+  document.getElementById("result").innerHTML=html;
+  var cb=document.getElementById("copyBtn");
+  if(cb){cb.addEventListener("click",function(){
+    var txt=document.getElementById("commsBox").textContent;
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(function(){cb.textContent="Copied";});}
+    else{var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);cb.textContent="Copied";}
+  });}
+}
+var presets={
+  portal:{inc:"portal-down",users:250,hours:"business",backup:"today",alerts:true,oncall:true},
+  datastore:{inc:"datastore-readonly",users:40,hours:"after",backup:"over",alerts:false,oncall:false},
+  slow:{inc:"services-slow",users:80,hours:"business",backup:"week",alerts:true,oncall:true}
+};
+function applyPreset(p){
+  if(p==="clear"){
+    document.querySelector('input[name="incident"][value="portal-down"]').checked=true;
+    document.getElementById("users").value=0;
+    document.querySelector('input[name="hours"][value="business"]').checked=true;
+    document.getElementById("backup").value="today";
+    document.getElementById("alerts").checked=false;
+    document.getElementById("oncall").checked=false;
+    document.getElementById("result").innerHTML="";
+    return;
+  }
+  var d=presets[p];
+  document.querySelector('input[name="incident"][value="'+d.inc+'"]').checked=true;
+  document.getElementById("users").value=d.users;
+  document.querySelector('input[name="hours"][value="'+d.hours+'"]').checked=true;
+  document.getElementById("backup").value=d.backup;
+  document.getElementById("alerts").checked=d.alerts;
+  document.getElementById("oncall").checked=d.oncall;
+  render();
+}
+document.querySelectorAll(".preset").forEach(function(b){
+  b.addEventListener("click",function(){
+    document.querySelectorAll(".preset").forEach(function(x){x.classList.remove("active");});
+    b.classList.add("active");
+    applyPreset(b.getAttribute("data-preset"));
+  });
+});
+document.getElementById("planBtn").addEventListener("click",render);
+document.getElementById("printBtn").addEventListener("click",function(){render();setTimeout(function(){window.print();},150);});
+render();
+</script>
+</body>
+</html>
