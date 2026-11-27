@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enterprise Geodatabase Design Planner: branch or traditional versioning, decided before the first dataset, by Janaki Gattu</title>
+<meta name="description" content="A working Enterprise Geodatabase Design Planner by Janaki Gattu. Answer ten questions about how your team edits and get the versioning, archiving, editor tracking, and replica design, with the conflicts named before you build. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 6px}
+  h2:first-child{margin-top:0}
+  .secnote{color:var(--muted);margin-bottom:16px}
+  .presets{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+  .preset{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:10px 18px;color:var(--text);cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700}
+  .preset:hover{border-color:var(--accent)}
+  .preset.active{border-color:var(--accent);background:#052e16}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .field{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .field label{display:block;font-weight:700;font-size:1rem;margin-bottom:2px}
+  .field .hint{color:var(--muted);font-size:.88rem;margin-bottom:10px}
+  .field .hint b{color:#d4d4d4}
+  .field input{width:100%;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:8px;padding:10px 12px;font-size:1rem;font-family:inherit}
+  .field input:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+  .field .rate{color:var(--faint);font-size:.85rem;margin-top:8px}
+  .checkrow{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--line)}
+  .checkrow:last-child{border-bottom:0}
+  .checkrow input{width:18px;height:18px;margin-top:3px;accent-color:var(--accent);flex:none}
+  .checkrow b{display:block;font-size:.98rem}
+  .checkrow span{color:var(--muted);font-size:.88rem}
+  .radiorow{display:flex;flex-wrap:wrap;gap:10px}
+  .radiorow label{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;cursor:pointer;font-weight:700;font-size:.95rem;display:flex;gap:8px;align-items:center}
+  .radiorow label:has(input:checked){border-color:var(--accent);background:#052e16}
+  .radiorow input{accent-color:var(--accent);width:16px;height:16px}
+  .actions{margin-top:26px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer;font-family:inherit}
+  .btn-dark{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a;border:0;cursor:pointer;font-family:inherit}
+  .btn-outline{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;border:1px solid #525252;color:var(--text);background:none;cursor:pointer;font-family:inherit}
+  .result{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px;margin-top:28px}
+  .result h2{margin-top:0}
+  .pill{display:inline-block;font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:6px}
+  .pill.green{background:#14532d;color:#bbf7d0}
+  .pill.amber{background:#451a03;color:#fde68a}
+  .pill.red{background:#450a0a;color:#fecaca}
+  .big{font-size:2.2rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+  .big small{font-size:1rem;color:var(--muted);font-weight:600}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:18px 0 6px}
+  .stat{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .stat .k{color:var(--faint);font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .stat .v{font-size:1.35rem;font-weight:800;margin-top:2px}
+  .stat .s{color:var(--muted);font-size:.88rem}
+  table{width:100%;border-collapse:collapse;margin-top:14px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);font-size:.95rem}
+  th{color:var(--faint);text-transform:uppercase;letter-spacing:.06em;font-size:.8rem}
+  td.num,th.num{text-align:right;white-space:nowrap}
+  tr.top td{color:#fff;font-weight:700}
+  .result h3{margin:24px 0 8px;font-size:1.1rem}
+  .result p{color:var(--muted)}
+  .result ul,.result ol{margin-left:20px;color:#d4d4d4}
+  .result li{margin-bottom:6px}
+  .result .cta{margin-top:24px}
+  .conflict{background:#450a0a;border:1px solid #7f1d1d;border-radius:12px;padding:14px 18px;margin-top:14px}
+  .conflict b{color:#fecaca}
+  .conflict p{color:#fca5a5}
+  .sources{margin-top:26px;border-top:1px solid var(--line);padding-top:18px}
+  .sources p{font-size:.92rem}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+  @media print{
+    body{background:#fff;color:#000}
+    .noprint{display:none !important}
+    .result,.field,.stat{background:#fff;border-color:#ccc;color:#000}
+    .result p,.secnote,.lede{color:#333}
+    a{color:#000}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="back" href="../../index.html">&larr; Back to Janaki Gattu</a>
+  <p class="eyebrow">Enterprise Geodatabase Design Planner</p>
+  <h1>The versioning choice you make on day one decides what your editors can and cannot do for the next ten years.</h1>
+  <p class="lede">An enterprise geodatabase holds the data every map, app, and service reads. This planner takes how your team edits and turns it into the design: branch or traditional versioning, archiving, editor tracking, replicas, and the upkeep the design needs. <b>Nothing leaves your browser.</b></p>
+  <div class="honest"><b>Honest note:</b> this page runs entirely in your browser. There is no backend, no API key, and nothing is sent anywhere. The versioning, archiving, and replication rules come from Esri's published ArcGIS Pro documentation, linked below. The effort figures are planning rules from practice, not Esri numbers, and the page labels them as such.</div>
+</header>
+<main>
+  <h2>Your estate</h2>
+  <p class="secnote">Start with a preset, or fill in your own numbers. All fields are optional. Leave a field at zero if it does not apply.</p>
+  <div class="presets noprint">
+    <button class="preset" type="button" data-preset="small">Small team</button>
+    <button class="preset" type="button" data-preset="dept">Department</button>
+    <button class="preset" type="button" data-preset="ent">Enterprise utility</button>
+    <button class="preset" type="button" data-preset="clear">Clear all</button>
+  </div>
+
+  <h2>The data and the editors</h2>
+  <div class="grid">
+    <div class="field">
+      <label for="datasets">Datasets to register</label>
+      <p class="hint">Feature classes and tables that editors will touch. Reference-only layers do not count.</p>
+      <input id="datasets" type="number" min="0" value="12">
+      <p class="rate">The design starts with an inventory, not a guess.</p>
+    </div>
+    <div class="field">
+      <label for="editors">Editors at the same time</label>
+      <p class="hint">How many people edit at once on a busy day, not how many have accounts.</p>
+      <input id="editors" type="number" min="0" value="1">
+      <p class="rate">One editor at a time can stay simple. Two or more need isolated versions.</p>
+    </div>
+    <div class="field">
+      <label for="versions">Named versions you expect</label>
+      <p class="hint">Versions for projects, work orders, or proposals, beyond the default version.</p>
+      <input id="versions" type="number" min="0" value="2">
+      <p class="rate">Keep the tree flat: the default version is the ancestor for every named version.</p>
+    </div>
+    <div class="field">
+      <label for="sites">Sites needing a copy</label>
+      <p class="hint">Other offices or data centers that need their own copy of the data, synced back.</p>
+      <input id="sites" type="number" min="0" value="0">
+      <p class="rate">Each extra site is a replica to create and keep in sync.</p>
+    </div>
+  </div>
+
+  <h2>The database</h2>
+  <p class="secnote">Branch versioning needs a geodatabase at release 10.6 or later, on PostgreSQL, SQL Server, Oracle, Db2, or SAP HANA.</p>
+  <div class="radiorow" id="rdbmsRow">
+    <label><input type="radio" name="rdbms" value="postgresql" checked> PostgreSQL</label>
+    <label><input type="radio" name="rdbms" value="sqlserver"> SQL Server</label>
+    <label><input type="radio" name="rdbms" value="oracle"> Oracle</label>
+    <label><input type="radio" name="rdbms" value="undecided"> Not decided yet</label>
+  </div>
+
+  <h2>How the data is edited</h2>
+  <p class="secnote">Tick everything that is true. These answers decide the versioning type.</p>
+  <div class="field">
+    <label class="checkrow"><input type="checkbox" id="webEdit"><span><b>Editing through web feature layers</b><span>Experience Builder, Field Maps, web apps, and dashboards that edit, not just view.</span></span></label>
+    <label class="checkrow"><input type="checkbox" id="longTx"><span><b>Long transactions</b><span>Editors work in isolated versions for days or weeks: projects, work orders, what-if scenarios.</span></span></label>
+    <label class="checkrow"><input type="checkbox" id="arcmap"><span><b>ArcMap is still in use on these datasets</b><span>Some editors still open the data in ArcMap or ArcCatalog.</span></span></label>
+    <label class="checkrow"><input type="checkbox" id="un"><span><b>Utility Network, parcel fabric, trace network, or topology</b><span>Any of these datasets are in scope, now or in the next year.</span></span></label>
+    <label class="checkrow"><input type="checkbox" id="moveToBase"><span><b>Direct access to the base data</b><span>Some editors and applications need the base data directly while others work in versions.</span></span></label>
+    <label class="checkrow"><input type="checkbox" id="tracking" checked><span><b>We need to know who changed what</b><span>Creator and last editor, with dates, on the data. Required for branch versioning.</span></span></label>
+  </div>
+
+  <h2>History, copies, and upkeep</h2>
+  <p class="secnote">Tick everything that is true. These answers decide archiving, replicas, and maintenance.</p>
+  <div class="field">
+    <label class="checkrow"><input type="checkbox" id="history" checked><span><b>We need to answer what changed and when</b><span>History matters: audits, as-built records, or simply knowing what the data looked like last year.</span></span></label>
+    <label class="checkrow"><input type="checkbox" id="replicate"><span><b>A copy must sync to another geodatabase</b><span>Geodatabase replication: one-way, two-way, or checkout.</span></span></label>
+    <label class="checkrow"><input type="checkbox" id="offline"><span><b>Field crews work offline and sync back</b><span>Disconnected editing in the field, synced when the crew returns.</span></span></label>
+    <label class="checkrow"><input type="checkbox" id="compressOwner" checked><span><b>Someone owns regular maintenance</b><span>Compress and index rebuilds have a named owner and a schedule.</span></span></label>
+    <label class="checkrow"><input type="checkbox" id="versionsGoverned"><span><b>Version rules are written down</b><span>Naming, who reconciles and posts, and how often. Not just understood, written.</span></span></label>
+  </div>
+
+  <h2>Replica direction</h2>
+  <p class="secnote">Only used when a copy must sync to another geodatabase.</p>
+  <div class="radiorow" id="replicaRow">
+    <label><input type="radio" name="replica" value="two-way" checked> Two-way: both sites edit</label>
+    <label><input type="radio" name="replica" value="one-way"> One-way: one site edits, others read</label>
+    <label><input type="radio" name="replica" value="checkout"> Checkout: a copy for field work</label>
+  </div>
+
+  <div class="actions noprint">
+    <button class="btn" type="button" id="planBtn">Design my geodatabase</button>
+    <button class="btn-outline" type="button" id="printBtn">Print the plan</button>
+  </div>
+
+  <div id="result"></div>
+
+  <div class="sources">
+    <p>Versioning types, branch versus traditional: Esri, <a href="https://pro.arcgis.com/en/pro-app/latest/help/data/geodatabases/overview/versioning-types.htm" target="_blank" rel="noopener">Versioning types</a> and <a href="https://doc.esri.com/en/arcgis-pro/latest/help/data/geodatabases/overview/register-a-dataset-as-branch-versioned.html" target="_blank" rel="noopener">Register a dataset as branch versioned</a>. Archiving: Esri, <a href="https://doc.esri.com/en/arcgis-pro/latest/help/data/geodatabases/overview/enabling-archiving.html" target="_blank" rel="noopener">Enable archiving</a>. Editor tracking: Esri, <a href="https://doc.esri.com/en/arcgis-pro/latest/help/data/geodatabases/overview/enable-editor-tracking.html" target="_blank" rel="noopener">Enable editor tracking</a>. Replication: Esri, <a href="https://pro.arcgis.com/en/pro-app/3.2/help/data/geodatabases/overview/replication-and-geodatabase-compatibility.htm" target="_blank" rel="noopener">Replication and geodatabase compatibility</a>. The effort figures and the scoring weights are planning rules from practice, not Esri numbers, and the page says so where they appear. Related tools: <a href="../utility-network-tracing-demo/index.html">Utility Network Tracing Demo</a>, <a href="../enterprise-gis-governance-scorecard-agent/index.html">Enterprise GIS Governance Scorecard</a>, <a href="../arcgis-enterprise-sizing-estimator/index.html">ArcGIS Enterprise Sizing Estimator</a>, and the <a href="../../resources/migration-arcgis-enterprise.pdf">Migration in ArcGIS Enterprise guide (PDF)</a>.</p>
+  </div>
+</main>
+<footer>
+  <p>Built by <a href="../../index.html">Janaki Gattu</a>, Enterprise GIS Consultant. Enterprise geodatabase design is part of the <a href="../../index.html#services">GIS Services</a> track. Questions: <a href="mailto:gjanaki360@gmail.com">gjanaki360@gmail.com</a>.</p>
+</footer>
+</div>
+<script>
+function num(id){var v=parseInt(document.getElementById(id).value,10);return isNaN(v)?0:Math.max(0,v);}
+function chk(id){return document.getElementById(id).checked;}
+function radioVal(name){var r=document.querySelector('input[name="'+name+'"]:checked');return r?r.value:'';}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function computeDesign(d){
+  var needsBranch=d.un||(d.webEdit&&d.longTx);
+  var conflicts=[],warnings=[],reasons=[];
+  if(d.un&&d.arcmap){conflicts.push("Utility Network, parcel fabric, trace network, and topology only work with branch versioning, and ArcMap cannot open branch versioned data (ArcGIS Pro 2.1 is the minimum). Retire ArcMap for these datasets, or keep the network datasets out of scope until ArcMap is gone.");}
+  if(d.moveToBase&&d.replicate){conflicts.push("Traditional versioning with move edits to base is not supported with geodatabase replication. Keep one of the two: drop move edits to base, or drop the replica and sync through a feature service instead.");}
+  var splitReasons=[];
+  if(d.replicate){splitReasons.push("replication needs traditional versioning");}
+  if(d.moveToBase){splitReasons.push("move edits to base is a traditional option");}
+  if(d.arcmap&&!d.un){splitReasons.push("ArcMap editors need datasets they can open");}
+  if(d.longTx&&!d.webEdit){splitReasons.push("long transactions through a direct connection need traditional versioning");}
+  var versioning,mixed=false,branchInPlay=false,traditionalInPlay=false;
+  if(d.un&&d.arcmap){
+    versioning="Branch versioning";
+    branchInPlay=true;traditionalInPlay=true;
+    reasons.push("Utility Network, parcel fabric, trace network, and topology only work with branch versioning. That part is not negotiable: the conflict below is what has to change.");
+  }else if(d.moveToBase&&d.replicate){
+    versioning="Traditional versioning";
+    traditionalInPlay=true;
+    reasons.push("Replication is built on traditional versioning, so the design stays traditional. Move edits to base is off the table while replication is in scope: the two are not supported together.");
+  }else if(needsBranch&&splitReasons.length>0){
+    versioning="Mixed: branch and traditional, on different datasets";
+    mixed=true;branchInPlay=true;traditionalInPlay=true;
+    reasons.push("The web editing and network datasets need branch versioning, and the replicated or directly edited datasets need traditional versioning. One dataset can only be in one type, so the estate splits.");
+    warnings.push("Replicated datasets must stay traditionally versioned. Branch versioned data cannot join any replica type, and move edits to base is not supported with replication either.");
+  }else if(needsBranch){
+    versioning="Branch versioning";
+    branchInPlay=true;
+    if(d.un){reasons.push("Utility Network, parcel fabric, trace network, and topology only work with branch versioning.");}
+    if(d.webEdit&&d.longTx){reasons.push("Editing through web feature layers with long transactions needs branch versioning: it is the mechanism behind versioned web editing, with undo and redo inside the version.");}
+  }else if(d.moveToBase){
+    versioning="Traditional versioning, with move edits to base";
+    traditionalInPlay=true;
+    reasons.push("Move edits to base gives editors and applications direct access to the base data while other editors keep working in their own versions.");
+  }else if(d.longTx||d.replicate){
+    versioning="Traditional versioning";
+    traditionalInPlay=true;
+    if(d.longTx){reasons.push("Long transactions through a direct database connection, with isolated versions for what-if work and proposals, are what traditional versioning is built for.");}
+    if(d.replicate){reasons.push("Geodatabase replication is built on traditional versioning. Two-way and one-way replicas need traditionally versioned data.");}
+  }else if(d.editors<=1){
+    versioning="Non-versioned editing";
+    reasons.push("One editor at a time, short transactions, and no long versions to keep apart: non-versioned editing is the simplest design that fits, and it keeps administration light.");
+  }else{
+    versioning="Traditional versioning";
+    traditionalInPlay=true;
+    reasons.push("More than one editor needs isolated versions to work without overwriting each other, even when the transactions are short.");
+  }
+  if(d.arcmap&&!needsBranch&&!d.un){warnings.push("ArcMap stays usable: nothing in this design needs branch versioning, so the ArcMap editors keep working. Plan the ArcMap retirement separately, because the day a Utility Network or a versioned web layer arrives, branch versioning arrives with it.");}
+  if(d.arcmap&&needsBranch&&!d.un){warnings.push("ArcMap editors cannot open the branch versioned datasets. Give them ArcGIS Pro, or keep their datasets on traditional versioning and split the estate.");}
+  var archiving;
+  if(!d.history){archiving="Not needed. Nobody asked for history. If the question comes up later, enable archiving then: it copies the current default version into the archive class.";}
+  else if(branchInPlay&&!traditionalInPlay){archiving="Automatic. Archiving is enabled when a dataset is registered as branch versioned, and it tracks inserts, updates, and deletes.";}
+  else if(branchInPlay&&traditionalInPlay){archiving="Automatic on branch versioned datasets. Enable it separately on the traditional and non-versioned datasets where history matters. Archive classes carry gdb_from_date, gdb_to_date, and gdb_archive_oid.";}
+  else{archiving="Enable archiving on the datasets where history matters. It creates an archive class with gdb_from_date, gdb_to_date, and gdb_archive_oid, and every change posted to the default version is preserved there.";}
+  var tracking;
+  if(d.tracking){tracking="On, in UTC. Branch versioning requires editor tracking in UTC, and UTC is also the right choice when data is replicated across time zones or edited through a feature service.";}
+  else{tracking="Off. Turn it on: without creator and last editor fields, nobody can answer who changed what, and branch versioning cannot be registered at all.";}
+  var replica;
+  if(!d.replicate){replica="No replica needed.";}
+  else if(branchInPlay&&!traditionalInPlay){replica="Not possible as a geodatabase replica. Branch versioned data cannot join any replica type. Sync through feature service sync or distributed collaboration instead.";}
+  else if(mixed){replica="On the traditionally versioned datasets only: "+d.replica+" replica. Branch versioned datasets cannot join any replica type, so keep the replicated set apart from the branch set. Two-way and one-way replicas need traditionally versioned data. A checkout replica allows traditional or non-versioned data, but not a mix of the two in one replica.";}
+  else if(d.replica==="two-way"){replica="Two-way replica on traditionally versioned data. Both sites edit, and changes sync both ways.";}
+  else if(d.replica==="one-way"){replica="One-way replica on traditionally versioned data. One site edits, the other sites read.";}
+  else{replica="Checkout replica. A copy for field work, synced back once. It allows traditional or non-versioned data, but not a mix of the two in one replica.";}
+  var offline;
+  if(!d.offline){offline="No offline editing needed.";}
+  else if(branchInPlay){offline="Feature service sync. Take the web feature layer offline into a mobile geodatabase and sync back through the service. Geodatabase replication is not an option for branch versioned data.";}
+  else{offline="Checkout replica, or feature service sync if the data is published as a service. A checkout replica allows traditional or non-versioned data, but not a mix of the two in one replica.";}
+  var maintenance;
+  if(traditionalInPlay&&d.compressOwner){maintenance="Compress on a schedule, plus index rebuilds, and someone owns it. Traditional versioning writes to delta tables and state tables, and they grow without a compress.";}
+  else if(traditionalInPlay){maintenance="Nobody owns it yet. Traditional versioning writes to delta tables and state tables, and they grow without a regular compress. Name the owner before the first dataset is registered.";}
+  else{maintenance="No compress needed. Branch versioning has no delta tables and no state tables, so there is nothing to compress.";}
+  var governance;
+  if(d.versionsGoverned){governance="Version naming and reconcile and post rules are written down. Keep the tree flat: the default version is the ancestor for every named version.";}
+  else{governance="Not written down yet. Naming, who reconciles and posts, and how often: write it before the first version is created.";}
+  var syncWorkable=!(d.replicate&&branchInPlay&&!traditionalInPlay);
+  var score=0,gaps=[];
+  if(d.rdbms!=="undecided"){score+=10;}else{gaps.push({t:"Pick the database first",f:"PostgreSQL, SQL Server, Oracle, Db2, and SAP HANA all support branch versioning at geodatabase release 10.6 or later. Pick one before registering anything."});}
+  if(conflicts.length>0){score+=0;}
+  else if(mixed){score+=20;}
+  else{score+=25;}
+  if(conflicts.length>0){score+=0;}
+  else{score+=10;}
+  if(d.tracking){score+=10;}else{gaps.push({t:"Turn editor tracking on, in UTC",f:"Branch versioning cannot be registered without it, and without creator and last editor fields nobody can answer who changed what."});}
+  if(!d.replicate&&!d.offline){score+=15;}
+  else if(syncWorkable){score+=15;}
+  else{gaps.push({t:"Replication cannot use branch versioning",f:"Use feature service sync or distributed collaboration, or keep the replicated datasets traditionally versioned."});}
+  if(!traditionalInPlay){score+=10;}
+  else if(d.compressOwner){score+=10;}
+  else{gaps.push({t:"Name the owner for compress and index rebuilds",f:"Traditional versioning slows down without a regular compress."});}
+  if(d.versionsGoverned){score+=10;}else{gaps.push({t:"Write the version rules down",f:"Naming, who reconciles and posts, and how often. Keep the tree flat."});}
+  if(d.datasets>0){score+=10;}else{gaps.push({t:"Count the datasets",f:"The design starts with an inventory: feature classes, tables, and which ones editors touch."});}
+  var verdict,verdictClass;
+  if(conflicts.length>0){verdict="Resolve the conflicts first";verdictClass="red";}
+  else if(score>=75){verdict="Ready to build";verdictClass="green";}
+  else if(score>=50){verdict="Decide the open points first";verdictClass="amber";}
+  else{verdict="Not ready yet";verdictClass="red";}
+  var days=2;
+  days+=Math.min(d.datasets*0.1,8);
+  if(d.webEdit){days+=1;}
+  if(d.replicate){days+=1.5*Math.max(1,d.sites);}
+  if(d.offline){days+=1;}
+  if(traditionalInPlay){days+=0.5;}
+  days=Math.round(days*2)/2;
+  var weeksOne=(days/5).toFixed(1),weeksTwo=(days/10).toFixed(1);
+  var decisions=[
+    {s:"Versioning",c:versioning,w:reasons.join(" ")},
+    {s:"Archiving",c:d.history?(branchInPlay?"Automatic with branch, enabled separately elsewhere":"Enabled where history matters"):"Not needed",w:archiving},
+    {s:"Editor tracking",c:d.tracking?"On, in UTC":"Off",w:tracking},
+    {s:"Copies and sync",c:d.replicate?(branchInPlay&&!traditionalInPlay?"Feature service sync, not replication":d.replica+" replica"):"No replica",w:replica},
+    {s:"Offline editing",c:d.offline?(branchInPlay?"Feature service sync":"Checkout replica"):"Not needed",w:offline},
+    {s:"Maintenance",c:traditionalInPlay?(d.compressOwner?"Compress on a schedule":"No owner yet"):"No compress needed",w:maintenance},
+    {s:"Version rules",c:d.versionsGoverned?"Written down":"Not written down",w:governance}
+  ];
+  var checklist=[];
+  if(d.rdbms==="undecided"){checklist.push("Pick the database: PostgreSQL, SQL Server, Oracle, Db2, or SAP HANA, at geodatabase release 10.6 or later if branch versioning is in the design.");}
+  checklist.push("Inventory the datasets and sort them into groups: branch, traditional, and non-versioned. A dataset can only be in one group.");
+  checklist.push("Enable editor tracking in UTC and add global IDs on every dataset going branch. Both are required before registration.");
+  checklist.push("Register versioning per group: branch, traditional, traditional with move edits to base, or none.");
+  if(d.history){checklist.push("Enable archiving on the traditional and non-versioned datasets where history matters. Branch versioned datasets get it automatically.");}
+  if(d.webEdit){checklist.push("Publish the web feature layers with the Version Management capability enabled.");}
+  if(d.replicate||d.offline){checklist.push("Create the replicas on the traditionally versioned datasets, or set up feature service sync for the branch versioned ones.");}
+  checklist.push("Write the version rules down: naming, who reconciles and posts, and how often. Keep the tree flat, with the default version as the ancestor.");
+  if(traditionalInPlay){checklist.push("Put compress and index rebuilds on a schedule, with a named owner.");}
+  checklist.push("Test the full loop on a copy first: edit, reconcile, post, sync, and read the history back.");
+  return {versioning:versioning,reasons:reasons,conflicts:conflicts,warnings:warnings,archiving:archiving,tracking:tracking,replica:replica,offline:offline,maintenance:maintenance,governance:governance,decisions:decisions,score:score,verdict:verdict,verdictClass:verdictClass,gaps:gaps,days:days,weeksOne:weeksOne,weeksTwo:weeksTwo,checklist:checklist,mixed:mixed,branchInPlay:branchInPlay,traditionalInPlay:traditionalInPlay};
+}
+
+function readForm(){
+  return {datasets:num("datasets"),editors:num("editors"),versions:num("versions"),sites:num("sites"),rdbms:radioVal("rdbms"),webEdit:chk("webEdit"),longTx:chk("longTx"),arcmap:chk("arcmap"),un:chk("un"),moveToBase:chk("moveToBase"),tracking:chk("tracking"),history:chk("history"),replicate:chk("replicate"),offline:chk("offline"),compressOwner:chk("compressOwner"),versionsGoverned:chk("versionsGoverned"),replica:radioVal("replica")};
+}
+
+function render(){
+  var d=readForm();
+  var r=computeDesign(d);
+  var html='<div class="result">';
+  html+='<span class="pill '+r.verdictClass+'">'+esc(r.verdict)+'</span>';
+  html+='<h2>Your geodatabase design</h2>';
+  html+='<p class="big">'+r.score+'<small> / 100 design readiness</small></p>';
+  html+='<div class="stats">';
+  html+='<div class="stat"><div class="k">Versioning</div><div class="v">'+esc(r.versioning)+'</div><div class="s">'+esc(r.reasons.join(" "))+'</div></div>';
+  html+='<div class="stat"><div class="k">Effort to build</div><div class="v">'+r.days+' person-days</div><div class="s">'+r.weeksOne+' weeks for one person, '+r.weeksTwo+' weeks for a team of two. Planning estimate, not a quote.</div></div>';
+  html+='<div class="stat"><div class="k">Datasets</div><div class="v">'+d.datasets+'</div><div class="s">'+d.editors+' editors at once, '+d.versions+' named versions, '+d.sites+' sites needing a copy.</div></div>';
+  html+='</div>';
+  if(r.conflicts.length>0){
+    html+='<div class="conflict"><b>Conflicts to resolve before you build</b>';
+    r.conflicts.forEach(function(c){html+='<p>'+esc(c)+'</p>';});
+    html+='</div>';
+  }
+  if(r.warnings.length>0){
+    html+='<h3>Watch out for</h3><ul>';
+    r.warnings.forEach(function(w){html+='<li>'+esc(w)+'</li>';});
+    html+='</ul>';
+  }
+  html+='<h3>The design, decision by decision</h3>';
+  html+='<table><tr><th>Decision</th><th>Choice</th><th>Why</th></tr>';
+  r.decisions.forEach(function(x){html+='<tr><td>'+esc(x.s)+'</td><td><b>'+esc(x.c)+'</b></td><td>'+esc(x.w)+'</td></tr>';});
+  html+='</table>';
+  if(r.gaps.length>0){
+    html+='<h3>Gaps to close</h3><ul>';
+    r.gaps.forEach(function(g){html+='<li><b>'+esc(g.t)+':</b> '+esc(g.f)+'</li>';});
+    html+='</ul>';
+  }
+  html+='<h3>Build it in this order</h3><ol>';
+  r.checklist.forEach(function(c){html+='<li>'+esc(c)+'</li>';});
+  html+='</ol>';
+  html+='<p>What this planner does not decide: licensing, database sizing, and security roles. Sizing lives in the <a href="../arcgis-enterprise-sizing-estimator/index.html">ArcGIS Enterprise Sizing Estimator</a>, and access and sharing rules live in the <a href="../enterprise-gis-governance-scorecard-agent/index.html">Enterprise GIS Governance Scorecard</a>.</p>';
+  html+='<p class="cta">Ready to build it? Email Janaki with your dataset count and editor count and she will walk the design through with you: <a href="mailto:gjanaki360@gmail.com?subject=Enterprise%20geodatabase%20design">gjanaki360@gmail.com</a>, or <a href="../../index.html#book">book a session</a>.</p>';
+  html+='</div>';
+  document.getElementById("result").innerHTML=html;
+}
+
+var presets={
+  small:{datasets:12,editors:1,versions:2,sites:0,rdbms:"postgresql",webEdit:false,longTx:false,arcmap:false,un:false,moveToBase:false,tracking:true,history:true,replicate:false,offline:false,compressOwner:true,versionsGoverned:false,replica:"two-way"},
+  dept:{datasets:40,editors:12,versions:8,sites:1,rdbms:"postgresql",webEdit:true,longTx:true,arcmap:false,un:false,moveToBase:false,tracking:true,history:true,replicate:true,offline:true,compressOwner:true,versionsGoverned:true,replica:"two-way"},
+  ent:{datasets:120,editors:25,versions:15,sites:3,rdbms:"sqlserver",webEdit:true,longTx:true,arcmap:true,un:true,moveToBase:false,tracking:true,history:true,replicate:true,offline:true,compressOwner:false,versionsGoverned:false,replica:"two-way"}
+};
+function applyPreset(p){
+  if(p==="clear"){
+    document.getElementById("datasets").value=0;
+    document.getElementById("editors").value=0;
+    document.getElementById("versions").value=0;
+    document.getElementById("sites").value=0;
+    document.querySelector('input[name="rdbms"][value="undecided"]').checked=true;
+    ["webEdit","longTx","arcmap","un","moveToBase","tracking","history","replicate","offline","compressOwner","versionsGoverned"].forEach(function(id){document.getElementById(id).checked=false;});
+    document.querySelector('input[name="replica"][value="two-way"]').checked=true;
+    document.getElementById("result").innerHTML="";
+    return;
+  }
+  var d=presets[p];
+  document.getElementById("datasets").value=d.datasets;
+  document.getElementById("editors").value=d.editors;
+  document.getElementById("versions").value=d.versions;
+  document.getElementById("sites").value=d.sites;
+  document.querySelector('input[name="rdbms"][value="'+d.rdbms+'"]').checked=true;
+  ["webEdit","longTx","arcmap","un","moveToBase","tracking","history","replicate","offline","compressOwner","versionsGoverned"].forEach(function(id){document.getElementById(id).checked=d[id];});
+  document.querySelector('input[name="replica"][value="'+d.replica+'"]').checked=true;
+  render();
+}
+document.querySelectorAll(".preset").forEach(function(b){
+  b.addEventListener("click",function(){
+    document.querySelectorAll(".preset").forEach(function(x){x.classList.remove("active");});
+    b.classList.add("active");
+    applyPreset(b.getAttribute("data-preset"));
+  });
+});
+document.getElementById("planBtn").addEventListener("click",render);
+document.getElementById("printBtn").addEventListener("click",function(){render();setTimeout(function(){window.print();},150);});
+render();
+</script>
+</body>
+</html>
