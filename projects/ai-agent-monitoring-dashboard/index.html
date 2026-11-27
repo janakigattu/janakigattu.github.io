@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent Monitoring Dashboard: what your assistants did while you were not watching, by Janaki Gattu</title>
+<meta name="description" content="A working AI Agent Monitoring Dashboard demo by Janaki Gattu. Pick an assistant and a day range and see runs, success rate, grounded answers, latency, cost, and the failed runs with the cause named. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 6px}
+  h2:first-child{margin-top:0}
+  .secnote{color:var(--muted);margin-bottom:16px}
+  .pickrow{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+  .pick{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:10px 18px;color:var(--text);cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700}
+  .pick:hover{border-color:var(--accent)}
+  .pick.active{border-color:var(--accent);background:#052e16}
+  .picklabel{font-weight:800;font-size:.92rem;color:var(--muted);margin:18px 0 0}
+  .picklabel:first-of-type{margin-top:4px}
+  .indicators{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}
+  @media(max-width:640px){.indicators{grid-template-columns:1fr 1fr}}
+  .ind{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .ind .lab{color:var(--muted);font-size:.88rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+  .ind .val{font-size:1.9rem;font-weight:800;line-height:1.15;margin-top:4px}
+  .ind .val.green{color:var(--accent)}
+  .ind .val.amber{color:var(--amber)}
+  .ind .val.red{color:var(--red)}
+  .ind .sub{color:var(--muted);font-size:.9rem;margin-top:2px}
+  .verdict{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-top:16px}
+  .verdict .vhead{font-size:1.2rem;font-weight:800}
+  .verdict .vhead.green{color:var(--accent)}
+  .verdict .vhead.amber{color:var(--amber)}
+  .verdict .vhead.red{color:var(--red)}
+  .verdict p{color:var(--muted);margin-top:4px}
+  .verdict p b{color:#d4d4d4}
+  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:.95rem}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-size:.85rem;text-transform:uppercase;letter-spacing:.06em}
+  td b{color:#d4d4d4}
+  .pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.85rem;font-weight:700}
+  .pill.green{background:#052e16;color:var(--accent)}
+  .pill.amber{background:#451a03;color:var(--amber)}
+  .pill.red{background:#450a0a;color:var(--red)}
+  .chart{display:flex;align-items:flex-end;gap:3px;height:140px;margin-top:18px;padding:10px 4px 0;border-bottom:1px solid var(--line)}
+  .bar{flex:1;background:var(--accent);border-radius:3px 3px 0 0;min-height:2px;opacity:.85}
+  .bar.bad{background:var(--red)}
+  .bar.amberbar{background:var(--amber)}
+  .chartlabels{display:flex;gap:3px;margin-top:6px;color:var(--faint);font-size:.78rem}
+  .chartlabels span{flex:1;text-align:center}
+  .chartnote{color:var(--muted);font-size:.9rem;margin-top:8px}
+  .howto{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-top:34px}
+  .howto h3{font-size:1.05rem;margin-bottom:10px}
+  .howto ol{margin-left:20px;color:var(--muted)}
+  .howto li{margin-bottom:8px}
+  .howto li b{color:#d4d4d4}
+  .sources{margin-top:34px;color:var(--faint);font-size:.88rem}
+  .sources a{color:var(--muted)}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;margin-top:20px}
+  footer h2{margin-top:0}
+  footer p{color:var(--muted);max-width:640px}
+  footer p b{color:#d4d4d4}
+  .cta{display:inline-block;margin-top:16px;background:var(--accent);color:#052e16;font-weight:800;text-decoration:none;border-radius:999px;padding:12px 24px}
+  @media print{
+    body{background:#fff;color:#111}
+    header,.pickrow,.picklabel,.howto,.sources,footer,.back{display:none!important}
+    .ind,.verdict{border:1px solid #ccc}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu</a>
+  <p class="eyebrow">AI Services &middot; Live &middot; Try It Now</p>
+  <h1>AI Agent Monitoring Dashboard</h1>
+  <p class="lede">The pilot worked for five people. Then it went live, and nobody watched it. This dashboard shows what watching looks like: runs, success rate, grounded answers, latency, cost, and the failed runs with the cause named.</p>
+  <p class="honest"><b>Runs entirely in your browser.</b> No backend, no API key, no account. The three assistants and their 30 days of runs are <b>sample data</b>, generated in your browser from fixed numbers so the dashboard is the same every time you load it. A production version reads real telemetry from your own assistants. Nothing you click is sent anywhere.</p>
+</header>
+<main>
+  <h2>Pick an assistant and a day range</h2>
+  <p class="secnote">Every number below is computed live from the sample runs. Change the filters and the whole dashboard recomputes.</p>
+  <p class="picklabel">Assistant</p>
+  <div class="pickrow" id="agentRow">
+    <button class="pick active" data-agent="all">All three assistants</button>
+    <button class="pick" data-agent="permit">Permit Questions Assistant</button>
+    <button class="pick" data-agent="intake">Document Intake Assistant</button>
+    <button class="pick" data-agent="helpdesk">GIS Helpdesk Assistant</button>
+  </div>
+  <p class="picklabel">Day range</p>
+  <div class="pickrow" id="rangeRow">
+    <button class="pick" data-range="7">Last 7 days</button>
+    <button class="pick" data-range="14">Last 14 days</button>
+    <button class="pick active" data-range="30">Last 30 days</button>
+  </div>
+
+  <div class="indicators" id="indicators"></div>
+  <div class="verdict" id="verdict"></div>
+
+  <h2>Runs per day</h2>
+  <p class="secnote" id="chartNote"></p>
+  <div class="chart" id="chart"></div>
+  <div class="chartlabels" id="chartLabels"></div>
+  <p class="chartnote">Green bars are ordinary days. Amber bars are days with a failure rate above 5 percent. Red bars are the incident days: a rate-limit spike on the intake assistant and an ungrounded-answer spike on the helpdesk assistant.</p>
+
+  <h2>Health by assistant</h2>
+  <p class="secnote">Healthy means a success rate of 98 percent or better, grounded answers at 95 percent or better, and average latency under 3 seconds. Watch means success at 95 percent or better and grounded at 90 percent or better. Anything below that needs attention.</p>
+  <table>
+    <thead><tr><th>Assistant</th><th>Runs</th><th>Success</th><th>Grounded</th><th>Avg latency</th><th>Cost</th><th>Health</th></tr></thead>
+    <tbody id="healthRows"></tbody>
+  </table>
+
+  <h2>Why runs failed</h2>
+  <p class="secnote">Every failed run has a cause and a fix. A dashboard that only counts failures is a scoreboard. This one tells you what to change.</p>
+  <table>
+    <thead><tr><th>Cause</th><th>Failed runs</th><th>Share</th><th>Fix</th></tr></thead>
+    <tbody id="causeRows"></tbody>
+  </table>
+
+  <h2>Recent failed runs</h2>
+  <p class="secnote">The five most recent failed runs in the selected range, with the question that failed and the cause. In production these link back to the full run log.</p>
+  <table>
+    <thead><tr><th>Date</th><th>Assistant</th><th>Question</th><th>Cause</th></tr></thead>
+    <tbody id="failRows"></tbody>
+  </table>
+
+  <div class="howto">
+    <h3>What a production version adds</h3>
+    <ol>
+      <li><b>Real telemetry, not sample data.</b> Every run logged with its inputs, tool calls, retrieved passages, output, latency, and cost, the way the harness article requires full logging.</li>
+      <li><b>Alerts, not just charts.</b> A threshold per assistant: success below 95 percent, grounded answers below 90 percent, or cost above the daily ceiling pages the owner instead of waiting for someone to open the dashboard.</li>
+      <li><b>A cost ceiling that bites.</b> The daily cost ceiling from the harness stops new runs when it is hit, so a runaway loop cannot spend the month's budget in an afternoon.</li>
+      <li><b>Groundedness checks on every answer.</b> Each answer is checked against the passages it cites, and an answer with no source is flagged before it reaches the user.</li>
+      <li><b>Access control and retention.</b> Run logs hold real user questions, so they need the same access rules and retention limits as any other record with personal data in it.</li>
+    </ol>
+  </div>
+
+  <p class="sources">Sources: Janaki Gattu, <a href="https://www.linkedin.com/pulse/harness-engineering-discipline-separates-working-agents-expensive-janaki-gattu/">Harness Engineering: The Discipline That Separates Working Agents from Expensive Demos</a> (LinkedIn, 24 Nov 2026), the harness gates and full logging. Cost thinking from the <a href="https://janakigattu.github.io/projects/ai-cost-estimator/">AI Cost Estimator</a> on this portfolio. Monitoring patterns from the <a href="https://janakigattu.github.io/projects/arcgis-monitor-deployment-planner/">ArcGIS Monitor Deployment Planner</a> and the <a href="https://janakigattu.github.io/resources/arcgis-monitor-guide.pdf">ArcGIS Monitor guide</a>. Thresholds, shares, and sample runs are planning rules from practice, stated on this page, not vendor numbers.</p>
+</main>
+<footer>
+  <h2>Your assistants are live. Who is watching them?</h2>
+  <p>Email Janaki with the assistant you run and the number that worries you most, success rate, cost, or grounded answers, and she will help you set up the monitoring that catches the next failure before a user reports it: <b>gjanaki360@gmail.com</b>. Or book a session at <b>janakigattu.github.io</b>.</p>
+  <a class="cta" href="mailto:gjanaki360@gmail.com?subject=AI%20agent%20monitoring">Email Janaki about monitoring &rarr;</a>
+</footer>
+</div>
+<script>
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+var AGENTS=[
+ {id:'permit',name:'Permit Questions Assistant',kind:'Document-grounded Q and A',base:42,fail:0.02,ungrounded:0.04,lat:1800,cost:0.011},
+ {id:'intake',name:'Document Intake Assistant',kind:'Extraction and classification',base:68,fail:0.05,ungrounded:0.02,lat:2400,cost:0.019},
+ {id:'helpdesk',name:'GIS Helpdesk Assistant',kind:'General Q and A',base:95,fail:0.03,ungrounded:0.08,lat:1500,cost:0.008}
+];
+var CAUSES=[
+ {id:'timeout',label:'Tool call timed out',fix:'Raise the timeout for that tool, then split the call into smaller steps.'},
+ {id:'nosource',label:'No source document covered the question',fix:'Add the missing document to the grounded set, or teach the assistant to say so instead of guessing.'},
+ {id:'refused',label:'Model refused: sensitive content',fix:'Check the refusal was correct, then route the question to a human with the policy quoted.'},
+ {id:'ratelimit',label:'Rate limit hit',fix:'Add retries with backoff and a queue, and check the daily ceiling before raising the limit.'},
+ {id:'badformat',label:'Bad output format, retried and failed',fix:'Tighten the output schema and add a format check before the answer is used.'}
+];
+var CAUSE_SHARES={timeout:0.30,nosource:0.30,refused:0.10,ratelimit:0.15,badformat:0.15};
+var EXAMPLE_QS={
+ permit:['Can I build a garage on a lot zoned R-1?','What is the setback for a fence on a corner lot?','Do I need a permit to replace a water heater?','What are the fees for a residential remodel permit?'],
+ intake:['Extract the applicant name and parcel number from this PDF.','Classify this letter: complaint, application, or enquiry?','Pull the inspection dates from these 40 forms.','Is this document a signed agreement or a draft?'],
+ helpdesk:['How do I share a web map with my team?','Why is my hosted feature layer read only?','Where do I change the basemap in Experience Builder?','How do I reset my ArcGIS Online password?']
+};
+function buildData(){
+ var rand=mulberry32(20261126);
+ var days=[];
+ var today=new Date(); today.setHours(0,0,0,0);
+ for(var i=0;i<30;i++){
+  var d=new Date(today); d.setDate(d.getDate()-(29-i));
+  var dow=d.getDay();
+  var weekend=(dow===0||dow===6)?0.55:1;
+  var rec={date:d,runs:0,failed:0,ungrounded:0,latMs:0,cost:0,causes:{timeout:0,nosource:0,refused:0,ratelimit:0,badformat:0},byAgent:{}};
+  AGENTS.forEach(function(a){
+   var runs=Math.max(0,Math.round(a.base*(0.7+0.6*rand())*weekend));
+   var failed=Math.round(runs*a.fail*(0.5+rand()));
+   var ungrounded=Math.round(runs*a.ungrounded*(0.5+rand()));
+   var lat=Math.round(a.lat*(0.85+0.3*rand()));
+   var cost=runs*a.cost*(0.9+0.2*rand());
+   var causes={timeout:0,nosource:0,refused:0,ratelimit:0,badformat:0};
+   var left=failed;
+   CAUSES.forEach(function(c,idx){
+    if(idx===CAUSES.length-1){causes[c.id]=left;}
+    else{var n=Math.round(failed*CAUSE_SHARES[c.id]*(0.6+0.8*rand())); if(n>left){n=left;} causes[c.id]=n; left-=n;}
+   });
+   if(a.id==='intake'&&i===17){failed+=9;causes.ratelimit+=9;}
+   if(a.id==='helpdesk'&&i===22){failed+=6;ungrounded+=14;causes.nosource+=6;}
+   rec.byAgent[a.id]={runs:runs,failed:failed,ungrounded:ungrounded,latMs:lat,cost:cost,causes:causes};
+   rec.runs+=runs; rec.failed+=failed; rec.ungrounded+=ungrounded; rec.latMs+=lat*runs; rec.cost+=cost;
+   Object.keys(causes).forEach(function(k){rec.causes[k]+=causes[k];});
+  });
+  rec.latMs=rec.runs>0?Math.round(rec.latMs/rec.runs):0;
+  days.push(rec);
+ }
+ return days;
+}
+var DATA=buildData();
+function agentDays(agentId,range){
+ var slice=DATA.slice(30-range);
+ if(agentId==='all'){return slice;}
+ return slice.map(function(d){var a=d.byAgent[agentId]; return {date:d.date,runs:a.runs,failed:a.failed,ungrounded:a.ungrounded,latMs:a.latMs,cost:a.cost,causes:a.causes};});
+}
+function summarize(days){
+ var s={runs:0,failed:0,ungrounded:0,cost:0,latMs:0,causes:{timeout:0,nosource:0,refused:0,ratelimit:0,badformat:0},worst:null};
+ days.forEach(function(d){
+  s.runs+=d.runs; s.failed+=d.failed; s.ungrounded+=d.ungrounded; s.cost+=d.cost; s.latMs+=d.latMs*d.runs;
+  Object.keys(d.causes).forEach(function(k){s.causes[k]+=d.causes[k];});
+  if(!s.worst||d.failed>s.worst.failed){s.worst=d;}
+ });
+ s.latMs=s.runs>0?Math.round(s.latMs/s.runs):0;
+ s.success=s.runs>0?100*(s.runs-s.failed)/s.runs:100;
+ s.grounded=s.runs>0?100*(s.runs-s.ungrounded)/s.runs:100;
+ s.costPerRun=s.runs>0?s.cost/s.runs:0;
+ s.health=(s.success>=98&&s.grounded>=95&&s.latMs<3000)?'Healthy':((s.success>=95&&s.grounded>=90)?'Watch':'Needs attention');
+ return s;
+}
+function healthClass(h){return h==='Healthy'?'green':(h==='Watch'?'amber':'red');}
+function fmtDate(d){return (d.getMonth()+1)+'/'+d.getDate();}
+function recentFailures(agentId,range){
+ var out=[];
+ var days=DATA.slice(30-range);
+ for(var i=days.length-1;i>=0&&out.length<5;i--){
+  var d=days[i];
+  var ids=agentId==='all'?AGENTS.map(function(a){return a.id;}):[agentId];
+  ids.forEach(function(id){
+   if(out.length>=5){return;}
+   var a=d.byAgent[id];
+   if(a.failed>0){
+    var top=null;
+    Object.keys(a.causes).forEach(function(k){if(!top||a.causes[k]>a.causes[top]){top=k;}});
+    var q=EXAMPLE_QS[id][(d.date.getDate()+i)%EXAMPLE_QS[id].length];
+    var label=CAUSES.filter(function(c){return c.id===top;})[0].label;
+    out.push({date:d.date,agent:AGENTS.filter(function(x){return x.id===id;})[0].name,q:q,cause:label});
+   }
+  });
+ }
+ return out;
+}
+var state={agent:'all',range:30};
+function render(){
+ var days=agentDays(state.agent,state.range);
+ var s=summarize(days);
+ var ind=document.getElementById('indicators');
+ ind.innerHTML=
+  '<div class="ind"><div class="lab">Total runs</div><div class="val">'+s.runs.toLocaleString()+'</div><div class="sub">in the last '+state.range+' days</div></div>'+
+  '<div class="ind"><div class="lab">Success rate</div><div class="val '+(s.success>=98?'green':(s.success>=95?'amber':'red'))+'">'+s.success.toFixed(1)+'%</div><div class="sub">'+s.failed.toLocaleString()+' failed runs</div></div>'+
+  '<div class="ind"><div class="lab">Grounded answers</div><div class="val '+(s.grounded>=95?'green':(s.grounded>=90?'amber':'red'))+'">'+s.grounded.toFixed(1)+'%</div><div class="sub">'+s.ungrounded.toLocaleString()+' answers with no source</div></div>'+
+  '<div class="ind"><div class="lab">Average latency</div><div class="val">'+(s.latMs/1000).toFixed(1)+'s</div><div class="sub">weighted by runs</div></div>'+
+  '<div class="ind"><div class="lab">Total cost</div><div class="val">$'+s.cost.toFixed(2)+'</div><div class="sub">$'+s.costPerRun.toFixed(3)+' per run</div></div>'+
+  '<div class="ind"><div class="lab">Worst day</div><div class="val '+(s.worst&&s.worst.failed>0?'red':'green')+'">'+(s.worst?fmtDate(s.worst.date):'None')+'</div><div class="sub">'+(s.worst?s.worst.failed.toLocaleString()+' failed runs that day':'no failures')+'</div></div>';
+ var v=document.getElementById('verdict');
+ var vtext=s.health==='Healthy'?'Your assistants are holding up. Keep the thresholds where they are and check the dashboard weekly.':(s.health==='Watch'?'Your assistants are working, but the numbers are drifting. Close the top failure cause below before it becomes the incident.':'Your assistants need attention now. The failure causes below name the fix; start with the biggest one.');
+ v.innerHTML='<div class="vhead '+healthClass(s.health)+'">Verdict: '+s.health+'</div><p>'+vtext+' Success <b>'+s.success.toFixed(1)+'%</b>, grounded <b>'+s.grounded.toFixed(1)+'%</b>, average latency <b>'+(s.latMs/1000).toFixed(1)+' seconds</b>.</p>';
+ var maxRuns=0; days.forEach(function(d){if(d.runs>maxRuns){maxRuns=d.runs;}});
+ var chart=document.getElementById('chart');
+ var labels=document.getElementById('chartLabels');
+ var ch='',lb='';
+ days.forEach(function(d){
+  var h=maxRuns>0?Math.max(2,Math.round(100*d.runs/maxRuns)):0;
+  var fr=d.runs>0?d.failed/d.runs:0;
+  var cls=fr>0.08?'bad':(fr>0.05?'amberbar':'');
+  ch+='<div class="bar '+cls+'" style="height:'+h+'%" title="'+fmtDate(d.date)+': '+d.runs+' runs, '+d.failed+' failed"></div>';
+  lb+='<span>'+fmtDate(d.date)+'</span>';
+ });
+ chart.innerHTML=ch; labels.innerHTML=lb;
+ document.getElementById('chartNote').textContent='Runs per day for '+(state.agent==='all'?'all three assistants':AGENTS.filter(function(a){return a.id===state.agent;})[0].name)+', last '+state.range+' days. Highest day: '+maxRuns.toLocaleString()+' runs.';
+ var hr='';
+ AGENTS.forEach(function(a){
+  var ds=agentDays(a.id,state.range);
+  var as=summarize(ds);
+  hr+='<tr><td><b>'+a.name+'</b><br>'+a.kind+'</td><td>'+as.runs.toLocaleString()+'</td><td>'+as.success.toFixed(1)+'%</td><td>'+as.grounded.toFixed(1)+'%</td><td>'+(as.latMs/1000).toFixed(1)+'s</td><td>$'+as.cost.toFixed(2)+'</td><td><span class="pill '+healthClass(as.health)+'">'+as.health+'</span></td></tr>';
+ });
+ document.getElementById('healthRows').innerHTML=hr;
+ var cr='';
+ CAUSES.forEach(function(c){
+  var n=s.causes[c.id];
+  var share=s.failed>0?100*n/s.failed:0;
+  cr+='<tr><td><b>'+c.label+'</b></td><td>'+n.toLocaleString()+'</td><td>'+share.toFixed(0)+'%</td><td>'+c.fix+'</td></tr>';
+ });
+ document.getElementById('causeRows').innerHTML=cr;
+ var fr2='';
+ recentFailures(state.agent,state.range).forEach(function(f){
+  fr2+='<tr><td>'+fmtDate(f.date)+'</td><td>'+f.agent+'</td><td>'+f.q+'</td><td>'+f.cause+'</td></tr>';
+ });
+ document.getElementById('failRows').innerHTML=fr2||'<tr><td colspan="4">No failed runs in this range.</td></tr>';
+}
+if(typeof document!=='undefined'&&document.getElementById){
+ document.querySelectorAll('#agentRow .pick').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('#agentRow .pick').forEach(function(x){x.classList.remove('active');});b.classList.add('active');state.agent=b.getAttribute('data-agent');render();});});
+ document.querySelectorAll('#rangeRow .pick').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('#rangeRow .pick').forEach(function(x){x.classList.remove('active');});b.classList.add('active');state.range=parseInt(b.getAttribute('data-range'),10);render();});});
+ render();
+}
+</script>
+</body>
+</html>
