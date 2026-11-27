@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Acceptable Use Policy Builder: write the rules before the first incident, by Janaki Gattu</title>
+<meta name="description" content="A working AI Acceptable Use Policy Builder by Janaki Gattu. Answer seven questions about your team and get a tailored AI acceptable-use policy you can copy, print, and adopt, plus a completeness score and the gaps to close. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 6px}
+  h2:first-child{margin-top:0}
+  .secnote{color:var(--muted);margin-bottom:16px}
+  .presets{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+  .preset{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:10px 18px;color:var(--text);cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700}
+  .preset:hover{border-color:var(--accent)}
+  .preset.active{border-color:var(--accent);background:#052e16}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  .field{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .field.full{grid-column:1/-1}
+  .field label{display:block;font-weight:700;margin-bottom:8px}
+  .field label small{display:block;color:var(--muted);font-weight:400;font-size:.88rem;margin-top:2px}
+  .field input[type=text],.field input[type=date],.field select{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:10px 12px;font-family:inherit;font-size:1rem}
+  .checks label{display:flex;gap:10px;align-items:flex-start;font-weight:400;margin:0;padding:7px 0;cursor:pointer}
+  .checks input{margin-top:4px;accent-color:var(--accent);width:16px;height:16px;flex:none}
+  .radios label{display:flex;gap:10px;align-items:flex-start;font-weight:400;margin:0;padding:7px 0;cursor:pointer}
+  .radios input{margin-top:4px;accent-color:var(--accent);width:16px;height:16px;flex:none}
+  .btns{display:flex;flex-wrap:wrap;gap:10px;margin:26px 0 8px}
+  button{font-family:inherit;cursor:pointer}
+  .go{background:var(--accent);color:#052e16;border:0;border-radius:999px;padding:13px 26px;font-weight:800;font-size:1rem}
+  .go:hover{background:#86efac}
+  .ghost{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:999px;padding:13px 22px;font-weight:700;font-size:1rem}
+  .ghost:hover{border-color:var(--accent)}
+  #results{display:none;margin-top:30px}
+  .scorecard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:16px}
+  .scorecard .big{font-size:2.6rem;font-weight:800;line-height:1;color:var(--accent)}
+  .scorecard .big.amber{color:var(--amber)}
+  .scorecard .big.red{color:var(--red)}
+  .verdict{font-size:1.2rem;font-weight:800;margin:6px 0 4px}
+  .scorecard p{color:var(--muted)}
+  .scorecard p b{color:#d4d4d4}
+  .gaps{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:16px}
+  .gaps h3{font-size:1.05rem;margin-bottom:10px}
+  .gaps li{margin:0 0 10px 18px;color:var(--muted)}
+  .gaps li b{color:#d4d4d4}
+  .policy{background:#fff;color:#111;border-radius:12px;padding:28px 30px;margin-bottom:16px}
+  .policy h3{font-size:1.3rem;margin-bottom:2px}
+  .policy .psub{color:#555;font-size:.92rem;margin-bottom:18px}
+  .policy h4{font-size:1.02rem;margin:18px 0 4px}
+  .policy p,.policy li{font-size:.96rem;color:#222}
+  .policy ul{margin:4px 0 4px 20px}
+  .policy li{margin-bottom:3px}
+  .policy .psig{margin-top:22px;color:#555;font-size:.92rem}
+  .howto{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-top:34px}
+  .howto h3{font-size:1.05rem;margin-bottom:10px}
+  .howto ol{margin-left:20px;color:var(--muted)}
+  .howto li{margin-bottom:8px}
+  .howto li b{color:#d4d4d4}
+  .sources{margin-top:34px;color:var(--faint);font-size:.88rem}
+  .sources a{color:var(--muted)}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;margin-top:20px}
+  footer h2{margin-top:0}
+  footer p{color:var(--muted);max-width:640px}
+  footer p b{color:#d4d4d4}
+  .cta{display:inline-block;margin-top:16px;background:var(--accent);color:#052e16;font-weight:800;text-decoration:none;border-radius:999px;padding:12px 24px}
+  @media print{
+    body{background:#fff;color:#111}
+    header,.presets,.btns,.howto,.sources,footer,.back{display:none!important}
+    .policy{border:0;padding:0}
+    #results{display:block!important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu</a>
+  <p class="eyebrow">AI Services &middot; Live &middot; Try It Now</p>
+  <h1>AI Acceptable Use Policy Builder</h1>
+  <p class="lede">The cheapest AI policy is the one written <b>before</b> the first incident, not after it. Answer seven questions about your team and get a tailored acceptable-use policy you can copy, print, and adopt today.</p>
+  <p class="honest"><b>Runs entirely in your browser.</b> Nothing you type is sent anywhere, stored anywhere, or seen by anyone. No backend, no API key, no account. The policy it writes is a starting draft for your team, not legal advice: have your own counsel review it before you adopt it.</p>
+</header>
+<main>
+  <h2>Your team</h2>
+  <p class="secnote">Three presets to start from, or fill in your own answers. Everything below feeds the policy.</p>
+  <div class="presets">
+    <button class="preset" data-preset="small">Small business</button>
+    <button class="preset" data-preset="agency">Public agency</button>
+    <button class="preset" data-preset="gis">GIS team</button>
+    <button class="preset" id="clearAll">Clear all</button>
+  </div>
+
+  <div class="grid">
+    <div class="field">
+      <label for="orgName">Organisation name</label>
+      <input type="text" id="orgName" placeholder="e.g. Riverton Planning Department">
+    </div>
+    <div class="field">
+      <label for="orgType">Organisation type</label>
+      <select id="orgType">
+        <option value="">Choose one</option>
+        <option value="small business">Small business</option>
+        <option value="department">Department in a larger organisation</option>
+        <option value="public agency">Public agency</option>
+        <option value="gis team">GIS team</option>
+      </select>
+    </div>
+    <div class="field full">
+      <label>Approved AI tools <small>Tick every tool your team is allowed to use. Anything not ticked is not approved.</small></label>
+      <div class="checks" id="tools">
+        <label><input type="checkbox" value="General chatbot (for drafting and brainstorming)"> General chatbot (for drafting and brainstorming)</label>
+        <label><input type="checkbox" value="Coding assistant (for scripts and automation)"> Coding assistant (for scripts and automation)</label>
+        <label><input type="checkbox" value="Document drafting assistant"> Document drafting assistant</label>
+        <label><input type="checkbox" value="Meeting summariser"> Meeting summariser</label>
+        <label><input type="checkbox" value="Image generation tool"> Image generation tool</label>
+        <label><input type="checkbox" value="ArcGIS AI Assistants (Survey123, Business Analyst, Translation, ArcGIS Pro, Notebooks, Arcade)"> ArcGIS AI Assistants (Survey123, Business Analyst, Translation, ArcGIS Pro, Notebooks, Arcade)</label>
+      </div>
+    </div>
+    <div class="field full">
+      <label>What your team may use AI for <small>Tick every use the policy allows.</small></label>
+      <div class="checks" id="uses">
+        <label><input type="checkbox" value="Drafting reports, emails, and documents"> Drafting reports, emails, and documents</label>
+        <label><input type="checkbox" value="Summarising meetings, documents, and data"> Summarising meetings, documents, and data</label>
+        <label><input type="checkbox" value="Brainstorming and exploring options"> Brainstorming and exploring options</label>
+        <label><input type="checkbox" value="Writing and reviewing code and scripts"> Writing and reviewing code and scripts</label>
+        <label><input type="checkbox" value="Analysing data and spotting patterns"> Analysing data and spotting patterns</label>
+        <label><input type="checkbox" value="Drafting replies to customers and residents"> Drafting replies to customers and residents</label>
+      </div>
+    </div>
+    <div class="field full">
+      <label>What must never go into an AI tool <small>Tick every category that is off limits. This is the section that stops most incidents.</small></label>
+      <div class="checks" id="never">
+        <label><input type="checkbox" value="Client or customer data"> Client or customer data</label>
+        <label><input type="checkbox" value="Personal data about identifiable people"> Personal data about identifiable people</label>
+        <label><input type="checkbox" value="Passwords, API keys, and credentials"> Passwords, API keys, and credentials</label>
+        <label><input type="checkbox" value="Unpublished work and draft decisions"> Unpublished work and draft decisions</label>
+        <label><input type="checkbox" value="Locations of critical infrastructure"> Locations of critical infrastructure</label>
+      </div>
+    </div>
+    <div class="field full">
+      <label>Human review <small>Who checks AI output before it is used? Pick the rule your policy will enforce.</small></label>
+      <div class="radios" id="review">
+        <label><input type="radio" name="review" value="before-public"> A named person reviews AI output before it reaches a client, a resident, or the public</label>
+        <label><input type="radio" name="review" value="before-team"> A named person reviews AI output before it leaves the team</label>
+        <label><input type="radio" name="review" value="none"> No review required</label>
+      </div>
+    </div>
+    <div class="field">
+      <label for="owner">Policy owner <small>The person who keeps this policy current.</small></label>
+      <input type="text" id="owner" placeholder="e.g. GIS Manager">
+    </div>
+    <div class="field">
+      <label for="reviewDate">Next review date</label>
+      <input type="date" id="reviewDate">
+    </div>
+    <div class="field full">
+      <label>Logging <small>Tick what your team will keep a record of.</small></label>
+      <div class="checks" id="logging">
+        <label><input type="checkbox" value="Keep a log of AI-assisted work that reaches a client or the public"> Keep a log of AI-assisted work that reaches a client or the public</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="btns">
+    <button class="go" id="buildBtn">Build my policy</button>
+    <button class="ghost" id="copyBtn" style="display:none">Copy policy</button>
+    <button class="ghost" id="printBtn" style="display:none">Print policy</button>
+  </div>
+
+  <div id="results">
+    <div class="scorecard" id="scorecard"></div>
+    <div class="gaps" id="gaps" style="display:none"></div>
+    <div class="policy" id="policy"></div>
+  </div>
+
+  <div class="howto">
+    <h3>How a good AI policy is built</h3>
+    <ol>
+      <li><b>Name the tools.</b> A policy that says "AI" and nothing else cannot be followed. List the approved tools by name, and treat anything not listed as not approved.</li>
+      <li><b>Name what never goes in.</b> Most AI incidents are a paste, not a hack. Client data, personal data, and credentials are the three categories that cause the damage.</li>
+      <li><b>Keep a human in charge.</b> The person who signs the work owns the work, even when an assistant drafted it. Review before it leaves the team, and always before it reaches the public.</li>
+      <li><b>Log what matters.</b> When AI-assisted work reaches a client or the public, keep a record of what the assistant produced and who reviewed it. That log is what turns a complaint into an answer.</li>
+      <li><b>Review the policy itself.</b> Tools, models, and rules change every few months. Put a review date on the policy and keep it.</li>
+    </ol>
+  </div>
+
+  <div class="sources">
+    <p>Sources: the Harness Readiness Check from Janaki Gattu's article <a href="https://www.linkedin.com/in/janaki-gis-enterprise">Harness Engineering: The Discipline That Separates Working Agents from Expensive Demos</a> (LinkedIn, 24 Nov 2026), which sets the guardrails this policy turns into rules: a human in charge, scoped write access, a fallback when a call fails, isolated execution, a cost ceiling, and full logging. Scoring weights and the policy wording are planning rules from practice, not vendor numbers. ArcGIS AI Assistants availability follows Esri's <a href="https://www.esri.com/arcgis-blog/products/arcgis-online/announcements/whats-new-in-ai-assistants-june-2026">What's new in AI assistants, June 2026</a>.</p>
+  </div>
+</main>
+<footer>
+  <h2>Your policy is a draft. Make it real.</h2>
+  <p>This builder gives you the words. Adopting a policy takes a conversation: who owns it, who reviews it, and what happens when someone breaks it. <b>Email Janaki</b> with your organisation type and your completeness score, and she will help you turn the draft into a policy your team actually follows.</p>
+  <a class="cta" href="mailto:gjanaki360@gmail.com?subject=AI%20acceptable%20use%20policy%20for%20my%20team">Email Janaki about your AI policy</a>
+  <p style="margin-top:14px"><a href="https://janakigattu.github.io/">Back to the portfolio</a> &middot; <a href="https://www.linkedin.com/in/janaki-gis-enterprise">Janaki Gattu on LinkedIn</a></p>
+</footer>
+</div>
+<script>
+const PRESETS = {
+  small: {
+    orgName: "Example Small Business", orgType: "small business",
+    tools: ["General chatbot (for drafting and brainstorming)", "Document drafting assistant", "Meeting summariser"],
+    uses: ["Drafting reports, emails, and documents", "Summarising meetings, documents, and data", "Brainstorming and exploring options", "Drafting replies to customers and residents"],
+    never: ["Client or customer data", "Personal data about identifiable people", "Passwords, API keys, and credentials"],
+    review: "before-public", owner: "Owner", reviewDate: "2027-02-26", logging: true
+  },
+  agency: {
+    orgName: "Example Public Agency", orgType: "public agency",
+    tools: ["General chatbot (for drafting and brainstorming)", "Document drafting assistant", "Meeting summariser", "ArcGIS AI Assistants (Survey123, Business Analyst, Translation, ArcGIS Pro, Notebooks, Arcade)"],
+    uses: ["Drafting reports, emails, and documents", "Summarising meetings, documents, and data", "Brainstorming and exploring options", "Writing and reviewing code and scripts", "Analysing data and spotting patterns"],
+    never: ["Client or customer data", "Personal data about identifiable people", "Passwords, API keys, and credentials", "Unpublished work and draft decisions", "Locations of critical infrastructure"],
+    review: "before-public", owner: "Chief Information Officer", reviewDate: "2027-05-26", logging: true
+  },
+  gis: {
+    orgName: "Example GIS Team", orgType: "gis team",
+    tools: ["Coding assistant (for scripts and automation)", "Document drafting assistant", "ArcGIS AI Assistants (Survey123, Business Analyst, Translation, ArcGIS Pro, Notebooks, Arcade)"],
+    uses: ["Drafting reports, emails, and documents", "Summarising meetings, documents, and data", "Writing and reviewing code and scripts", "Analysing data and spotting patterns"],
+    never: ["Client or customer data", "Personal data about identifiable people", "Passwords, API keys, and credentials", "Locations of critical infrastructure"],
+    review: "before-team", owner: "GIS Manager", reviewDate: "2027-02-26", logging: true
+  }
+};
+
+function readState() {
+  const checked = id => Array.from(document.querySelectorAll("#" + id + " input:checked")).map(e => e.value);
+  const review = document.querySelector("#review input:checked");
+  return {
+    orgName: document.getElementById("orgName").value.trim(),
+    orgType: document.getElementById("orgType").value,
+    tools: checked("tools"),
+    uses: checked("uses"),
+    never: checked("never"),
+    review: review ? review.value : "",
+    owner: document.getElementById("owner").value.trim(),
+    reviewDate: document.getElementById("reviewDate").value,
+    logging: document.querySelector("#logging input:checked") !== null
+  };
+}
+
+function scorePolicy(s) {
+  const gaps = [];
+  let score = 0;
+  if (s.tools.length >= 1) { score += 15; } else { gaps.push({t: "No approved tools named", f: "Tick at least one approved tool. A policy that never names the tools cannot be followed."}); }
+  if (s.uses.length >= 2) { score += 15; } else { gaps.push({t: "Too few allowed uses named", f: "Tick at least two uses. If the team does not know what AI is for, it will either use it for everything or for nothing."}); }
+  if (s.never.length >= 3) { score += 25; } else { gaps.push({t: "Too few off-limits categories", f: "Tick at least three categories that must never go into an AI tool. Client data, personal data, and credentials are the minimum."}); }
+  if (s.review === "before-public") { score += 20; }
+  else if (s.review === "before-team") { score += 15; }
+  else { gaps.push({t: "No human review rule", f: "Pick a review rule. The person who signs the work owns it, even when an assistant drafted it."}); }
+  if (s.owner) { score += 15; } else { gaps.push({t: "No policy owner named", f: "Name the person who keeps this policy current. A policy with no owner goes stale in a month."}); }
+  if (s.logging) { score += 10; } else { gaps.push({t: "No logging rule", f: "Tick the logging box. When AI-assisted work reaches a client or the public, keep a record of what was produced and who reviewed it."}); }
+  const verdict = score >= 75 ? "Ready to adopt" : score >= 50 ? "Usable with gaps" : "Not ready yet";
+  return {score, verdict, gaps};
+}
+
+function esc(t) {
+  return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function buildPolicyText(s) {
+  const org = s.orgName || "Your organisation";
+  const type = s.orgType || "your organisation";
+  const date = s.reviewDate || "a date you choose";
+  const reviewLine = s.review === "before-public"
+    ? "A named person reviews AI output before it reaches a client, a resident, or the public."
+    : s.review === "before-team"
+    ? "A named person reviews AI output before it leaves the team."
+    : "No review rule is set yet. Add one before adopting this policy.";
+  const lines = [];
+  lines.push("AI ACCEPTABLE USE POLICY");
+  lines.push(org + " (" + type + ")");
+  lines.push("");
+  lines.push("1. Purpose");
+  lines.push("This policy sets the rules for using AI tools at " + org + ". It exists so the team can use AI with confidence, and so the organisation knows what it is responsible for.");
+  lines.push("");
+  lines.push("2. Approved tools");
+  if (s.tools.length) { s.tools.forEach(t => lines.push("- " + t)); }
+  else { lines.push("No tools are approved yet. Add at least one before adopting this policy."); }
+  lines.push("Any tool not listed here is not approved.");
+  lines.push("");
+  lines.push("3. What AI may be used for");
+  if (s.uses.length) { s.uses.forEach(u => lines.push("- " + u)); }
+  else { lines.push("No uses are named yet. Add at least two before adopting this policy."); }
+  lines.push("");
+  lines.push("4. What must never go into an AI tool");
+  if (s.never.length) { s.never.forEach(n => lines.push("- " + n)); }
+  else { lines.push("No off-limits categories are named yet. Add at least three before adopting this policy."); }
+  lines.push("");
+  lines.push("5. Human review");
+  lines.push(reviewLine);
+  lines.push("The person who signs the work owns the work, even when an assistant drafted it.");
+  lines.push("");
+  lines.push("6. Logging");
+  lines.push(s.logging
+    ? "Keep a log of AI-assisted work that reaches a client or the public, including what the assistant produced and who reviewed it."
+    : "No logging rule is set yet. Add one before adopting this policy.");
+  lines.push("");
+  lines.push("7. Ownership and review");
+  lines.push("Policy owner: " + (s.owner || "Not named yet") + ". Next review date: " + date + ".");
+  lines.push("");
+  lines.push("This is a starting draft, not legal advice. Have your own counsel review it before you adopt it.");
+  return lines.join("\n");
+}
+
+function buildPolicyHtml(s) {
+  const org = s.orgName || "Your organisation";
+  const type = s.orgType || "your organisation";
+  const date = s.reviewDate || "a date you choose";
+  const reviewLine = s.review === "before-public"
+    ? "A named person reviews AI output before it reaches a client, a resident, or the public."
+    : s.review === "before-team"
+    ? "A named person reviews AI output before it leaves the team."
+    : "No review rule is set yet. Add one before adopting this policy.";
+  const list = items => items.length ? "<ul>" + items.map(i => "<li>" + esc(i) + "</li>").join("") + "</ul>" : "";
+  return "<h3>AI Acceptable Use Policy</h3>"
+    + "<p class=\"psub\">" + esc(org) + " (" + esc(type) + ")</p>"
+    + "<h4>1. Purpose</h4><p>This policy sets the rules for using AI tools at " + esc(org) + ". It exists so the team can use AI with confidence, and so the organisation knows what it is responsible for.</p>"
+    + "<h4>2. Approved tools</h4>" + (s.tools.length ? list(s.tools) : "<p>No tools are approved yet. Add at least one before adopting this policy.</p>") + "<p>Any tool not listed here is not approved.</p>"
+    + "<h4>3. What AI may be used for</h4>" + (s.uses.length ? list(s.uses) : "<p>No uses are named yet. Add at least two before adopting this policy.</p>")
+    + "<h4>4. What must never go into an AI tool</h4>" + (s.never.length ? list(s.never) : "<p>No off-limits categories are named yet. Add at least three before adopting this policy.</p>")
+    + "<h4>5. Human review</h4><p>" + esc(reviewLine) + " The person who signs the work owns the work, even when an assistant drafted it.</p>"
+    + "<h4>6. Logging</h4><p>" + (s.logging ? "Keep a log of AI-assisted work that reaches a client or the public, including what the assistant produced and who reviewed it." : "No logging rule is set yet. Add one before adopting this policy.") + "</p>"
+    + "<h4>7. Ownership and review</h4><p>Policy owner: " + esc(s.owner || "Not named yet") + ". Next review date: " + esc(date) + ".</p>"
+    + "<p class=\"psig\">This is a starting draft, not legal advice. Have your own counsel review it before you adopt it.</p>";
+}
+
+function render() {
+  const s = readState();
+  const r = scorePolicy(s);
+  const cls = r.score >= 75 ? "" : r.score >= 50 ? "amber" : "red";
+  document.getElementById("scorecard").innerHTML =
+    "<div class=\"big " + cls + "\">" + r.score + " / 100</div>"
+    + "<div class=\"verdict\">" + r.verdict + "</div>"
+    + "<p>" + (r.gaps.length
+      ? "Close the <b>" + r.gaps.length + " gap" + (r.gaps.length > 1 ? "s" : "") + "</b> below and the score goes up."
+      : "Every section is covered. Have counsel review it, then adopt it.") + "</p>";
+  const gapsEl = document.getElementById("gaps");
+  if (r.gaps.length) {
+    gapsEl.style.display = "block";
+    gapsEl.innerHTML = "<h3>Gaps to close</h3><ul>" + r.gaps.map(g => "<li><b>" + esc(g.t) + ".</b> " + esc(g.f) + "</li>").join("") + "</ul>";
+  } else {
+    gapsEl.style.display = "none";
+  }
+  document.getElementById("policy").innerHTML = buildPolicyHtml(s);
+  document.getElementById("results").style.display = "block";
+  document.getElementById("copyBtn").style.display = "";
+  document.getElementById("printBtn").style.display = "";
+  document.getElementById("results").scrollIntoView({behavior: "smooth"});
+  window._lastPolicyText = buildPolicyText(s);
+}
+
+function applyPreset(name) {
+  const p = PRESETS[name];
+  document.getElementById("orgName").value = p.orgName;
+  document.getElementById("orgType").value = p.orgType;
+  const setChecks = (id, values) => {
+    document.querySelectorAll("#" + id + " input").forEach(e => { e.checked = values.indexOf(e.value) !== -1; });
+  };
+  setChecks("tools", p.tools);
+  setChecks("uses", p.uses);
+  setChecks("never", p.never);
+  document.querySelectorAll("#review input").forEach(e => { e.checked = e.value === p.review; });
+  document.getElementById("owner").value = p.owner;
+  document.getElementById("reviewDate").value = p.reviewDate;
+  document.querySelector("#logging input").checked = p.logging;
+  document.querySelectorAll(".preset").forEach(b => b.classList.toggle("active", b.dataset.preset === name));
+}
+
+document.querySelectorAll(".preset[data-preset]").forEach(b => {
+  b.addEventListener("click", () => applyPreset(b.dataset.preset));
+});
+document.getElementById("clearAll").addEventListener("click", () => {
+  document.querySelectorAll("input[type=checkbox]").forEach(e => { e.checked = false; });
+  document.querySelectorAll("#review input").forEach(e => { e.checked = false; });
+  document.getElementById("orgName").value = "";
+  document.getElementById("orgType").value = "";
+  document.getElementById("owner").value = "";
+  document.getElementById("reviewDate").value = "";
+  document.querySelectorAll(".preset").forEach(b => b.classList.remove("active"));
+  document.getElementById("results").style.display = "none";
+  document.getElementById("copyBtn").style.display = "none";
+  document.getElementById("printBtn").style.display = "none";
+});
+document.getElementById("buildBtn").addEventListener("click", render);
+document.getElementById("copyBtn").addEventListener("click", function() {
+  const text = window._lastPolicyText || "";
+  const done = () => { this.textContent = "Copied"; setTimeout(() => { this.textContent = "Copy policy"; }, 2000); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+  } else { fallbackCopy(text, done); }
+});
+function fallbackCopy(text, done) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand("copy"); done(); } catch (e) { /* copy failed, user can select the policy text */ }
+  document.body.removeChild(ta);
+}
+document.getElementById("printBtn").addEventListener("click", () => window.print());
+applyPreset("small");
+</script>
+</body>
+</html>
