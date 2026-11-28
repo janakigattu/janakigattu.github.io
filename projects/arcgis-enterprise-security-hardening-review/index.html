@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArcGIS Enterprise Security Hardening Review: which doors are still open, by Janaki Gattu</title>
+<meta name="description" content="A working ArcGIS Enterprise Security Hardening Review by Janaki Gattu. Answer fourteen questions drawn from Esri's own security best practices and portalScan checks, and get a hardening score, the gaps ranked by severity, the three fixes that matter most, and a printable checklist. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 6px}
+  h2:first-child{margin-top:0}
+  .secnote{color:var(--muted);margin-bottom:16px}
+  .pickrow{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+  .pick{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--text);cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700;text-align:left;flex:1;min-width:200px}
+  .pick small{display:block;color:var(--muted);font-weight:400;margin-top:4px;line-height:1.45}
+  .pick:hover{border-color:var(--accent)}
+  .pick.active{border-color:var(--accent);background:#052e16}
+  .pickrow.presets .pick{min-width:220px}
+  .clearbtn{background:none;border:1px solid var(--line);border-radius:999px;color:var(--muted);cursor:pointer;font-family:inherit;font-size:.9rem;font-weight:700;padding:9px 20px;margin-top:14px}
+  .clearbtn:hover{color:var(--text);border-color:var(--accent)}
+  .qgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+  @media(max-width:640px){.qgrid{grid-template-columns:1fr}}
+  .q label{display:block;font-weight:700;font-size:.95rem;margin-bottom:6px}
+  .q label span{color:var(--muted);font-weight:400}
+  .q select{width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;color:var(--text);font-family:inherit;font-size:.95rem;padding:12px 14px}
+  .q select:focus{outline:2px solid var(--accent);outline-offset:1px}
+  .runbtn{display:inline-block;margin-top:24px;background:var(--accent);color:#052e16;font-weight:800;font-family:inherit;font-size:1rem;border:none;border-radius:999px;padding:13px 28px;cursor:pointer}
+  .runbtn:hover{opacity:.9}
+  .printbtn{display:inline-block;margin-top:24px;margin-left:10px;background:none;border:1px solid var(--line);color:var(--text);font-weight:800;font-family:inherit;font-size:1rem;border-radius:999px;padding:13px 28px;cursor:pointer}
+  .printbtn:hover{border-color:var(--accent)}
+  .msg{color:var(--amber);margin-top:16px;font-weight:700}
+  .scorecard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-top:26px}
+  .scorecard .score{font-size:2.6rem;font-weight:800;line-height:1.1}
+  .scorecard .score.green{color:var(--accent)}
+  .scorecard .score.amber{color:var(--amber)}
+  .scorecard .score.red{color:var(--red)}
+  .scorecard .verdict{font-size:1.25rem;font-weight:800;margin-top:6px}
+  .scorecard .verdict.green{color:var(--accent)}
+  .scorecard .verdict.amber{color:var(--amber)}
+  .scorecard .verdict.red{color:var(--red)}
+  .scorecard p{color:var(--muted);margin-top:6px}
+  .scorecard p b{color:#d4d4d4}
+  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:.95rem}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-size:.85rem;text-transform:uppercase;letter-spacing:.06em}
+  td b{color:#d4d4d4}
+  .pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.85rem;font-weight:700;white-space:nowrap}
+  .pill.green{background:#052e16;color:var(--accent)}
+  .pill.amber{background:#451a03;color:var(--amber)}
+  .pill.red{background:#450a0a;color:var(--red)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-top:16px}
+  .card h3{font-size:1.1rem;margin-bottom:6px}
+  .card p{color:var(--muted)}
+  .card p b{color:#d4d4d4}
+  .card.gate{border-left:3px solid var(--accent)}
+  .card.cause{border-left:3px solid var(--amber)}
+  .card.crit{border-left:3px solid var(--red)}
+  .checklist{list-style:none;margin-top:10px}
+  .checklist li{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);color:var(--muted)}
+  .checklist li:last-child{border-bottom:none}
+  .checklist input{margin-top:5px;accent-color:var(--accent);width:18px;height:18px;flex:none;cursor:pointer}
+  .checklist li.done{color:var(--text)}
+  .howto{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-top:34px}
+  .howto h3{font-size:1.05rem;margin-bottom:10px}
+  .howto ol{margin-left:20px;color:var(--muted)}
+  .howto li{margin-bottom:8px}
+  .howto li b{color:#d4d4d4}
+  .sources{margin-top:34px;color:var(--faint);font-size:.88rem}
+  .sources a{color:var(--muted)}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;margin-top:20px}
+  footer h2{margin-top:0}
+  footer p{color:var(--muted);max-width:640px}
+  footer p b{color:#d4d4d4}
+  .cta{display:inline-block;margin-top:16px;background:var(--accent);color:#052e16;font-weight:800;text-decoration:none;border-radius:999px;padding:12px 24px}
+  @media print{
+    body{background:#fff;color:#111}
+    header,.pickrow,.clearbtn,.qgrid,.runbtn,.printbtn,.howto,.sources,footer,.back{display:none!important}
+    .scorecard,.card{border:1px solid #ccc}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu</a>
+  <p class="eyebrow">GIS Services &middot; Live &middot; Try It Now</p>
+  <h1>ArcGIS Enterprise Security Hardening Review</h1>
+  <p class="lede">Your Portal is on the internet whether you meant it to be or not. Answer fourteen questions drawn from Esri's own security best practices, and this review names <b>the gaps ranked by severity, the three fixes that matter most, and the score your deployment earns</b>.</p>
+  <p class="honest"><b>Runs entirely in your browser.</b> No backend, no API key, no account. The checks come from Esri's security best practices documentation and the portalScan.py checks Esri ships with Portal (PS01 to PS08), and each one is named on the page. Nothing you type is sent or stored anywhere. Answer honestly, and answer Not sure when you do not know, because a gap you have not checked is still a gap.</p>
+</header>
+<main>
+  <h2>Start with a preset, or answer your own deployment</h2>
+  <p class="secnote">A preset fills in all fourteen answers so you can see how the review works. Change any answer after loading one.</p>
+  <div class="pickrow presets" id="presetRow">
+    <button class="pick" type="button" data-preset="wellrun">Well-run deployment<small>Every check passes except the password policy, which nobody has confirmed. Score 98, Locked down.</small></button>
+    <button class="pick" type="button" data-preset="typical">Typical install, never hardened<small>HTTPS is on, but the self-signed certificate is still in place, tokens can carry credentials in the URL, and anonymous access is open. Score 45, Hardening overdue.</small></button>
+    <button class="pick" type="button" data-preset="public">Public-facing, self-signed, anonymous on<small>Every critical check fails and only the backup question is even a maybe. Score 6, Hardening overdue.</small></button>
+  </div>
+  <button class="clearbtn" id="clearBtn" type="button">Clear all</button>
+
+  <h2>Critical: fix these first</h2>
+  <p class="secnote">Esri's portalScan.py calls these Critical. Any one of them open drops the verdict a full band, whatever the score says.</p>
+  <div class="qgrid">
+    <div class="q">
+      <label for="https">Portal and Web Adaptor enforce HTTPS only <span>(portalScan PS04)</span></label>
+      <select id="https"><option value="yes">Yes</option><option value="no">No</option><option value="unsure">Not sure</option></select>
+    </div>
+    <div class="q">
+      <label for="cacert">CA-signed certificate in place, not the self-signed one ArcGIS ships with <span>(portalScan PS08)</span></label>
+      <select id="cacert"><option value="yes">Yes</option><option value="no">No</option><option value="unsure">Not sure</option></select>
+    </div>
+    <div class="q">
+      <label for="proxy">Portal proxy restricted to approved hostnames <span>(portalScan PS01)</span></label>
+      <select id="proxy"><option value="yes">Yes</option><option value="no">No</option><option value="unsure">Not sure</option></select>
+    </div>
+    <div class="q">
+      <label for="tokenurl">Token requests with credentials in the URL are disabled <span>(portalScan PS02)</span></label>
+      <select id="tokenurl"><option value="yes">Yes</option><option value="no">No</option><option value="unsure">Not sure</option></select>
+    </div>
+  </div>
+
+  <h2>Important: close these next</h2>
+  <p class="secnote">These decide who can get in and what they can reach once they do.</p>
+  <div class="qgrid">
+    <div class="q">
+      <label for="anon">Anonymous access is disabled <span>(portalScan PS06)</span></label>
+      <select id="anon"><option value="yes">Yes</option><option value="no">No</option><option value="unsure">Not sure</option></select>
+    </div>
+    <div class="q">
+      <label for="svcdir">Portal services directory is disabled <span>(portalScan PS03)</span></label>
+      <select id="svcdir"><option value="yes">Yes</option><option value="no">No</option><option value="unsure">Not sure</option></select>
+    </div>
+    <div class="q">
+      <label for="entlogin">Sign-in runs through enterprise logins (SAML, IWA, or LDAP), not built-in accounts alone</label>
+      <select id="entlogin"><option value="yes">Yes</option><option value="no">No</option><option value="unsure">Not sure</option></select>
+    </div>
+    <div class="q">
+      <label for="patches">Patches are current <span>(latest patch applied, no release skipped)</span></label>
+      <select id="patches"><option value="yes">Yes</option><option value="no">No</option><option value="unsure">Not sure</option></select>
+    </div>
+    <div class="q">
+      <label for="backups">WebGISDR backups run on schedule and a restore has been tested</label>
+      <select id="backups"><option value="yes">Yes</option><option value="no">No</option><option value="unsure">Not sure</option></select>
+    </div>
+  </div>
+
+  <h2>Recommended: finish the job</h2>
+  <p class="secnote">These are the checks Esri marks Recommended, and the habits that keep a hardened deployment hardened.</p>
+  <div class="qgrid">
+    <div class="q">
+      <label for="signup">Built-in account self sign-up (Create An Account) is disabled <span>(portalScan PS05)</span></label>
+      <select id="signup"><option value="yes">Yes</option><option value="no">No</option><option value="unsure">Not sure</option></select>
+    </div>
+    <div class="q">
+      <label for="ldaps">Identity store traffic is encrypted <span>(LDAPS, or SAML; portalScan PS07)</span></label>
+      <select id="ldaps"><option value="yes">Yes</option><option value="no">No</option><option value="unsure">Not sure</option></select>
+    </div>
+    <div class="q">
+      <label for="pwpolicy">A password policy is enforced <span>(or the enterprise identity provider policy applies)</span></label>
+      <select id="pwpolicy"><option value="yes">Yes</option><option value="no">No</option><option value="unsure">Not sure</option></select>
+    </div>
+    <div class="q">
+      <label for="svcacct">Service accounts are named, least-privilege, and not shared admin accounts</label>
+      <select id="svcacct"><option value="yes">Yes</option><option value="no">No</option><option value="unsure">Not sure</option></select>
+    </div>
+    <div class="q">
+      <label for="monitor">ArcGIS Monitor or audit logs are reviewed on a schedule</label>
+      <select id="monitor"><option value="yes">Yes</option><option value="no">No</option><option value="unsure">Not sure</option></select>
+    </div>
+  </div>
+
+  <button class="runbtn" id="runBtn" type="button">Review my deployment</button>
+  <button class="printbtn" id="printBtn" type="button">Print</button>
+  <p class="msg" id="msg"></p>
+  <div id="results"></div>
+
+  <div class="howto">
+    <h3>How the review is scored</h3>
+    <ol>
+      <li><b>Fourteen checks, weighted by severity.</b> Critical checks are worth 10 points each, Important checks 8, Recommended checks 4. That adds up to 100.</li>
+      <li><b>Yes earns the full weight, Not sure earns half, No earns nothing.</b> Not sure is honest, and it is scored honestly: a check you have not verified is a check that might be open.</li>
+      <li><b>One open Critical check drops the verdict a full band.</b> A score of 90 with the proxy wide open is not Locked down. The verdict bands are 85 and above Locked down, 60 to 84 Fix the critical gaps first, and below 60 Hardening overdue.</li>
+      <li><b>The three fixes that matter most come first.</b> Open Critical checks outrank everything, then Important, then Recommended, so the order is the order to work in.</li>
+      <li><b>portalScan.py does this check for real.</b> Esri ships a Python script with Portal that scans the same ground and reports Critical, Important, and Recommended findings. Run it after this review, and treat its output as the authority over this page.</li>
+    </ol>
+  </div>
+
+  <p class="sources">Sources: Esri, Security best practices, ArcGIS Enterprise documentation (enterprise.arcgis.com, security best practices page); Esri, Scan your portal for security best practices, ArcGIS Enterprise 11.0 documentation, portalScan.py checks PS01 to PS08 (proxy restrictions, token requests with credentials in the URL, services directory, HTTPS only, built-in account sign-up, anonymous access, LDAP identity store encryption, self-signed SSL certificate). Severity weights, verdict bands, the one-band downgrade, and the fix wording are planning rules from practice, not vendor numbers. The <a href="https://janakigattu.github.io/projects/arcgis-enterprise-incident-response-playbook/">ArcGIS Enterprise Incident Response Playbook</a> covers what to do when a gap has already been used.</p>
+</main>
+<footer>
+  <h2>Close the gaps, then prove they stay closed</h2>
+  <p>A hardening review is a snapshot. The work that follows, portalScan.py on a schedule, patching on a schedule, and a restore test that actually gets run, is what keeps the score from sliding back. <b>Email Janaki with your score and your three biggest gaps</b>, and she will scope the hardening review around them.</p>
+  <a class="cta" href="mailto:gjanaki360@gmail.com?subject=ArcGIS%20Enterprise%20Security%20Hardening%20Review">Email Janaki</a>
+  <p style="margin-top:14px"><a href="https://janakigattu.github.io/">Book a session</a> &middot; <a href="https://www.linkedin.com/in/janaki-gis-enterprise">LinkedIn</a></p>
+</footer>
+</div>
+<script>
+// --- PURE LOGIC (extracted and tested in Node; no DOM below this line is used by tests) ---
+var CHECKS = [
+  {id: "https", severity: "Critical", weight: 10, question: "Portal and Web Adaptor enforce HTTPS only", fix: "Configure the portal and the web server hosting the Web Adaptor to enforce HTTPS, so no credential or token ever travels in the clear."},
+  {id: "cacert", severity: "Critical", weight: 10, question: "CA-signed certificate in place, not the self-signed one ArcGIS ships with", fix: "Request a certificate from a trusted certificate authority and configure Portal, ArcGIS Server, and the Web Adaptor to use it. The self-signed certificate is for the first test, not for production."},
+  {id: "proxy", severity: "Critical", weight: 10, question: "Portal proxy restricted to approved hostnames", fix: "Restrict the portal proxy capability to approved web addresses. Left open, the proxy can be used to launch denial of service or server-side request forgery attacks against machines the portal can reach."},
+  {id: "tokenurl", severity: "Critical", weight: 10, question: "Token requests with credentials in the URL are disabled", fix: "Disable generate token requests that carry credentials in the query parameter. Credentials in a URL land in browser history and network logs."},
+  {id: "anon", severity: "Important", weight: 8, question: "Anonymous access is disabled", fix: "Disable anonymous access in the portal, and on the web server too when web-tier authentication is in use, so nobody reaches content without credentials."},
+  {id: "svcdir", severity: "Important", weight: 8, question: "Portal services directory is disabled", fix: "Disable the services directory so items, services, web maps, and groups cannot be browsed, found in a web search, or queried through HTML forms."},
+  {id: "entlogin", severity: "Important", weight: 8, question: "Sign-in runs through enterprise logins (SAML, IWA, or LDAP), not built-in accounts alone", fix: "Move sign-in to enterprise logins so accounts, passwords, and deprovisioning live in the identity provider, not in a Portal account list that nobody reviews."},
+  {id: "patches", severity: "Important", weight: 8, question: "Patches are current", fix: "Apply the latest patch and stop skipping releases. Known vulnerabilities in an unpatched deployment are the cheapest way in."},
+  {id: "backups", severity: "Important", weight: 8, question: "WebGISDR backups run on schedule and a restore has been tested", fix: "Schedule WebGISDR exports and run a restore test in a staging environment. A backup that has never been restored is a hope, not a recovery plan."},
+  {id: "signup", severity: "Recommended", weight: 4, question: "Built-in account self sign-up (Create An Account) is disabled", fix: "Disable built-in account sign-up when organisation accounts are used or accounts are created manually, so nobody can create their own way in."},
+  {id: "ldaps", severity: "Recommended", weight: 4, question: "Identity store traffic is encrypted (LDAPS, or SAML)", fix: "Use LDAPS for the user store and group store, or SAML, so identity traffic is encrypted end to end."},
+  {id: "pwpolicy", severity: "Recommended", weight: 4, question: "A password policy is enforced", fix: "Enforce a password policy in the portal, or rely on the enterprise identity provider policy and confirm it applies to every Portal account."},
+  {id: "svcacct", severity: "Recommended", weight: 4, question: "Service accounts are named, least-privilege, and not shared admin accounts", fix: "Give each service its own named account with only the privileges it needs, and stop sharing the admin account across people and services."},
+  {id: "monitor", severity: "Recommended", weight: 4, question: "ArcGIS Monitor or audit logs are reviewed on a schedule", fix: "Put ArcGIS Monitor or the audit logs on a weekly review, so a failed sign-in spike or a new admin account is noticed in days, not months."}
+];
+var VERDICTS = [
+  {label: "Hardening overdue", cls: "red"},
+  {label: "Fix the critical gaps first", cls: "amber"},
+  {label: "Locked down", cls: "green"}
+];
+function reviewDeployment(answers) {
+  var score = 0, passed = 0, gaps = [], verifies = [], criticalOpen = false;
+  CHECKS.forEach(function (c) {
+    var a = answers[c.id] || "unsure";
+    if (a === "yes") { score += c.weight; passed += 1; }
+    else if (a === "unsure") { score += c.weight / 2; verifies.push(c); }
+    else { gaps.push(c); if (c.severity === "Critical") { criticalOpen = true; } }
+  });
+  var band = score >= 85 ? 2 : (score >= 60 ? 1 : 0);
+  if (criticalOpen && band > 0) { band -= 1; }
+  var severityRank = {Critical: 0, Important: 1, Recommended: 2};
+  var topFixes = gaps.slice().sort(function (a, b) {
+    return (severityRank[a.severity] - severityRank[b.severity]) || (b.weight - a.weight);
+  }).slice(0, 3);
+  return {score: score, passed: passed, gaps: gaps, verifies: verifies, topFixes: topFixes, criticalOpen: criticalOpen, verdict: VERDICTS[band].label, verdictCls: VERDICTS[band].cls, band: band};
+}
+function scoreCls(score) { return score >= 85 ? "green" : (score >= 60 ? "amber" : "red"); }
+// --- DOM BELOW ---
+function ans(id) { return document.getElementById(id).value; }
+var PRESETS = {
+  wellrun: {https: "yes", cacert: "yes", proxy: "yes", tokenurl: "yes", anon: "yes", svcdir: "yes", entlogin: "yes", patches: "yes", backups: "yes", signup: "yes", ldaps: "yes", pwpolicy: "unsure", svcacct: "yes", monitor: "yes"},
+  typical: {https: "yes", cacert: "no", proxy: "unsure", tokenurl: "no", anon: "no", svcdir: "yes", entlogin: "no", patches: "unsure", backups: "yes", signup: "no", ldaps: "yes", pwpolicy: "yes", svcacct: "unsure", monitor: "no"},
+  public: {https: "no", cacert: "no", proxy: "no", tokenurl: "no", anon: "no", svcdir: "no", entlogin: "no", patches: "no", backups: "unsure", signup: "no", ldaps: "unsure", pwpolicy: "no", svcacct: "no", monitor: "no"}
+};
+function fill(p) {
+  CHECKS.forEach(function (c) { document.getElementById(c.id).value = p[c.id] || "unsure"; });
+  document.getElementById("msg").textContent = "";
+  document.getElementById("results").innerHTML = "";
+}
+document.querySelectorAll("#presetRow .pick").forEach(function (b) {
+  b.addEventListener("click", function () {
+    fill(PRESETS[b.getAttribute("data-preset")]);
+    runReview();
+  });
+});
+document.getElementById("clearBtn").addEventListener("click", function () {
+  CHECKS.forEach(function (c) { document.getElementById(c.id).value = "unsure"; });
+  document.getElementById("msg").textContent = "";
+  document.getElementById("results").innerHTML = "";
+});
+document.getElementById("printBtn").addEventListener("click", function () { window.print(); });
+function runReview() {
+  var msg = document.getElementById("msg");
+  var out = document.getElementById("results");
+  var answers = {};
+  CHECKS.forEach(function (c) { answers[c.id] = ans(c.id); });
+  msg.textContent = "";
+  var r = reviewDeployment(answers);
+  var gapsHtml = r.gaps.length ? r.gaps.map(function (g) {
+    var cardCls = g.severity === "Critical" ? "crit" : (g.severity === "Important" ? "cause" : "gate");
+    return '<div class="card ' + cardCls + '"><h3>' + g.question + ' <span class="pill ' + (g.severity === "Critical" ? "red" : (g.severity === "Important" ? "amber" : "green")) + '">' + g.severity + '</span></h3><p>' + g.fix + '</p></div>';
+  }).join("") : '<div class="card gate"><h3>No open gaps</h3><p>Every check passes. Keep it that way with a scheduled re-run of portalScan.py.</p></div>';
+  var verifiesHtml = r.verifies.length ? '<div class="card"><h3>Verify these ' + r.verifies.length + '</h3><p>Answered Not sure. Each one needs a real answer before the score can be trusted:</p><table><tr><th>Check</th><th>Severity</th></tr>' + r.verifies.map(function (v) { return "<tr><td><b>" + v.question + "</b></td><td>" + v.severity + "</td></tr>"; }).join("") + '</table></div>' : '';
+  var topHtml = r.topFixes.length ? '<div class="card crit"><h3>The three fixes that matter most</h3><ol style="margin-left:20px;color:var(--muted)">' + r.topFixes.map(function (f, i) { return "<li style=\"margin-bottom:8px\"><b>" + (i + 1) + ". " + f.question + "</b> (" + f.severity + "): " + f.fix + "</li>"; }).join("") + '</ol></div>' : '';
+  out.innerHTML =
+    '<div class="scorecard"><p class="score ' + scoreCls(r.score) + '">' + r.score + ' / 100</p>' +
+    '<p class="verdict ' + r.verdictCls + '">' + r.verdict + '</p>' +
+    '<p>Your deployment passes <b>' + r.passed + ' of 14 checks</b>, with <b>' + r.gaps.length + ' open gap' + (r.gaps.length === 1 ? '' : 's') + '</b>' + (r.verifies.length ? ' and <b>' + r.verifies.length + ' to verify</b>' : '') + '.' +
+    (r.criticalOpen ? ' <b>A Critical check is open, so the verdict drops a full band whatever the score says.</b>' : '') + '</p></div>' +
+    topHtml + gapsHtml + verifiesHtml +
+    '<div class="card gate"><h3>After the review: a short checklist</h3><ul class="checklist">' +
+    '<li><label><input type="checkbox"> Ran portalScan.py and compared its output with this review</label></li>' +
+    '<li><label><input type="checkbox"> Replaced the self-signed certificate with a CA-signed one</label></li>' +
+    '<li><label><input type="checkbox"> Restricted the portal proxy to approved hostnames</label></li>' +
+    '<li><label><input type="checkbox"> Disabled token requests with credentials in the URL</label></li>' +
+    '<li><label><input type="checkbox"> Disabled anonymous access and the services directory</label></li>' +
+    '<li><label><input type="checkbox"> Confirmed sign-in runs through enterprise logins</label></li>' +
+    '<li><label><input type="checkbox"> Applied the latest patch</label></li>' +
+    '<li><label><input type="checkbox"> Ran a WebGISDR restore test in staging</label></li>' +
+    '<li><label><input type="checkbox"> Named the service accounts and removed the shared admin</label></li>' +
+    '<li><label><input type="checkbox"> Put the review on a quarterly schedule</label></li>' +
+    '</ul></div>';
+  out.querySelectorAll(".checklist input").forEach(function (cb) {
+    cb.addEventListener("change", function () { cb.closest("li").classList.toggle("done", cb.checked); });
+  });
+}
+document.getElementById("runBtn").addEventListener("click", runReview);
+</script>
+</body>
+</html>
