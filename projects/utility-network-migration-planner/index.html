@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Utility Network Migration Planner: modernise the model before you migrate the data, by Janaki Gattu</title>
+<meta name="description" content="A working Utility Network Migration Planner by Janaki Gattu. Enter your geometric network, feature counts, and the four-gate load check, and get a phased migration plan with a person-day estimate, the flags that set the schedule, and a printable checklist. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 6px}
+  h2:first-child{margin-top:0}
+  .secnote{color:var(--muted);margin-bottom:16px}
+  .presets{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+  .preset{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:10px 18px;color:var(--text);cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700}
+  .preset:hover{border-color:var(--accent)}
+  .preset.active{border-color:var(--accent);background:#052e16}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .field{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .field label{display:block;font-weight:700;font-size:1rem;margin-bottom:2px}
+  .field .hint{color:var(--muted);font-size:.88rem;margin-bottom:10px}
+  .field .hint b{color:#d4d4d4}
+  .field input,.field select{width:100%;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:8px;padding:10px 12px;font-size:1rem;font-family:inherit}
+  .field input:focus,.field select:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+  .field .rate{color:var(--faint);font-size:.85rem;margin-top:8px}
+  .checks{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .checks p{font-weight:700;font-size:1rem;margin-bottom:2px}
+  .checks .hint{color:var(--muted);font-size:.88rem;margin-bottom:10px}
+  .check{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--line);color:#d4d4d4;cursor:pointer}
+  .check:first-of-type{border-top:0}
+  .check input{margin-top:4px;accent-color:var(--accent);width:16px;height:16px;flex:none}
+  .actions{margin-top:26px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer}
+  .btn-dark{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a;border:0;cursor:pointer}
+  .btn-outline{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;border:1px solid #525252;color:var(--text);background:none;cursor:pointer}
+  .result{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px;margin-top:28px}
+  .result h2{margin-top:0}
+  .pill{display:inline-block;font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:6px}
+  .pill.green{background:#14532d;color:#bbf7d0}
+  .pill.amber{background:#451a03;color:#fde68a}
+  .pill.red{background:#450a0a;color:#fecaca}
+  .big{font-size:2.2rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+  .big small{font-size:1rem;color:var(--muted);font-weight:600}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:18px 0 6px}
+  .stat{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .stat .k{color:var(--faint);font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .stat .v{font-size:1.35rem;font-weight:800;margin-top:2px}
+  .stat .s{color:var(--muted);font-size:.88rem}
+  table{width:100%;border-collapse:collapse;margin-top:14px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);font-size:.95rem}
+  th{color:var(--faint);text-transform:uppercase;letter-spacing:.06em;font-size:.8rem}
+  td.num,th.num{text-align:right;white-space:nowrap}
+  tr.top td{color:#fff;font-weight:700}
+  .driver{color:var(--amber);font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+  .result h3{margin:24px 0 8px;font-size:1.1rem}
+  .result p{color:var(--muted)}
+  .result ul,.result ol{margin-left:20px;color:#d4d4d4}
+  .result li{margin-bottom:6px}
+  .result .cta{margin-top:24px}
+  .warn{margin-top:16px;background:#450a0a;border:1px solid #7f1d1d;border-radius:12px;padding:14px 18px;color:#fecaca;font-size:.95rem}
+  .warn b{color:#fff}
+  .flag{border-left:3px solid var(--amber);padding:10px 14px;margin:10px 0;background:var(--bg2);border-radius:0 8px 8px 0}
+  .flag b{color:#fff}
+  .flag p{color:var(--muted)}
+  .checklist label{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--line);color:#d4d4d4;cursor:pointer}
+  .checklist label:first-of-type{border-top:0}
+  .checklist input{margin-top:4px;accent-color:var(--accent);width:16px;height:16px;flex:none}
+  .sources{margin-top:26px;border-top:1px solid var(--line);padding-top:18px}
+  .sources p{font-size:.92rem}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+  @media print{
+    body{background:#fff;color:#000}
+    .noprint{display:none !important}
+    .result,.field,.stat,.checks{background:#fff;border-color:#ccc;color:#000}
+    .result p,.secnote,.lede{color:#333}
+    a{color:#000}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu&rsquo;s portfolio</a>
+    <p class="eyebrow">Working planner &middot; Live demo</p>
+    <h1>Utility Network Migration Planner</h1>
+    <p class="lede">A trace returns the wrong customers, and nobody notices until someone who knows the field checks it. <b>Modernising to the Utility Network is a modelling decision, not a data move, so count what you have, run the four gates, and price the migration before a single feature moves.</b> Enter your network below and this planner builds a phased migration plan with a person-day estimate, the flags that set the schedule, and a checklist you can print.</p>
+    <p class="honest"><b>How this planner works, honestly:</b> it runs entirely in your browser. There is no server, no API key, no account, and nothing you enter leaves this page. The migration rules come from Esri&rsquo;s published Utility Network guidance and from Janaki&rsquo;s article on modernising the model before migrating the data, checked 27 November 2026. The effort numbers are planning ranges from typical migration work, not a quote and not Esri&rsquo;s numbers, so treat them as the size of the job, not the price of it.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <h2>Start from a preset, or enter your own numbers</h2>
+    <p class="secnote">The presets are typical utility networks, not promises. Change any number and the plan follows.</p>
+    <div class="presets noprint">
+      <button type="button" class="preset active" id="presetSmall">Small water district</button>
+      <button type="button" class="preset" id="presetMid">Mid-size electric utility</button>
+      <button type="button" class="preset" id="presetLarge">Large enterprise</button>
+      <button type="button" class="preset" id="presetClear">Clear all</button>
+    </div>
+
+    <h2>What you have today</h2>
+    <p class="secnote">Counts, not guesses. If you do not know a number yet, put your best estimate and refine it after Phase 0, the inventory and health check.</p>
+    <div class="grid">
+      <div class="field">
+        <label for="domainSelect">Utility domain</label>
+        <p class="hint">The system the network models. The domain sets the language of the traces, not the shape of the plan.</p>
+        <select id="domainSelect">
+          <option value="electric" selected>Electric</option>
+          <option value="water">Water</option>
+          <option value="gas">Gas</option>
+          <option value="wastewater">Wastewater</option>
+          <option value="telecom">Telecom</option>
+        </select>
+        <p class="rate">Feeders in electric, pressure zones in water, districts in gas</p>
+      </div>
+      <div class="field">
+        <label for="sourceSelect">Source data today</label>
+        <p class="hint">Where the network lives now. A geometric network cannot be edited in ArcGIS Pro, so the migration is the way out of ArcMap for that data.</p>
+        <select id="sourceSelect">
+          <option value="geometric" selected>Geometric network in ArcMap</option>
+          <option value="filegdb">File geodatabase, no network</option>
+          <option value="cad">Shapefiles and CAD</option>
+          <option value="mixed">Mixed sources</option>
+        </select>
+        <p class="rate">The migration tools are built around geometric network users</p>
+      </div>
+      <div class="field">
+        <label for="classCount">Source classes to map</label>
+        <p class="hint">Feature classes that become Utility Network classes. Each one needs its fields mapped and its asset types assigned.</p>
+        <input type="number" id="classCount" min="0" step="1" value="12">
+        <p class="rate">0.25 to 0.5 days per class, schema mapping plus asset package</p>
+      </div>
+      <div class="field">
+        <label for="featureCount">Total network features</label>
+        <p class="hint">Every feature in the network: lines, devices, structures, and fittings. The count drives the health check and the load.</p>
+        <input type="number" id="featureCount" min="0" step="1" value="25000">
+        <p class="rate">0.5 to 1 day per 10,000 features, scaled by the failure rate below</p>
+      </div>
+      <div class="field">
+        <label for="subnetCount">Subnetworks: feeders, pressure zones, districts</label>
+        <p class="hint">The coherent parts of the system. The pilot converts one of these first, and the rest follow in parts.</p>
+        <input type="number" id="subnetCount" min="0" step="1" value="3">
+        <p class="rate">One subnetwork is the pilot. The rest set the cutover order</p>
+      </div>
+      <div class="field">
+        <label for="editorCount">Network editors</label>
+        <p class="hint">Everyone who edits the network today and will edit it in the Utility Network, including field crews.</p>
+        <input type="number" id="editorCount" min="0" step="1" value="4">
+        <p class="rate">2 to 3 days of sessions and materials, plus 0.1 to 0.25 days of desk-side help per editor</p>
+      </div>
+      <div class="field">
+        <label for="serviceCount">Services and apps that consume the network</label>
+        <p class="hint">Maps, apps, dashboards, and integrations that read the network today. Each one needs a cutover check.</p>
+        <input type="number" id="serviceCount" min="0" step="1" value="2">
+        <p class="rate">Count them in Phase 0, or the cutover will find them</p>
+      </div>
+      <div class="field">
+        <label for="approachSelect">Migration approach</label>
+        <p class="hint">Esri&rsquo;s three best-practice approaches. The wizard and the toolset keep your schema; the Foundations bring an industry data model.</p>
+        <select id="approachSelect">
+          <option value="wizard" selected>Migration Wizard, keep our schema</option>
+          <option value="toolset">Migration toolset, Migrate To Utility Network</option>
+          <option value="foundations">Utility Network Foundations, industry model</option>
+          <option value="unsure">Not sure yet</option>
+        </select>
+        <p class="rate">Wizard and toolset suit modest requirements; Foundations suit advanced tracing and associations</p>
+      </div>
+      <div class="field">
+        <label for="failureSelect">Connectivity failure rate in the source data</label>
+        <p class="hint">The share of features that fail connectivity checks today. If you have not run the check, say so. The health check is part of the migration, not a chore to rush.</p>
+        <select id="failureSelect">
+          <option value="under2">Under 2 percent</option>
+          <option value="2to5" selected>2 to 5 percent</option>
+          <option value="5to15">5 to 15 percent</option>
+          <option value="over15">Over 15 percent</option>
+          <option value="unknown">Not tested yet</option>
+        </select>
+        <p class="rate">The failure rate scales the load: over 15 percent costs four times a clean load</p>
+      </div>
+    </div>
+
+    <h2>The Four-Gate Load Check</h2>
+    <p class="secnote">From Janaki&rsquo;s Utility Network article. Each gate is a question with a verifiable answer. If any gate has no answer, the load is not ready. The model is.</p>
+    <div class="checks">
+      <p>Tick every gate you can answer today</p>
+      <p class="hint">Leave a gate unticked if you cannot answer it yet. The plan names what to do about each one.</p>
+      <label class="check"><input type="checkbox" id="gateTraces" checked> <span><b>Traces defined</b> - which traces people will run, and what decision each trace will support.</span></label>
+      <label class="check"><input type="checkbox" id="gateData" checked> <span><b>Data tested</b> - where the source data fails connectivity and attribute checks today, and whether those failures cluster.</span></label>
+      <label class="check"><input type="checkbox" id="gateEditors"> <span><b>Editors and owners agreed</b> - who edits the network, under what versioning workflow, and who owns each asset type.</span></label>
+      <label class="check"><input type="checkbox" id="gateProof"> <span><b>Proof planned</b> - how a trace will be proved right against the field, not just against the test data.</span></label>
+    </div>
+
+    <h2>Platform and people</h2>
+    <p class="secnote">Two platform facts decide how the network can be shared, and one people fact decides whether the rules will hold.</p>
+    <div class="checks">
+      <p>Tick what is already true</p>
+      <p class="hint">A utility network needs ArcGIS Enterprise to share tracing in web apps and Field Maps, and branch versioning for service-based editing.</p>
+      <label class="check"><input type="checkbox" id="hasEnterprise" checked> <span><b>ArcGIS Enterprise in place</b> - Portal and Server are running and the network can be published through a feature service.</span></label>
+      <label class="check"><input type="checkbox" id="hasBranch"> <span><b>Branch versioning in place</b> - the feature dataset is registered as branch versioned, or the team knows how to register it.</span></label>
+      <label class="check"><input type="checkbox" id="hasOperators" checked> <span><b>Operators involved in the rules</b> - the people who operate the system helped write the connectivity, containment, and attachment rules.</span></label>
+    </div>
+
+    <div class="actions noprint">
+      <button type="button" class="btn" id="buildBtn">Build my migration plan</button>
+      <button type="button" class="btn-outline" id="printBtn">Print my plan</button>
+    </div>
+
+    <div class="result" id="result" hidden>
+      <p class="pill green" id="verdictPill">Ready to migrate</p>
+      <h2 id="verdictTitle">Your migration plan</h2>
+      <p class="big"><span id="totalDays">0</span> <small>person-days, planning range</small></p>
+      <div class="stats">
+        <div class="stat"><div class="k">Calendar, one person</div><div class="v" id="weeksOne">0 weeks</div><div class="s">Five working days a week, no other duties</div></div>
+        <div class="stat"><div class="k">Calendar, team of three</div><div class="v" id="weeksThree">0 weeks</div><div class="s">Roughly a third of the one-person time</div></div>
+        <div class="stat"><div class="k">Biggest workstream</div><div class="v" id="driverName" style="font-size:1.05rem">Model design</div><div class="s" id="driverNote">Where most of the effort sits</div></div>
+      </div>
+      <div class="warn" id="platformWarn" hidden><b>The platform sets the order.</b> <span id="platformText"></span></div>
+      <h3>Effort by workstream</h3>
+      <table>
+        <thead><tr><th>Workstream</th><th class="num">Low, days</th><th class="num">High, days</th><th></th></tr></thead>
+        <tbody id="rowsBody"></tbody>
+      </table>
+      <h3>Flags that set the schedule</h3>
+      <div id="flagsBox"></div>
+      <h3>The two fixes that cut the effort fastest</h3>
+      <ol id="cutsList"></ol>
+      <h3>Your phased plan</h3>
+      <ol id="phasesList"></ol>
+      <h3>Checklist, print this page and tick it off</h3>
+      <div class="checklist" id="checklistBox"></div>
+      <div class="cta">
+        <p><b>What to do next:</b> run Phase 0 first. Run the health check on your source data, find where the failures cluster, and answer the four gates in writing. If you would rather have someone who has done this run the migration, email Janaki with your total person-days and your biggest workstream.</p>
+        <p style="margin-top:12px"><a class="btn" id="emailCta" href="mailto:gjanaki360@gmail.com?subject=Utility%20Network%20migration%20plan">Email Janaki my plan</a>
+        <a class="btn-dark" href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Connect on LinkedIn</a></p>
+      </div>
+      <div class="sources">
+        <p><b>Sources:</b> <a href="https://www.linkedin.com/pulse/arcgis-utility-network-modernise-model-before-you-migrate-gattu-z6vuc/" target="_blank" rel="noopener">ArcGIS Utility Network: Modernise the Model Before You Migrate the Data, Janaki Gattu, LinkedIn, 24 November 2026</a> &middot; <a href="https://pro.arcgis.com/en/pro-app/3.5/help/data/utility-network/migrate-existing-data.htm" target="_blank" rel="noopener">Migrate existing data into a utility network, ArcGIS Pro documentation</a> &middot; <a href="https://pro.arcgis.com/en/pro-app/3.3/help/data/utility-network/faq.htm" target="_blank" rel="noopener">Utility network FAQ, ArcGIS Pro documentation</a> &middot; <a href="https://janakigattu.github.io/projects/utility-network-tracing-demo/" target="_blank" rel="noopener">Utility Network Tracing Demo, Janaki Gattu</a>. Effort ranges are planning estimates from typical migration work, not Esri figures.</p>
+      </div>
+    </div>
+
+  </div>
+</main>
+<footer>
+  <div class="wrap">
+    <p>Built by <a href="https://janakigattu.github.io/">Janaki Gattu</a>, Enterprise GIS Consultant and GIS Solutions Architect. <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">LinkedIn</a> &middot; <a href="https://github.com/janakigattu" target="_blank" rel="noopener">GitHub</a> &middot; <a href="mailto:gjanaki360@gmail.com">gjanaki360@gmail.com</a></p>
+  </div>
+</footer>
+<script>
+// --- PURE LOGIC (tested in Node) ---
+var FAILURE_MULT = {under2: 1, "2to5": 1.5, "5to15": 2.5, over15: 4, unknown: 2};
+var FAILURE_LABEL = {under2: "under 2 percent", "2to5": "2 to 5 percent", "5to15": "5 to 15 percent", over15: "over 15 percent", unknown: "not tested yet"};
+var APPROACH_LABEL = {wizard: "Migration Wizard", toolset: "Migration toolset", foundations: "Utility Network Foundations", unsure: "approach to be decided"};
+
+function round1(x) { return Math.round(x * 10) / 10; }
+
+function computePlan(inp) {
+  var classes = Math.max(0, Math.floor(inp.classes || 0));
+  var features = Math.max(0, Math.floor(inp.features || 0));
+  var subnets = Math.max(0, Math.floor(inp.subnets || 0));
+  var editors = Math.max(0, Math.floor(inp.editors || 0));
+  var services = Math.max(0, Math.floor(inp.services || 0));
+  var gates = inp.gates || [];
+  var mult = FAILURE_MULT[inp.failure] || 2;
+  var per10k = features / 10000;
+  var rows = [];
+  function add(name, low, high) {
+    rows.push({name: name, low: round1(low), high: round1(high)});
+  }
+  add("Inventory and data health check: connectivity analysis, attribute checks, failure clusters", 3 + 0.5 * per10k, 5 + 1 * per10k);
+  var modelLow = 5, modelHigh = 10;
+  if (gates.indexOf("editors") === -1 || !inp.operators) { modelLow += 3; modelHigh += 6; }
+  add("Model design: asset types, rules, associations, owners", modelLow, modelHigh);
+  add("Schema mapping and asset package: map fields, assign asset types, build the package", classes * 0.25, classes * 0.5);
+  var loadLow = 0.5 * per10k * mult, loadHigh = 1 * per10k * mult;
+  add("Load and validate: load the data, Analyze Network Data, fix the errors it finds", loadLow, loadHigh);
+  add("Trace testing: downstream, isolation, upstream, and the deliberate gap-crossing trace", 3, 5);
+  if (inp.branch) {
+    add("Branch versioning and editing workflow: versions, reconcile rules, editor training", 0, 0);
+  } else {
+    add("Branch versioning and editing workflow: register branch versioning, agree version lifetimes", 3, 6);
+  }
+  add("Training and cutover: sessions and materials, plus desk-side help", 2 + 0.1 * editors, 3 + 0.25 * editors);
+  add("Validation: side-by-side checks on traces and outputs", (loadLow + 3) * 0.15, (loadHigh + 5) * 0.15);
+  add("Governance and owners: who owns each asset type, who approves a rule change", 1, 2);
+  var totalLow = 0, totalHigh = 0, driver = null, driverHigh = -1;
+  rows.forEach(function(r) {
+    totalLow += r.low;
+    totalHigh += r.high;
+    if (r.high > driverHigh) { driverHigh = r.high; driver = r; }
+  });
+  totalLow = round1(totalLow);
+  totalHigh = round1(totalHigh);
+  var weeksOneLow = Math.max(1, Math.round(totalLow / 5));
+  var weeksOneHigh = Math.max(1, Math.round(totalHigh / 5));
+  var weeksThreeLow = Math.max(1, Math.round(totalLow / 15));
+  var weeksThreeHigh = Math.max(1, Math.round(totalHigh / 15));
+  var verdict, verdictClass, verdictText;
+  if (gates.length === 4 && (inp.failure === "under2" || inp.failure === "2to5")) {
+    verdict = "Ready to migrate";
+    verdictClass = "green";
+    verdictText = "All four gates have answers and the data is clean enough to trust. Convert one subnetwork first as the pilot, prove the traces, then load the rest in parts.";
+  } else if (gates.length >= 2) {
+    verdict = "Migrate one part first";
+    verdictClass = "amber";
+    verdictText = "Some gates are answered and some are not. Convert one feeder, pressure zone, or district first, run the four traces against real data, and let the pilot answer the open gates before the rest of the system moves.";
+  } else {
+    verdict = "Model first";
+    verdictClass = "red";
+    verdictText = "Too many gates have no answer yet. The migration will still be work, but work on a model nobody has agreed. Answer the gates, test the data, and bring the operators into the room before choosing a load date.";
+  }
+  if (!inp.enterprise && verdict === "Ready to migrate") {
+    verdict = "Migrate one part first";
+    verdictClass = "amber";
+    verdictText = "The gates are answered, but there is no ArcGIS Enterprise to publish the network through. Build the pilot in a file geodatabase for desktop tracing, and close the Enterprise gap before promising web tracing or Field Maps.";
+  }
+  var flags = [];
+  if (!inp.enterprise) {
+    flags.push({title: "No ArcGIS Enterprise in place", text: "A utility network needs ArcGIS Enterprise to share tracing in web apps and Field Maps. Without it, tracing works on the desktop only, in a file or mobile geodatabase."});
+  }
+  if (!inp.branch) {
+    flags.push({title: "Branch versioning not in place", text: "A utility network must be registered as branch versioned to take part in service-based editing and archiving. The feature dataset is registered as branch versioned before it is published through a feature service."});
+  }
+  if (inp.source === "geometric") {
+    flags.push({title: "Geometric network source", text: "Geometric networks cannot be edited in ArcGIS Pro. The migration tools are built around geometric network users, and the mapping keeps your schema where it can, so this is the way out of ArcMap for the data."});
+  }
+  if (inp.source === "cad") {
+    flags.push({title: "Shapefiles and CAD source", text: "Shapefiles and CAD carry no network model at all, so the asset types and the connectivity have to be built from the drawings and the field record. Budget the model design work generously."});
+  }
+  if (inp.failure === "over15") {
+    flags.push({title: "Over 15 percent of features fail connectivity", text: "Fix the cause, not the symptoms. Errors that cluster in one feeder or pressure zone point to one job, one import, or one period when standards slipped, and the cleanup estimate is a hope until the pattern is known."});
+  }
+  if (inp.failure === "unknown") {
+    flags.push({title: "Data health not tested yet", text: "The health check is part of the modernisation, not a chore to rush. Run Analyze Network Data on the source and find where the failures cluster before you promise a date."});
+  }
+  if (gates.indexOf("traces") === -1) {
+    flags.push({title: "Traces not defined yet", text: "A trace without a decision behind it is a demonstration, not a requirement. Name the traces and the decision each one supports before the model is drawn."});
+  }
+  if (gates.indexOf("editors") === -1) {
+    flags.push({title: "Editors and owners not agreed", text: "Rules are design decisions, and the people who will live with them every day are the ones who know whether they match the field. A rule the editors cannot live with will be bypassed until the model no longer describes the system."});
+  }
+  if (gates.indexOf("proof") === -1) {
+    flags.push({title: "No proof plan for traces", text: "If the proof is the test dataset, the proof is circular. Define the expected result from the operating record or the field first, then run the trace and compare."});
+  }
+  if (gates.indexOf("data") === -1) {
+    flags.push({title: "Data not tested yet", text: "Legacy data carries years of working history, and its errors cluster. A team that never asks where the errors cluster fixes symptoms one by one and never finds the cause."});
+  }
+  if (inp.approach === "unsure") {
+    flags.push({title: "Migration approach not chosen", text: "The Migration Wizard and the Migration toolset suit modest requirements and keep your schema. The Utility Network Foundations bring an industry data model with associations and network diagrams, for teams that want the advanced capabilities from the start."});
+  }
+  if (services > 10) {
+    flags.push({title: services + " services and apps consume the network", text: "Every service and app that reads the network needs a cutover check. Count them in Phase 0, or the cutover will find them."});
+  }
+  var cuts = [];
+  if (inp.failure === "over15" || inp.failure === "unknown") {
+    cuts.push("Run Analyze Network Data on the source first and fix the clustered failures. A clean pilot area is worth more than a fast full load.");
+  }
+  if (gates.length < 4) {
+    cuts.push("Answer the four gates before the load. Each gate with no answer is a decision the migration will make for you, later, at a worse time.");
+  }
+  if (classes >= 20) {
+    cuts.push("Map the schema once, in a spreadsheet, before touching the tool. Every source class mapped twice is a day lost to rework.");
+  }
+  if (editors >= 10) {
+    cuts.push("Agree the versioning workflow with the editors before the load. A network that is easy to load and hard to edit will degrade.");
+  }
+  if (cuts.length === 0) {
+    cuts.push("Convert one subnetwork first and test the four traces on real data. If the traces return the right customers, the model is sound.");
+    cuts.push("Apply the error resolutions the Analyze Network Data tool prescribes, instead of fixing errors one by one by hand.");
+  } else if (cuts.length === 1) {
+    cuts.push("Convert one subnetwork first and test the four traces on real data. If the traces return the right customers, the model is sound.");
+  }
+  var pilotName = subnets > 0 ? "one subnetwork" : "one coherent part of the system";
+  var domainWord = inp.domain === "water" ? "pressure zone" : (inp.domain === "electric" ? "feeder" : "district");
+  var phases = [
+    {t: "Phase 0: Inventory and health check", d: "Catalog " + classes + " source classes, " + features.toLocaleString("en-US") + " features, " + subnets + " subnetworks, and " + services + " consuming services. Run the connectivity and attribute checks, find where the failures cluster, and log every blocker with an owner."},
+    {t: "Phase 1: Model", d: "Answer the four gates in writing: the traces and the decisions they support, the data test results, the editors and owners, and the proof plan. Design the asset types and the rules with the operators in the room."},
+    {t: "Phase 2: Pilot", d: "Convert " + pilotName + ", one " + domainWord + ", with the " + APPROACH_LABEL[inp.approach] + ". Load it, run the four traces on real data, and compare each one against the expected result from the field."},
+    {t: "Phase 3: Load", d: "Map the schema, apply the asset package, and load the rest of the system in parts. Run Analyze Network Data after each part and apply the error resolutions it prescribes."},
+    {t: "Phase 4: Trace tests", d: "Test the downstream trace, the isolation trace, the upstream trace, and the trace that deliberately crosses a known data gap. A system that fails loudly and clearly is easier to fix than one that returns a confident, wrong answer."},
+    {t: "Phase 5: Editing workflow", d: "Register branch versioning, agree version lifetimes and reconcile rules, and train the " + editors + " editors on the workflow they will live with every day."},
+    {t: "Phase 6: Cutover", d: "Cut over team by team, retire the geometric network, and archive the source data. The network is never finished. It is maintained, or it decays."}
+  ];
+  var checklist = [
+    "Phase 0: source inventory saved, every class and service counted",
+    "Phase 0: connectivity and attribute checks run, failure clusters mapped",
+    "Phase 0: every blocker named, with an owner and a fix",
+    "Phase 1: four gates answered in writing",
+    "Phase 1: rules written with the operators, owners named per asset type",
+    "Phase 1: migration approach chosen: wizard, toolset, or Foundations",
+    "Phase 2: pilot " + domainWord + " converted and loaded",
+    "Phase 2: four traces tested on real data against expected results",
+    "Phase 3: schema mapped, asset package applied",
+    "Phase 3: rest of the system loaded in parts, errors resolved per part",
+    "Phase 4: trace tests signed off by the operators",
+    "Phase 5: branch versioning registered, versioning workflow agreed",
+    "Phase 5: editors trained on the workflow",
+    "Phase 6: geometric network retired, source data archived"
+  ];
+  return {
+    rows: rows, totalLow: totalLow, totalHigh: totalHigh,
+    weeksOneLow: weeksOneLow, weeksOneHigh: weeksOneHigh,
+    weeksThreeLow: weeksThreeLow, weeksThreeHigh: weeksThreeHigh,
+    driver: driver, verdict: verdict, verdictClass: verdictClass, verdictText: verdictText,
+    flags: flags, cuts: cuts.slice(0, 2), phases: phases, checklist: checklist
+  };
+}
+// --- END PURE LOGIC ---
+
+function readInputs() {
+  function num(id) {
+    var v = parseInt(document.getElementById(id).value, 10);
+    return isNaN(v) ? 0 : Math.max(0, v);
+  }
+  var gates = [];
+  if (document.getElementById("gateTraces").checked) gates.push("traces");
+  if (document.getElementById("gateData").checked) gates.push("data");
+  if (document.getElementById("gateEditors").checked) gates.push("editors");
+  if (document.getElementById("gateProof").checked) gates.push("proof");
+  return {
+    domain: document.getElementById("domainSelect").value,
+    source: document.getElementById("sourceSelect").value,
+    classes: num("classCount"), features: num("featureCount"),
+    subnets: num("subnetCount"), editors: num("editorCount"),
+    services: num("serviceCount"),
+    approach: document.getElementById("approachSelect").value,
+    failure: document.getElementById("failureSelect").value,
+    gates: gates,
+    enterprise: document.getElementById("hasEnterprise").checked,
+    branch: document.getElementById("hasBranch").checked,
+    operators: document.getElementById("hasOperators").checked
+  };
+}
+
+function build() {
+  var inp = readInputs();
+  var p = computePlan(inp);
+  var res = document.getElementById("result");
+  res.hidden = false;
+  var pill = document.getElementById("verdictPill");
+  pill.textContent = p.verdict;
+  pill.className = "pill " + p.verdictClass;
+  document.getElementById("verdictTitle").textContent = p.verdictText;
+  document.getElementById("totalDays").textContent = p.totalLow + " to " + p.totalHigh;
+  document.getElementById("weeksOne").textContent = p.weeksOneLow + " to " + p.weeksOneHigh + " weeks";
+  document.getElementById("weeksThree").textContent = p.weeksThreeLow + " to " + p.weeksThreeHigh + " weeks";
+  document.getElementById("driverName").textContent = p.driver.name.split(":")[0];
+  document.getElementById("driverNote").textContent = p.driver.low + " to " + p.driver.high + " days, the largest share of the plan";
+  var warn = document.getElementById("platformWarn");
+  if (!inp.enterprise || !inp.branch) {
+    warn.hidden = false;
+    var parts = [];
+    if (!inp.enterprise) parts.push("there is no ArcGIS Enterprise to publish the network through, so tracing works on the desktop only until that gap closes");
+    if (!inp.branch) parts.push("branch versioning is not in place, so service-based editing and archiving cannot start until the feature dataset is registered as branch versioned");
+    document.getElementById("platformText").textContent = "In this estate " + parts.join(", and ") + ". Close the platform gaps in Phase 1, before the pilot load.";
+  } else {
+    warn.hidden = true;
+  }
+  var body = document.getElementById("rowsBody");
+  body.innerHTML = "";
+  p.rows.forEach(function(r) {
+    var tr = document.createElement("tr");
+    if (r === p.driver) tr.className = "top";
+    var td1 = document.createElement("td");
+    td1.textContent = r.name;
+    if (r === p.driver) {
+      var s = document.createElement("span");
+      s.className = "driver";
+      s.textContent = " Biggest driver";
+      td1.appendChild(s);
+    }
+    var td2 = document.createElement("td"); td2.className = "num"; td2.textContent = r.low;
+    var td3 = document.createElement("td"); td3.className = "num"; td3.textContent = r.high;
+    var td4 = document.createElement("td"); td4.className = "num"; td4.textContent = "";
+    tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3); tr.appendChild(td4);
+    body.appendChild(tr);
+  });
+  var tr = document.createElement("tr");
+  tr.className = "top";
+  var t1 = document.createElement("td"); t1.textContent = "Total";
+  var t2 = document.createElement("td"); t2.className = "num"; t2.textContent = p.totalLow;
+  var t3 = document.createElement("td"); t3.className = "num"; t3.textContent = p.totalHigh;
+  var t4 = document.createElement("td"); t4.className = "num"; t4.textContent = "";
+  tr.appendChild(t1); tr.appendChild(t2); tr.appendChild(t3); tr.appendChild(t4);
+  body.appendChild(tr);
+  var flagsBox = document.getElementById("flagsBox");
+  flagsBox.innerHTML = "";
+  if (p.flags.length === 0) {
+    var none = document.createElement("p");
+    none.textContent = "No flags from your answers. Phase 0, the inventory, may still find some, so treat this as a clean start, not a clean bill of health.";
+    flagsBox.appendChild(none);
+  } else {
+    p.flags.forEach(function(f) {
+      var d = document.createElement("div");
+      d.className = "flag";
+      var b = document.createElement("b"); b.textContent = f.title;
+      var pp = document.createElement("p"); pp.textContent = f.text;
+      d.appendChild(b); d.appendChild(pp);
+      flagsBox.appendChild(d);
+    });
+  }
+  var cuts = document.getElementById("cutsList");
+  cuts.innerHTML = "";
+  p.cuts.forEach(function(c) {
+    var li = document.createElement("li"); li.textContent = c; cuts.appendChild(li);
+  });
+  var phases = document.getElementById("phasesList");
+  phases.innerHTML = "";
+  p.phases.forEach(function(ph) {
+    var li = document.createElement("li");
+    var b = document.createElement("b"); b.textContent = ph.t + ". ";
+    li.appendChild(b);
+    li.appendChild(document.createTextNode(ph.d));
+    phases.appendChild(li);
+  });
+  var cl = document.getElementById("checklistBox");
+  cl.innerHTML = "";
+  p.checklist.forEach(function(item) {
+    var lab = document.createElement("label");
+    var cb = document.createElement("input"); cb.type = "checkbox";
+    lab.appendChild(cb);
+    lab.appendChild(document.createTextNode(item));
+    cl.appendChild(lab);
+  });
+  var subj = "Utility Network migration plan: " + p.totalLow + " to " + p.totalHigh + " person-days";
+  var bodyText = "Hi Janaki,%0A%0AMy Utility Network migration plan totals " + p.totalLow + " to " + p.totalHigh + " person-days. The biggest workstream is " + encodeURIComponent(p.driver.name.split(":")[0]) + ".%0A%0ACan we talk through the plan?";
+  document.getElementById("emailCta").href = "mailto:gjanaki360@gmail.com?subject=" + encodeURIComponent(subj) + "&body=" + bodyText;
+}
+
+var PRESETS = {
+  small: {domain: "water", source: "geometric", classes: 12, features: 25000, subnets: 3, editors: 4, services: 2, approach: "wizard", failure: "2to5", gates: ["traces", "data", "editors"], enterprise: true, branch: false, operators: true},
+  mid: {domain: "electric", source: "geometric", classes: 40, features: 250000, subnets: 12, editors: 15, services: 8, approach: "toolset", failure: "5to15", gates: ["traces", "editors"], enterprise: true, branch: false, operators: false},
+  large: {domain: "electric", source: "mixed", classes: 90, features: 1200000, subnets: 40, editors: 60, services: 25, approach: "foundations", failure: "unknown", gates: ["traces"], enterprise: true, branch: false, operators: false}
+};
+
+function applyPreset(name) {
+  var pr = PRESETS[name];
+  if (!pr) return;
+  document.getElementById("domainSelect").value = pr.domain;
+  document.getElementById("sourceSelect").value = pr.source;
+  document.getElementById("classCount").value = pr.classes;
+  document.getElementById("featureCount").value = pr.features;
+  document.getElementById("subnetCount").value = pr.subnets;
+  document.getElementById("editorCount").value = pr.editors;
+  document.getElementById("serviceCount").value = pr.services;
+  document.getElementById("approachSelect").value = pr.approach;
+  document.getElementById("failureSelect").value = pr.failure;
+  document.getElementById("gateTraces").checked = pr.gates.indexOf("traces") !== -1;
+  document.getElementById("gateData").checked = pr.gates.indexOf("data") !== -1;
+  document.getElementById("gateEditors").checked = pr.gates.indexOf("editors") !== -1;
+  document.getElementById("gateProof").checked = pr.gates.indexOf("proof") !== -1;
+  document.getElementById("hasEnterprise").checked = pr.enterprise;
+  document.getElementById("hasBranch").checked = pr.branch;
+  document.getElementById("hasOperators").checked = pr.operators;
+  build();
+}
+
+function setActivePreset(id) {
+  document.querySelectorAll(".preset").forEach(function(b) { b.classList.remove("active"); });
+  var el = document.getElementById(id);
+  if (el) el.classList.add("active");
+}
+
+document.getElementById("presetSmall").addEventListener("click", function() { setActivePreset("presetSmall"); applyPreset("small"); });
+document.getElementById("presetMid").addEventListener("click", function() { setActivePreset("presetMid"); applyPreset("mid"); });
+document.getElementById("presetLarge").addEventListener("click", function() { setActivePreset("presetLarge"); applyPreset("large"); });
+document.getElementById("presetClear").addEventListener("click", function() {
+  setActivePreset("presetClear");
+  document.getElementById("domainSelect").value = "electric";
+  document.getElementById("sourceSelect").value = "geometric";
+  document.getElementById("classCount").value = 0;
+  document.getElementById("featureCount").value = 0;
+  document.getElementById("subnetCount").value = 0;
+  document.getElementById("editorCount").value = 0;
+  document.getElementById("serviceCount").value = 0;
+  document.getElementById("approachSelect").value = "wizard";
+  document.getElementById("failureSelect").value = "unknown";
+  document.querySelectorAll(".checks input").forEach(function(c) { c.checked = false; });
+  build();
+});
+document.getElementById("buildBtn").addEventListener("click", function() { setActivePreset(""); build(); });
+document.getElementById("printBtn").addEventListener("click", function() { build(); window.print(); });
+build();
+</script>
+</body>
+</html>
