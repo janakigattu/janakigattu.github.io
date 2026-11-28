@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Change Management Planner: get the team using the assistant, by Janaki Gattu</title>
+<meta name="description" content="A working AI Change Management Planner by Janaki Gattu. Enter the rollout size, the adoption picture today, the champions, the training, and the resistance, and get an adoption score, a 12-week forecast, a six-week comms plan, a training schedule, and a printable checklist. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 6px}
+  h2:first-child{margin-top:0}
+  .secnote{color:var(--muted);margin-bottom:16px}
+  .pickrow{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+  .pick{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--text);cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700;text-align:left;flex:1;min-width:200px}
+  .pick small{display:block;color:var(--muted);font-weight:400;margin-top:4px;line-height:1.45}
+  .pick:hover{border-color:var(--accent)}
+  .pick.active{border-color:var(--accent);background:#052e16}
+  .pickrow.presets .pick{min-width:220px}
+  .clearbtn{background:none;border:1px solid var(--line);border-radius:999px;color:var(--muted);cursor:pointer;font-family:inherit;font-size:.9rem;font-weight:700;padding:9px 20px;margin-top:14px}
+  .clearbtn:hover{color:var(--text);border-color:var(--accent)}
+  .qgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+  @media(max-width:640px){.qgrid{grid-template-columns:1fr}}
+  .q label{display:block;font-weight:700;font-size:.95rem;margin-bottom:6px}
+  .q label span{color:var(--muted);font-weight:400}
+  .q input,.q select{width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;color:var(--text);font-family:inherit;font-size:.95rem;padding:12px 14px}
+  .q input:focus,.q select:focus{outline:2px solid var(--accent);outline-offset:1px}
+  .checks{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+  @media(max-width:640px){.checks{grid-template-columns:1fr}}
+  .check{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;color:var(--muted);font-size:.95rem}
+  .check input{margin-top:4px;accent-color:var(--accent);width:18px;height:18px;flex:none;cursor:pointer}
+  .check:has(input:checked){color:var(--text);border-color:var(--accent)}
+  .runbtn{display:inline-block;margin-top:24px;background:var(--accent);color:#052e16;font-weight:800;font-family:inherit;font-size:1rem;border:none;border-radius:999px;padding:13px 28px;cursor:pointer}
+  .runbtn:hover{opacity:.9}
+  .printbtn{display:inline-block;margin-top:24px;margin-left:10px;background:none;border:1px solid var(--line);color:var(--text);font-weight:800;font-family:inherit;font-size:1rem;border-radius:999px;padding:13px 28px;cursor:pointer}
+  .printbtn:hover{border-color:var(--accent)}
+  .msg{color:var(--amber);margin-top:16px;font-weight:700}
+  .scorecard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-top:26px}
+  .scorecard .score{font-size:2.6rem;font-weight:800;line-height:1.1}
+  .scorecard .score.green{color:var(--accent)}
+  .scorecard .score.amber{color:var(--amber)}
+  .scorecard .score.red{color:var(--red)}
+  .scorecard .verdict{font-size:1.25rem;font-weight:800;margin-top:6px}
+  .scorecard .verdict.green{color:var(--accent)}
+  .scorecard .verdict.amber{color:var(--amber)}
+  .scorecard .verdict.red{color:var(--red)}
+  .scorecard p{color:var(--muted);margin-top:6px}
+  .scorecard p b{color:#d4d4d4}
+  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:.95rem}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-size:.85rem;text-transform:uppercase;letter-spacing:.06em}
+  td b{color:#d4d4d4}
+  .pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.85rem;font-weight:700;white-space:nowrap}
+  .pill.green{background:#052e16;color:var(--accent)}
+  .pill.amber{background:#451a03;color:var(--amber)}
+  .pill.red{background:#450a0a;color:var(--red)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-top:16px}
+  .card h3{font-size:1.1rem;margin-bottom:6px}
+  .card p{color:var(--muted)}
+  .card p b{color:#d4d4d4}
+  .card.gate{border-left:3px solid var(--accent)}
+  .card.cause{border-left:3px solid var(--amber)}
+  .card.crit{border-left:3px solid var(--red)}
+  .checklist{list-style:none;margin-top:10px}
+  .checklist li{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);color:var(--muted)}
+  .checklist li:last-child{border-bottom:none}
+  .checklist input{margin-top:5px;accent-color:var(--accent);width:18px;height:18px;flex:none;cursor:pointer}
+  .checklist li.done{color:var(--text)}
+  .howto{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-top:34px}
+  .howto h3{font-size:1.05rem;margin-bottom:10px}
+  .howto ol{margin-left:20px;color:var(--muted)}
+  .howto li{margin-bottom:8px}
+  .howto li b{color:#d4d4d4}
+  .sources{margin-top:34px;color:var(--faint);font-size:.88rem}
+  .sources a{color:var(--muted)}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;margin-top:20px}
+  footer h2{margin-top:0}
+  footer p{color:var(--muted);max-width:640px}
+  footer p b{color:#d4d4d4}
+  .cta{display:inline-block;margin-top:16px;background:var(--accent);color:#052e16;font-weight:800;text-decoration:none;border-radius:999px;padding:12px 24px}
+  @media print{
+    body{background:#fff;color:#111}
+    header,.pickrow,.clearbtn,.qgrid,.checks,.runbtn,.printbtn,.howto,.sources,footer,.back{display:none!important}
+    .scorecard,.card{border:1px solid #ccc}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu</a>
+  <p class="eyebrow">AI Services &middot; Live &middot; Try It Now</p>
+  <h1>AI Change Management Planner</h1>
+  <p class="lede">The assistant is live, and nobody is using it. That is not a model problem, it is an adoption problem. Answer ten questions about the rollout, the champions, the training, and the resistance, and this planner gives you <b>an adoption score, a twelve week forecast, a six week comms plan, a training schedule, and the three gaps to close first</b>.</p>
+  <p class="honest"><b>Runs entirely in your browser.</b> No backend, no API key, no account. The scoring weights, the weekly growth rates, and the training sizes are planning rules from practice, not vendor numbers, and the page says so wherever they are used. Nothing you type is sent or stored anywhere.</p>
+</header>
+<main>
+  <h2>Start with a preset, or answer your own rollout</h2>
+  <p class="secnote">A preset fills in every answer so you can see how the planner works. Change any answer after loading one.</p>
+  <div class="pickrow presets" id="presetRow">
+    <button class="pick" type="button" data-preset="small">Small team, champions in place<small>25 users, 12 already using it weekly, the pilot proved the hours saved, every team has a champion, and every comms step is done. Score 100, Ready to scale.</small></button>
+    <button class="pick" type="button" data-preset="dept">Department rollout, no champions yet<small>120 users, 18 using it weekly, the pilot was liked but never measured, some teams have a champion, one hour of training planned. Score 50, Scale in waves.</small></button>
+    <button class="pick" type="button" data-preset="regulated">Regulated team, resistance high<small>200 users, 10 using it weekly, no pilot at all, no champions, no training, and three resistance signs showing. Score 1, Fix the adoption gaps first.</small></button>
+  </div>
+  <button class="clearbtn" id="clearBtn" type="button">Clear all</button>
+
+  <h2>Rollout size</h2>
+  <div class="qgrid">
+    <div class="q">
+      <label for="users">Total users who should use the assistant</label>
+      <input id="users" type="number" min="0" value="25">
+    </div>
+    <div class="q">
+      <label for="teams">Teams in the rollout</label>
+      <input id="teams" type="number" min="0" value="2">
+    </div>
+    <div class="q">
+      <label for="wau">Weekly active users today</label>
+      <input id="wau" type="number" min="0" value="12">
+    </div>
+    <div class="q">
+      <label for="pilot">What the pilot proved</label>
+      <select id="pilot">
+        <option value="measured">Measured hours saved per user per week</option>
+        <option value="liked">People liked it, nothing measured</option>
+        <option value="none">No pilot yet</option>
+      </select>
+    </div>
+  </div>
+
+  <h2>Champions and training</h2>
+  <div class="qgrid">
+    <div class="q">
+      <label for="champions">Champions in place</label>
+      <select id="champions">
+        <option value="all">Every team has one</option>
+        <option value="some">Some teams have one</option>
+        <option value="none">None yet</option>
+      </select>
+    </div>
+    <div class="q">
+      <label for="training">Hands-on training planned, hours per user</label>
+      <select id="training">
+        <option value="2">Two hours or more</option>
+        <option value="1">One hour</option>
+        <option value="0">None planned</option>
+      </select>
+    </div>
+  </div>
+
+  <h2>Comms and feedback</h2>
+  <p class="secnote">Tick what is already done. Each comms step is worth points because adoption follows the message, not the launch date.</p>
+  <div class="checks" id="commsChecks">
+    <label class="check"><input type="checkbox" id="cAnnounce" checked> Launch announcement sent to everyone</label>
+    <label class="check"><input type="checkbox" id="cManagers" checked> Managers briefed, and asked to demo it</label>
+    <label class="check"><input type="checkbox" id="cStory" checked> First success story shared, with hours saved</label>
+    <label class="check"><input type="checkbox" id="cHelp" checked> Help channel live, with a named person answering</label>
+  </div>
+  <div class="checks" id="feedbackChecks" style="margin-top:10px">
+    <label class="check"><input type="checkbox" id="cOwner" checked> One named owner for the assistant</label>
+    <label class="check"><input type="checkbox" id="cChannel" checked> One feedback channel, and someone reads it</label>
+  </div>
+
+  <h2>Resistance, honestly</h2>
+  <p class="secnote">Tick every sign you have actually heard. Each one costs three points, because resistance you name is resistance you can answer.</p>
+  <div class="checks" id="resistChecks">
+    <label class="check"><input type="checkbox" id="rReplace"> It will replace my job</label>
+    <label class="check"><input type="checkbox" id="rWrong"> The answers are wrong sometimes</label>
+    <label class="check"><input type="checkbox" id="rShow"> Nobody showed me how to use it</label>
+    <label class="check"><input type="checkbox" id="rWay"> We have always done it this way</label>
+    <label class="check"><input type="checkbox" id="rBoss"> My manager does not use it</label>
+  </div>
+
+  <button class="runbtn" id="runBtn" type="button">Plan my rollout</button>
+  <button class="printbtn" id="printBtn" type="button">Print</button>
+  <p class="msg" id="msg"></p>
+  <div id="results"></div>
+
+  <div class="howto">
+    <h3>How the planner scores adoption</h3>
+    <ol>
+      <li><b>Pilot evidence, 25 points.</b> A pilot that measured hours saved is worth the full 25. A pilot people liked but never measured is worth 15. No pilot is 0, because there is nothing to show the next team yet.</li>
+      <li><b>Champions, 20 points.</b> One named champion per team is 20. Some teams covered is 12. None is 0, because a rollout with no local champion is a broadcast, not an adoption.</li>
+      <li><b>Training, 20 points.</b> Two hours of hands-on training per user is 20. One hour is 12. None is 0.</li>
+      <li><b>Comms, 15 points.</b> Announcement 4, managers briefed 4, first success story 4, help channel live 3.</li>
+      <li><b>Feedback, 20 points.</b> A named owner is 10, a feedback channel someone reads is 10.</li>
+      <li><b>Resistance, minus 3 per sign.</b> Five signs, fifteen points at most, and the score never drops below 0.</li>
+      <li><b>The forecast.</b> Weekly active users grow 12 percent a week when the score is 75 or higher, 7 percent at 50 to 74, and 2 percent below 50. Those are planning rates from practice, not a promise.</li>
+      <li><b>The training schedule.</b> Fifteen users per session, two trainer hours per session. That is a planning rule, so check it against your own room size.</li>
+    </ol>
+  </div>
+
+  <p class="sources">Sources: the Harness Readiness Check from Janaki Gattu's article <a href="https://www.linkedin.com/pulse/harness-engineering-discipline-separates-real-ai-agents-janaki-gattu-7zqjc/" target="_blank" rel="noopener">Harness Engineering: The Discipline That Separates Real AI Agents from Demos</a> (LinkedIn, 24 Nov 2026). Next steps on this site: the <a href="https://janakigattu.github.io/projects/ai-assistant-rollout-planner/">AI Assistant Rollout Planner</a> plans the waves, the <a href="https://janakigattu.github.io/projects/ai-cost-estimator/">AI Cost Estimator</a> prices the running month, and the <a href="https://janakigattu.github.io/projects/ai-agent-monitoring-dashboard/">AI Agent Monitoring Dashboard</a> watches it once it is live.</p>
+</main>
+<footer>
+  <h2>Talk to Janaki about the rollout</h2>
+  <p>Send the rollout size, the score, and the verdict, and she will tell you what the first four weeks should look like for your team. Or book a session and work through the plan together.</p>
+  <a class="cta" href="mailto:gjanaki360@gmail.com?subject=AI%20change%20management%20plan">Email Janaki &rarr;</a>
+</footer>
+</div>
+<script>
+function num(id){var v=parseFloat(document.getElementById(id).value);return isNaN(v)?0:Math.max(0,v);}
+function checked(id){return document.getElementById(id).checked;}
+
+var RESISTANCE=[
+  {id:"rReplace",label:"It will replace my job",fix:"Show the hours saved on the team's own work, and name the task the assistant takes over, not the person."},
+  {id:"rWrong",label:"The answers are wrong sometimes",fix:"Publish the two fixes from the last failure review, and show the retest set that has to pass before the assistant goes back live."},
+  {id:"rShow",label:"Nobody showed me how to use it",fix:"Book the two hours of hands-on training, on the team's own tasks, with the champion in the room."},
+  {id:"rWay",label:"We have always done it this way",fix:"Find one respected person on the team who uses it, and have them show the old way and the new way side by side."},
+  {id:"rBoss",label:"My manager does not use it",fix:"Brief the manager first, and have them demo the assistant in the next team meeting."}
+];
+
+function computePlan(inp){
+  var pilotScore=inp.pilot==="measured"?25:(inp.pilot==="liked"?15:0);
+  var champScore=inp.champions==="all"?20:(inp.champions==="some"?12:0);
+  var trainScore=inp.training==="2"?20:(inp.training==="1"?12:0);
+  var commsScore=(inp.comms.announce?4:0)+(inp.comms.managers?4:0)+(inp.comms.story?4:0)+(inp.comms.help?3:0);
+  var feedbackScore=(inp.owner?10:0)+(inp.channel?10:0);
+  var resistCount=inp.resistance.filter(function(r){return r;}).length;
+  var penalty=resistCount*3;
+  var score=Math.max(0,pilotScore+champScore+trainScore+commsScore+feedbackScore-penalty);
+  var verdict=score>=75?"Ready to scale":(score>=50?"Scale in waves":"Fix the adoption gaps first");
+  var band=score>=75?"green":(score>=50?"amber":"red");
+  var growth=score>=75?0.12:(score>=50?0.07:0.02);
+  function forecast(w){if(inp.users<=0)return 0;return Math.min(inp.users,Math.round(inp.wau*Math.pow(1+growth,w)));}
+  var target=Math.ceil(inp.users*0.8);
+  var weeksTo80=null;
+  if(inp.users>0&&inp.wau>=target){weeksTo80=0;}
+  else if(inp.users>0&&inp.wau>0){weeksTo80=Math.ceil(Math.log(target/inp.wau)/Math.log(1+growth));}
+  var sessions=inp.users>0?Math.ceil(inp.users/15):0;
+  var trainerHours=sessions*2;
+  var trainHoursPerUser=inp.training==="2"?2:(inp.training==="1"?1:0);
+  var learnerHours=inp.users*trainHoursPerUser;
+  var gaps=[];
+  if(pilotScore<25)gaps.push({label:"Pilot evidence",gain:25-pilotScore,fix:"Run a two week pilot with five users and measure the hours saved per user per week, then publish the number."});
+  if(champScore<20)gaps.push({label:"Champions",gain:20-champScore,fix:"Name one champion per team, someone the team already asks for help, and give them the first demo."});
+  if(trainScore<20)gaps.push({label:"Training",gain:20-trainScore,fix:"Book two hours of hands-on training per user, on the team's own tasks, with the champion in the room."});
+  if(commsScore<15)gaps.push({label:"Comms",gain:15-commsScore,fix:!inp.comms.announce?"Send the launch announcement to everyone, with the owner's name and the help channel.":(!inp.comms.managers?"Brief the managers and ask them to demo the assistant in their team meeting.":(!inp.comms.story?"Publish the first success story, with the hours saved and the name of the person who saved them.":"Open the help channel and name the person who answers it."))});
+  if(feedbackScore<20)gaps.push({label:"Feedback loop",gain:20-feedbackScore,fix:!inp.owner?"Name one owner for the assistant, with the decision in writing.":"Open one feedback channel and name the person who reads it every week."});
+  inp.resistance.forEach(function(on,i){if(on)gaps.push({label:"Resistance: "+RESISTANCE[i].label,gain:3,fix:RESISTANCE[i].fix});});
+  gaps.sort(function(a,b){return b.gain-a.gain;});
+  var top3=gaps.slice(0,3);
+  var fastest=gaps.slice(0,2);
+  var plan=[
+    {week:"Week 1",text:inp.owner?"Announce to everyone, with the owner's name, the help channel, and the first date the champions demo it.":"Name the owner first, then announce to everyone, with the owner's name and the help channel."},
+    {week:"Week 2",text:inp.champions==="all"?"Champions run the first demo for their teams, on the team's own tasks.":(inp.champions==="some"?"Recruit a champion for every team that still lacks one, and train them on the three tasks the team repeats most.":"Recruit one champion per team, someone the team already asks for help, and train them first.")},
+    {week:"Week 3",text:inp.comms.story?"Share the second success story, with the hours saved and the name of the person who saved them.":"Publish the first success story, with the hours saved and the name of the person who saved them."},
+    {week:"Week 4",text:inp.comms.managers?"Managers demo the assistant in their team meeting, on a task their team actually does.":"Brief the managers, then have them demo the assistant in their team meeting."},
+    {week:"Week 5",text:"Ask every team one question: what did the assistant get wrong this week? Publish the answers and the fixes."},
+    {week:"Week 6",text:"Publish the adoption numbers: weekly users, hours saved, and the next three fixes. Then set the next twelve week target."}
+  ];
+  var checklist=[
+    "Name one owner for the assistant, with the decision in writing",
+    "Open one feedback channel and name the person who reads it every week",
+    "Name one champion per team",
+    "Book two hours of hands-on training per user",
+    "Send the launch announcement to everyone",
+    "Brief the managers and ask them to demo it",
+    "Publish the first success story, with the hours saved",
+    "Run the week five feedback round and publish the fixes",
+    "Publish the adoption numbers at week six",
+    "Review the forecast against the real numbers at week twelve"
+  ];
+  return {score:score,verdict:verdict,band:band,growth:growth,pilotScore:pilotScore,champScore:champScore,trainScore:trainScore,commsScore:commsScore,feedbackScore:feedbackScore,resistCount:resistCount,forecast4:forecast(4),forecast8:forecast(8),forecast12:forecast(12),target:target,weeksTo80:weeksTo80,sessions:sessions,trainerHours:trainerHours,learnerHours:learnerHours,gaps:gaps,top3:top3,fastest:fastest,plan:plan,checklist:checklist};
+}
+
+function readInputs(){
+  return {
+    users:num("users"),teams:num("teams"),wau:num("wau"),
+    pilot:document.getElementById("pilot").value,
+    champions:document.getElementById("champions").value,
+    training:document.getElementById("training").value,
+    comms:{announce:checked("cAnnounce"),managers:checked("cManagers"),story:checked("cStory"),help:checked("cHelp")},
+    owner:checked("cOwner"),channel:checked("cChannel"),
+    resistance:RESISTANCE.map(function(r){return checked(r.id);})
+  };
+}
+
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+function render(r,inp){
+  var pct=function(n){return inp.users>0?Math.round(n/inp.users*100)+"% of users":"";};
+  var weeksTxt=r.weeksTo80===null?"No forecast: enter users and weekly active users.":(r.weeksTo80===0?"Already there: weekly users are at or above 80 percent.":(r.weeksTo80>52?"More than a year at this rate.":r.weeksTo80+" weeks"));
+  var h='<div class="scorecard"><div class="score '+r.band+'">'+r.score+' / 100</div><div class="verdict '+r.band+'">'+esc(r.verdict)+'</div>';
+  h+='<p>Adoption score from pilot evidence '+r.pilotScore+'/25, champions '+r.champScore+'/20, training '+r.trainScore+'/20, comms '+r.commsScore+'/15, feedback '+r.feedbackScore+'/20'+(r.resistCount>0?', minus '+r.resistCount*3+' for '+r.resistCount+' resistance sign'+(r.resistCount>1?'s':''):'')+'.</p></div>';
+  h+='<h2>Twelve week forecast</h2><p class="secnote">Weekly active users, growing '+(r.growth*100)+'% a week at this score. Planning rates from practice, not a promise.</p>';
+  h+='<table><tr><th>When</th><th>Weekly users</th><th>Share</th></tr>';
+  h+='<tr><td><b>Today</b></td><td>'+inp.wau+'</td><td>'+pct(inp.wau)+'</td></tr>';
+  h+='<tr><td><b>Week 4</b></td><td>'+r.forecast4+'</td><td>'+pct(r.forecast4)+'</td></tr>';
+  h+='<tr><td><b>Week 8</b></td><td>'+r.forecast8+'</td><td>'+pct(r.forecast8)+'</td></tr>';
+  h+='<tr><td><b>Week 12</b></td><td>'+r.forecast12+'</td><td>'+pct(r.forecast12)+'</td></tr></table>';
+  h+='<p style="color:var(--muted);margin-top:10px">Weeks to reach 80% of users ('+r.target+'): <b style="color:#d4d4d4">'+weeksTxt+'</b></p>';
+  h+='<h2>Training schedule</h2><p class="secnote">Fifteen users per session, two trainer hours per session. Check it against your own room size.</p>';
+  h+='<table><tr><th>What</th><th>Number</th></tr>';
+  h+='<tr><td><b>Training sessions</b></td><td>'+r.sessions+'</td></tr>';
+  h+='<tr><td><b>Trainer hours</b></td><td>'+r.trainerHours+'</td></tr>';
+  h+='<tr><td><b>Learner hours</b></td><td>'+r.learnerHours+'</td></tr></table>';
+  h+='<h2>Six week comms plan</h2><p class="secnote">One job a week, in order. The plan changes with your answers: a missing champion, owner, or success story moves to the front.</p>';
+  r.plan.forEach(function(p){h+='<div class="card gate"><h3>'+p.week+'</h3><p>'+esc(p.text)+'</p></div>';});
+  if(r.top3.length){
+    h+='<h2>The three gaps to close first</h2><p class="secnote">Ranked by the points each fix is worth.</p>';
+    r.top3.forEach(function(g){h+='<div class="card cause"><h3>'+esc(g.label)+' (+'+g.gain+' points)</h3><p>'+esc(g.fix)+'</p></div>';});
+  } else {
+    h+='<h2>The three gaps to close first</h2><p>No gaps. Every scored item is already in place, so the work now is the plan itself.</p>';
+  }
+  if(r.fastest.length){
+    h+='<h2>The two fixes that move the answer fastest</h2>';
+    r.fastest.forEach(function(g){h+='<div class="card crit"><h3>'+esc(g.label)+' (+'+g.gain+' points)</h3><p>'+esc(g.fix)+'</p></div>';});
+  }
+  h+='<h2>Checklist</h2><ul class="checklist">';
+  r.checklist.forEach(function(c,i){h+='<li><input type="checkbox" id="cl'+i+'"><label for="cl'+i+'">'+esc(c)+'</label></li>';});
+  h+='</ul>';
+  document.getElementById("results").innerHTML=h;
+  document.querySelectorAll(".checklist input").forEach(function(cb){cb.addEventListener("change",function(){cb.closest("li").classList.toggle("done",cb.checked);});});
+  document.getElementById("msg").textContent="";
+}
+
+var PRESETS={
+  small:{users:25,teams:2,wau:12,pilot:"measured",champions:"all",training:"2",comms:{announce:true,managers:true,story:true,help:true},owner:true,channel:true,resistance:[false,false,false,false,false]},
+  dept:{users:120,teams:6,wau:18,pilot:"liked",champions:"some",training:"1",comms:{announce:true,managers:false,story:false,help:true},owner:true,channel:false,resistance:[false,true,true,false,false]},
+  regulated:{users:200,teams:8,wau:10,pilot:"none",champions:"none",training:"0",comms:{announce:false,managers:false,story:false,help:false},owner:true,channel:false,resistance:[true,true,true,false,false]}
+};
+function applyPreset(p){
+  document.getElementById("users").value=p.users;
+  document.getElementById("teams").value=p.teams;
+  document.getElementById("wau").value=p.wau;
+  document.getElementById("pilot").value=p.pilot;
+  document.getElementById("champions").value=p.champions;
+  document.getElementById("training").value=p.training;
+  document.getElementById("cAnnounce").checked=p.comms.announce;
+  document.getElementById("cManagers").checked=p.comms.managers;
+  document.getElementById("cStory").checked=p.comms.story;
+  document.getElementById("cHelp").checked=p.comms.help;
+  document.getElementById("cOwner").checked=p.owner;
+  document.getElementById("cChannel").checked=p.channel;
+  RESISTANCE.forEach(function(r,i){document.getElementById(r.id).checked=p.resistance[i];});
+  document.querySelectorAll("#presetRow .pick").forEach(function(b){b.classList.remove("active");});
+  document.getElementById("results").innerHTML="";
+  document.getElementById("msg").textContent="";
+}
+if(typeof document!=="undefined"&&document.getElementById){
+  document.querySelectorAll("#presetRow .pick").forEach(function(b){
+    b.addEventListener("click",function(){applyPreset(PRESETS[b.dataset.preset]);b.classList.add("active");});
+  });
+  document.getElementById("clearBtn").addEventListener("click",function(){
+    applyPreset({users:0,teams:0,wau:0,pilot:"none",champions:"none",training:"0",comms:{announce:false,managers:false,story:false,help:false},owner:false,channel:false,resistance:[false,false,false,false,false]});
+  });
+  document.getElementById("runBtn").addEventListener("click",function(){
+    var inp=readInputs();
+    if(inp.users<=0){document.getElementById("msg").textContent="Enter the total users first.";return;}
+    render(computePlan(inp),inp);
+  });
+  document.getElementById("printBtn").addEventListener("click",function(){window.print();});
+  applyPreset(PRESETS.small);
+  render(computePlan(readInputs()),readInputs());
+}
+</script>
+</body>
+</html>
