@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Esri COTS App Planner: pick the right ArcGIS app for the job, by Janaki Gattu</title>
+<meta name="description" content="A working Esri COTS App Planner by Janaki Gattu. Pick the job, the audience, and what you have, and get the right ArcGIS app to build, the widgets it needs, a person-day estimate, and a printable checklist. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 6px}
+  h2:first-child{margin-top:0}
+  .secnote{color:var(--muted);margin-bottom:16px}
+  .pickrow{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+  .pick{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--text);cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700;text-align:left;flex:1;min-width:200px}
+  .pick small{display:block;color:var(--muted);font-weight:400;margin-top:4px;line-height:1.45}
+  .pick:hover{border-color:var(--accent)}
+  .pick.active{border-color:var(--accent);background:#052e16}
+  .pickrow.presets .pick{min-width:220px}
+  .clearbtn{background:none;border:1px solid var(--line);border-radius:999px;color:var(--muted);cursor:pointer;font-family:inherit;font-size:.9rem;font-weight:700;padding:9px 20px;margin-top:14px}
+  .clearbtn:hover{color:var(--text);border-color:var(--accent)}
+  .qgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+  @media(max-width:640px){.qgrid{grid-template-columns:1fr}}
+  .q label{display:block;font-weight:700;font-size:.95rem;margin-bottom:6px}
+  .q label span{color:var(--muted);font-weight:400}
+  .q input,.q select{width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;color:var(--text);font-family:inherit;font-size:.95rem;padding:12px 14px}
+  .q input:focus,.q select:focus{outline:2px solid var(--accent);outline-offset:1px}
+  .checks{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+  @media(max-width:640px){.checks{grid-template-columns:1fr}}
+  .check{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;color:var(--muted);font-size:.95rem}
+  .check input{margin-top:4px;accent-color:var(--accent);width:18px;height:18px;flex:none;cursor:pointer}
+  .check:has(input:checked){color:var(--text);border-color:var(--accent)}
+  .runbtn{display:inline-block;margin-top:24px;background:var(--accent);color:#052e16;font-weight:800;font-family:inherit;font-size:1rem;border:none;border-radius:999px;padding:13px 28px;cursor:pointer}
+  .runbtn:hover{opacity:.9}
+  .printbtn{display:inline-block;margin-top:24px;margin-left:10px;background:none;border:1px solid var(--line);color:var(--text);font-weight:800;font-family:inherit;font-size:1rem;border-radius:999px;padding:13px 28px;cursor:pointer}
+  .printbtn:hover{border-color:var(--accent)}
+  .msg{color:var(--amber);margin-top:16px;font-weight:700}
+  .scorecard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-top:26px}
+  .scorecard .score{font-size:2.6rem;font-weight:800;line-height:1.1}
+  .scorecard .score.green{color:var(--accent)}
+  .scorecard .score.amber{color:var(--amber)}
+  .scorecard .score.red{color:var(--red)}
+  .scorecard .verdict{font-size:1.25rem;font-weight:800;margin-top:6px}
+  .scorecard .verdict.green{color:var(--accent)}
+  .scorecard .verdict.amber{color:var(--amber)}
+  .scorecard .verdict.red{color:var(--red)}
+  .scorecard p{color:var(--muted);margin-top:6px}
+  .scorecard p b{color:#d4d4d4}
+  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:.95rem}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-size:.85rem;text-transform:uppercase;letter-spacing:.06em}
+  td b{color:#d4d4d4}
+  .pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.85rem;font-weight:700;white-space:nowrap}
+  .pill.green{background:#052e16;color:var(--accent)}
+  .pill.amber{background:#451a03;color:var(--amber)}
+  .pill.red{background:#450a0a;color:var(--red)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-top:16px}
+  .card h3{font-size:1.1rem;margin-bottom:6px}
+  .card p{color:var(--muted)}
+  .card p b{color:#d4d4d4}
+  .card.gate{border-left:3px solid var(--accent)}
+  .card.cause{border-left:3px solid var(--amber)}
+  .card.crit{border-left:3px solid var(--red)}
+  .checklist{list-style:none;margin-top:10px}
+  .checklist li{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);color:var(--muted)}
+  .checklist li:last-child{border-bottom:none}
+  .checklist input{margin-top:5px;accent-color:var(--accent);width:18px;height:18px;flex:none;cursor:pointer}
+  .checklist li.done{color:var(--text)}
+  .howto{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-top:34px}
+  .howto h3{font-size:1.05rem;margin-bottom:10px}
+  .howto ol{margin-left:20px;color:var(--muted)}
+  .howto li{margin-bottom:8px}
+  .howto li b{color:#d4d4d4}
+  .sources{margin-top:34px;color:var(--faint);font-size:.88rem}
+  .sources a{color:var(--muted)}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;margin-top:20px}
+  footer h2{margin-top:0}
+  footer p{color:var(--muted);max-width:640px}
+  footer p b{color:#d4d4d4}
+  .cta{display:inline-block;margin-top:16px;background:var(--accent);color:#052e16;font-weight:800;text-decoration:none;border-radius:999px;padding:12px 24px}
+  @media print{
+    body{background:#fff;color:#111}
+    header,.pickrow,.clearbtn,.qgrid,.checks,.runbtn,.printbtn,.howto,.sources,footer,.back{display:none!important}
+    .scorecard,.card{border:1px solid #ccc}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu</a>
+  <p class="eyebrow">GIS Services &middot; Live &middot; Try It Now</p>
+  <h1>Esri COTS App Planner</h1>
+  <p class="lede">Most ArcGIS apps fail before anyone builds them: the wrong app for the job, or the right app on data that is not ready. Pick the job, the audience, and what you have, and this planner tells you <b>which ArcGIS app to build, which widgets it needs, and how many days it takes</b>. Everything here is a standard Esri app. No code, no custom widget, no server to stand up.</p>
+  <p class="honest"><b>Runs entirely in your browser.</b> No backend, no API key, no account. The widget names come from Esri documentation, and the day estimates and readiness scores are planning rules from practice, not vendor numbers. Nothing you type is sent or stored anywhere.</p>
+</header>
+<main>
+  <h2>Start with a preset, or answer your own app</h2>
+  <p class="secnote">A preset fills in every answer so you can see how the planner works. Change any answer after loading one.</p>
+  <div class="pickrow presets" id="presetRow">
+    <button class="pick" type="button" data-preset="parcel">Public parcel viewer<small>Show parcels on a map for the public, with search, filter, a list of records, and print. Hosted layers and a web map are ready. Experience Builder, 6.5 person-days, Ready to build.</small></button>
+    <button class="pick" type="button" data-preset="exec">Executive operations dashboard<small>Numbers and charts for executives, on hosted layers and a live feed, with no one named to maintain it yet. ArcGIS Dashboards, 7 person-days, Ready to build.</small></button>
+    <button class="pick" type="button" data-preset="field">Field inspection crew<small>Collect inspection data in the field, offline, from spreadsheets that still need converting. Only the data is cleaned. Field Maps, 13 person-days, Build after the data prep.</small></button>
+  </div>
+  <button class="clearbtn" id="clearBtn" type="button">Clear all</button>
+
+  <h2>What the app has to do</h2>
+  <p class="secnote">Pick the one job that matters most. If two jobs matter equally, plan two apps. One app doing two jobs does neither well.</p>
+  <div class="pickrow" id="purposeRow">
+    <button class="pick" type="button" data-purpose="show">Show data on a map<small>People browse and explore the data. A parcel viewer, a project map, a public facilities map.</small></button>
+    <button class="pick" type="button" data-purpose="search">Let people search and filter records<small>Find one record, narrow the list, open the details. Permits, assets, cases, properties.</small></button>
+    <button class="pick" type="button" data-purpose="numbers">Show numbers and charts for managers<small>The headline figures first, then the trends behind them. Operations, budgets, progress.</small></button>
+    <button class="pick" type="button" data-purpose="story">Tell a story with maps<small>Walk the reader through a place or a change, one chapter at a time.</small></button>
+    <button class="pick" type="button" data-purpose="collect">Collect data in the field<small>A crew records inspections, assets, or conditions, on site, on a device.</small></button>
+    <button class="pick" type="button" data-purpose="compare">Compare before and after<small>Two maps, two years, two scenarios, side by side with a slider.</small></button>
+  </div>
+
+  <h2>Who uses it</h2>
+  <div class="pickrow" id="audienceRow">
+    <button class="pick" type="button" data-audience="public">The public<small>Anyone with a link. Sharing, privacy, and plain language matter most.</small></button>
+    <button class="pick" type="button" data-audience="staff">Internal staff<small>Named users in the organisation, signed in.</small></button>
+    <button class="pick" type="button" data-audience="exec">Executives<small>Five minutes, the numbers that matter, no hunting.</small></button>
+    <button class="pick" type="button" data-audience="field">A field crew<small>On a device, on site, often away from wifi.</small></button>
+  </div>
+
+  <h2>What you have today</h2>
+  <p class="secnote">Tick everything that is true. The planner prices the data prep from what is missing, not from what you wish you had.</p>
+  <div class="checks" id="dataChecks">
+    <label class="check"><input type="checkbox" id="dHosted" checked> Hosted feature layers are published</label>
+    <label class="check"><input type="checkbox" id="dMaps" checked> Web maps are already built</label>
+    <label class="check"><input type="checkbox" id="dFeeds"> Live feeds that keep updating</label>
+    <label class="check"><input type="checkbox" id="dSheets"> Spreadsheets that need converting</label>
+    <label class="check"><input type="checkbox" id="dNothing"> Nothing is published yet</label>
+  </div>
+
+  <h2>What it has to do</h2>
+  <p class="secnote">Tick every interaction the app needs. Each one past the third adds half a day, because every interaction is a widget to configure and test.</p>
+  <div class="checks" id="interChecks">
+    <label class="check"><input type="checkbox" id="iSearch" checked> Search for an address or a record</label>
+    <label class="check"><input type="checkbox" id="iFilter" checked> Filter the data</label>
+    <label class="check"><input type="checkbox" id="iList" checked> List of records</label>
+    <label class="check"><input type="checkbox" id="iCharts"> Charts</label>
+    <label class="check"><input type="checkbox" id="iForm"> Form to submit</label>
+    <label class="check"><input type="checkbox" id="iSwipe"> Swipe or compare two maps</label>
+    <label class="check"><input type="checkbox" id="iPrint" checked> Print or export</label>
+    <label class="check"><input type="checkbox" id="iOffline"> Works offline</label>
+  </div>
+
+  <h2>Ready to build</h2>
+  <p class="secnote">Tick what is already done. Each missing item costs fifteen readiness points and one day of work.</p>
+  <div class="checks" id="readyChecks">
+    <label class="check"><input type="checkbox" id="rData" checked> Data cleaned, fields named in plain words</label>
+    <label class="check"><input type="checkbox" id="rText" checked> Text and branding approved</label>
+    <label class="check"><input type="checkbox" id="rOwner" checked> Someone named to maintain it</label>
+  </div>
+
+  <button class="runbtn" id="runBtn" type="button">Plan my app</button>
+  <button class="printbtn" id="printBtn" type="button">Print</button>
+  <p class="msg" id="msg"></p>
+  <div id="results"></div>
+
+  <div class="howto">
+    <h3>How the planner picks the app and prices the work</h3>
+    <ol>
+      <li><b>The job picks the app.</b> Collecting data in the field is Field Maps, or Survey123 when it is a form with no offline need. Telling a story is a StoryMap. Numbers for managers is a Dashboard. Comparing two maps is Experience Builder with the Swipe widget. Searching, filtering, or showing data on a map is Experience Builder.</li>
+      <li><b>The widgets come from the job.</b> Experience Builder widgets are the ones Esri documents: Map, Search, List, Filter, Query, Chart, Table, Swipe, Print, Survey, Basemap Gallery, Map Layers, plus Text and Button for the layout. Dashboard elements are Map, Indicator, Gauge, Serial chart, Pie chart, List, Details, Embedded Content, and Selectors. StoryMap blocks are Sidecar, Map tour, Swipe, and Timeline.</li>
+      <li><b>Base effort, in person-days.</b> Experience Builder 6, Dashboard 4, StoryMap 5, Field Maps 7, Survey123 3. Those are planning rules from practice, for one person who knows the tools.</li>
+      <li><b>Data prep adds days.</b> Spreadsheets to convert add 2. Nothing published yet adds 3. Live feeds add 2. No hosted layers and no web maps add 2.</li>
+      <li><b>Interactions add half a day each past the third.</b> The first three interactions are in the base price. Every one after that is another widget to configure and test.</li>
+      <li><b>Readiness gaps add one day each.</b> Data not cleaned, text not approved, no one named to maintain it: one day each to close.</li>
+      <li><b>The readiness score.</b> Start at 100. Lose 15 points per missing readiness item, 10 when nothing is published yet, 5 for spreadsheets to convert, and 5 when there are no hosted layers and no web maps. 75 or higher is Ready to build, 50 to 74 is Build after the data prep, below 50 is Decide the scope first.</li>
+      <li><b>The phases.</b> Scope and data prep 30 percent, build 40 percent, test with the audience 15 percent, publish 5 percent, handover and maintenance 10 percent.</li>
+    </ol>
+  </div>
+
+  <p class="sources">Sources: Experience Builder widgets, <a href="https://doc.arcgis.com/en/experience-builder/latest/configure-widgets/widgets-overview.htm" target="_blank" rel="noopener">Widgets, ArcGIS Experience Builder documentation</a>. StoryMap blocks, <a href="https://developers.arcgis.com/documentation/app-builders/no-code/arcgis-storymaps/types-of-story-blocks/" target="_blank" rel="noopener">Types of story blocks in ArcGIS StoryMaps</a>. Dashboard elements, <a href="https://doc.arcgis.com/en/dashboards/11.0/create-and-share/" target="_blank" rel="noopener">ArcGIS Dashboards documentation</a>. Field Maps offline areas and sync from the <a href="https://janakigattu.github.io/projects/field-data-collection-planner/">Field Data Collection Planner</a> on this site. The three COTS patterns working side by side are in the <a href="https://janakigattu.github.io/projects/esri-cots-app-showcase/">Esri COTS App Showcase</a>.</p>
+</main>
+<footer>
+  <h2>Talk to Janaki about the app</h2>
+  <p>Send the app the planner picked, the widgets, and the day estimate, and she will tell you what the first build should look like for your team. Or book a session and plan it together.</p>
+  <a class="cta" href="mailto:gjanaki360@gmail.com?subject=Esri%20COTS%20app%20plan">Email Janaki &rarr;</a>
+</footer>
+</div>
+<script>
+/* LOGIC-START */
+var EB_ORDER=["Map","Search","List","Filter","Query","Chart","Table","Swipe","Print","Survey","Basemap Gallery","Map Layers","Text","Button"];
+var DB_ORDER=["Map","Indicator","Gauge","Serial chart","Pie chart","List","Details","Embedded Content","Selectors","Header"];
+var SM_ORDER=["Sidecar","Map tour","Swipe","Timeline","Chart"];
+
+var APP_INFO={
+  experience:{name:"ArcGIS Experience Builder",base:6,label:"Widgets to add",
+    why:"Experience Builder is the COTS app for a map people browse, search, and filter. It is configured, not coded, and it runs in ArcGIS Online and ArcGIS Enterprise."},
+  dashboard:{name:"ArcGIS Dashboards",base:4,label:"Elements to add",
+    why:"A Dashboard puts the headline numbers first and the map behind them, which is what an executive reads in five minutes. The indicators and charts update from the same live layers the map uses."},
+  storymap:{name:"ArcGIS StoryMaps",base:5,label:"Blocks to use",
+    why:"A StoryMap walks the reader through the place or the change, one chapter at a time. It is the only COTS app built for a narrative."},
+  fieldmaps:{name:"ArcGIS Field Maps",base:7,label:"What to set up",
+    why:"Field Maps is the COTS app for collecting data on site. It works offline, it syncs when the connection returns, and the form rides on the map."},
+  survey123:{name:"ArcGIS Survey123",base:3,label:"What to set up",
+    why:"Survey123 is the COTS app for a form. It is faster to build than a map app when the job is collecting answers, not locations."}
+};
+
+function uniq(list){var out=[];list.forEach(function(x){if(out.indexOf(x)<0)out.push(x);});return out;}
+function orderBy(list,master){return list.slice().sort(function(a,b){return master.indexOf(a)-master.indexOf(b);});}
+function r1(x){return Math.round(x*10)/10;}
+
+function pickApp(inp){
+  if(inp.purpose==="collect"){
+    if(inp.interactions.indexOf("offline")>=0)return "fieldmaps";
+    if(inp.interactions.indexOf("form")>=0)return "survey123";
+    return "fieldmaps";
+  }
+  if(inp.purpose==="story")return "storymap";
+  if(inp.purpose==="numbers")return "dashboard";
+  return "experience";
+}
+
+function widgetsFor(app,inp){
+  var w=[];
+  if(app==="experience"){
+    w=["Map","Text","Button"];
+    if(inp.purpose==="show"){w.push("Basemap Gallery","Map Layers");}
+    if(inp.purpose==="search"){w.push("Search","List","Filter","Query");}
+    if(inp.purpose==="compare"){w.push("Swipe");}
+    if(inp.interactions.indexOf("search")>=0)w.push("Search");
+    if(inp.interactions.indexOf("filter")>=0)w.push("Filter");
+    if(inp.interactions.indexOf("list")>=0)w.push("List","Table");
+    if(inp.interactions.indexOf("charts")>=0)w.push("Chart");
+    if(inp.interactions.indexOf("form")>=0)w.push("Survey");
+    if(inp.interactions.indexOf("swipe")>=0)w.push("Swipe");
+    if(inp.interactions.indexOf("print")>=0)w.push("Print");
+    return orderBy(uniq(w),EB_ORDER);
+  }
+  if(app==="dashboard"){
+    w=["Map","Indicator","Header"];
+    if(inp.purpose==="numbers"){w.push("Gauge","Serial chart");}
+    if(inp.interactions.indexOf("charts")>=0)w.push("Serial chart","Pie chart");
+    if(inp.interactions.indexOf("list")>=0)w.push("List","Details");
+    if(inp.interactions.indexOf("form")>=0)w.push("Embedded Content");
+    if(inp.interactions.indexOf("filter")>=0)w.push("Selectors");
+    return orderBy(uniq(w),DB_ORDER);
+  }
+  if(app==="storymap"){
+    w=["Sidecar","Map tour"];
+    if(inp.interactions.indexOf("swipe")>=0)w.push("Swipe");
+    w.push("Timeline");
+    if(inp.interactions.indexOf("charts")>=0)w.push("Chart");
+    return orderBy(uniq(w),SM_ORDER);
+  }
+  if(app==="fieldmaps"){
+    return ["Offline map areas for each work area","Smart form with the fields the crew records","Sync, automatic every 15 minutes while connected","Basemap downloaded to each device"];
+  }
+  return ["Web form with choice lists and calculations","Share link for the audience","Response view for the team that acts on submissions","Email notification on new submissions"];
+}
+
+function dataPrepSteps(inp){
+  var steps=[];
+  if(inp.data.nothing)steps.push("Publish the data first. Nothing in this plan works until at least one hosted feature layer exists.");
+  if(inp.data.sheets)steps.push("Convert the spreadsheets to hosted feature layers, one layer per spreadsheet, and name the fields in plain words before you publish.");
+  if(inp.data.feeds)steps.push("Check the live feed update rate and field names, and confirm the service stays up while the app is open.");
+  if(inp.data.hosted)steps.push("Check the hosted layers: fields named, pop-ups written, sharing set to the audience.");
+  if(inp.data.maps)steps.push("Open the web map and check the layers, the pop-ups, and the sharing. The app inherits all three.");
+  if(!inp.data.hosted&&!inp.data.maps)steps.push("Publish the layers and save a web map first. The app is configured on the web map, not on raw data.");
+  return steps;
+}
+
+function computePlan(inp){
+  var app=pickApp(inp);
+  var info=APP_INFO[app];
+  var why=[info.why];
+  if(app==="experience"&&inp.purpose==="show")why.push("The job is showing data on a map, and Experience Builder puts the map first with the tools around it.");
+  if(app==="experience"&&inp.purpose==="search")why.push("The job is finding records, and the Search, List, and Filter widgets are built for exactly that.");
+  if(app==="experience"&&inp.purpose==="compare")why.push("The job is comparing two maps, and the Swipe widget is the standard way to do it.");
+  if(app==="fieldmaps")why.push("The crew works on site, so the app has to work where the work is, with or without a connection.");
+  if(app==="survey123")why.push("The job is a form, and the map is secondary. Building a full map app for a form is the slow way round.");
+
+  var note=null;
+  if(app==="experience"&&inp.audience==="public")note="If the real job is an open data catalogue with dozens of datasets, ArcGIS Hub is the better fit. This planner recommends Experience Builder when the job is one app for one audience.";
+
+  var dataPrep=0;
+  if(inp.data.sheets)dataPrep+=2;
+  if(inp.data.nothing)dataPrep+=3;
+  if(inp.data.feeds)dataPrep+=2;
+  if(!inp.data.hosted&&!inp.data.maps)dataPrep+=2;
+  var interExtra=Math.max(0,inp.interactions.length-3)*0.5;
+  var readyCount=(inp.ready.data?1:0)+(inp.ready.text?1:0)+(inp.ready.owner?1:0);
+  var readyGap=(3-readyCount)*1;
+  var days=r1(info.base+dataPrep+interExtra+readyGap);
+
+  var score=100;
+  score-=15*(3-readyCount);
+  if(inp.data.nothing)score-=10;
+  if(inp.data.sheets)score-=5;
+  if(!inp.data.hosted&&!inp.data.maps)score-=5;
+  score=Math.max(0,score);
+  var verdict=score>=75?"Ready to build":(score>=50?"Build after the data prep":"Decide the scope first");
+  var band=score>=75?"green":(score>=50?"amber":"red");
+
+  var gaps=[];
+  if(!inp.ready.data)gaps.push({label:"Data not cleaned yet",fix:"Clean the data and name the fields in plain words before you build. The app inherits every messy field name."});
+  if(!inp.ready.text)gaps.push({label:"Text and branding not approved",fix:"Get the words and the branding signed off before the build, or the build stops halfway for a rewrite."});
+  if(!inp.ready.owner)gaps.push({label:"No one named to maintain it",fix:"Name the maintainer before launch. An app with no owner is an app that rots."});
+  if(inp.data.nothing)gaps.push({label:"Nothing is published yet",fix:"Publish at least one hosted feature layer first. Nothing in this plan works until the data exists."});
+  if(inp.data.sheets)gaps.push({label:"Spreadsheets to convert",fix:"Convert each spreadsheet to a hosted feature layer and check the field types before you publish."});
+  if(!inp.data.hosted&&!inp.data.maps)gaps.push({label:"No layers and no web map",fix:"Publish the layers and save a web map first. The app is configured on the web map, not on raw data."});
+  if(inp.audience==="field"&&inp.interactions.indexOf("offline")<0&&app!=="fieldmaps")gaps.push({label:"Field crew without offline use",fix:"Tick Works offline. A map app that needs a connection fails at the first dead zone."});
+  if(app==="experience"&&inp.interactions.indexOf("offline")>=0)gaps.push({label:"Experience Builder needs a connection",fix:"An Experience Builder app does not work offline. If the crew must work away from wifi, the job is Field Maps, not Experience Builder."});
+
+  var phases=[["Scope and data prep",0.30],["Build the app",0.40],["Test with the audience",0.15],["Publish and share",0.05],["Handover and maintenance",0.10]].map(function(p,i,a){
+    if(i<a.length-1)return {name:p[0],days:r1(days*p[1])};
+    var used=0;a.slice(0,-1).forEach(function(q){used+=r1(days*q[1]);});
+    return {name:p[0],days:r1(days-used)};
+  });
+
+  var checklist=[
+    "Data published and checked, fields named in plain words",
+    "App built on a copy first, tested, then published",
+    "Sharing set to the audience, and tested as the audience will see it",
+    "Pop-ups written in plain language, no field codes showing",
+    "Tested on a phone as well as a desktop",
+    "One named maintainer, with the login and the edit rights they need",
+    "Launch message sent to the audience, with the link and one line on what it does",
+    "First week of feedback read, and the top fix shipped",
+    "Data refresh schedule written down, with the person who runs it",
+    "Review date set, three months out, to retire or refresh the app"
+  ];
+
+  return {app:app,appName:info.name,why:why,note:note,widgets:widgetsFor(app,inp),widgetsLabel:info.label,
+    score:score,verdict:verdict,band:band,days:days,weeksOne:r1(days/5),weeksTwo:r1(days/10),
+    phases:phases,dataPrep:dataPrepSteps(inp),gaps:gaps,topGaps:gaps.slice(0,3),checklist:checklist};
+}
+/* LOGIC-END */
+
+function checked(id){return document.getElementById(id).checked;}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+var purpose="show",audience="staff";
+
+function setPick(rowId,attr,val){
+  document.querySelectorAll("#"+rowId+" .pick").forEach(function(b){
+    b.classList.toggle("active",b.getAttribute(attr)===val);
+  });
+}
+document.querySelectorAll("#purposeRow .pick").forEach(function(b){
+  b.addEventListener("click",function(){purpose=b.getAttribute("data-purpose");setPick("purposeRow","data-purpose",purpose);});
+});
+document.querySelectorAll("#audienceRow .pick").forEach(function(b){
+  b.addEventListener("click",function(){audience=b.getAttribute("data-audience");setPick("audienceRow","data-audience",audience);});
+});
+setPick("purposeRow","data-purpose",purpose);
+setPick("audienceRow","data-audience",audience);
+
+var PRESETS={
+  parcel:{purpose:"show",audience:"public",data:{hosted:true,maps:true,feeds:false,sheets:false,nothing:false},interactions:["search","filter","list","print"],ready:{data:true,text:true,owner:true}},
+  exec:{purpose:"numbers",audience:"exec",data:{hosted:true,maps:false,feeds:true,sheets:false,nothing:false},interactions:["charts","list"],ready:{data:true,text:true,owner:false}},
+  field:{purpose:"collect",audience:"field",data:{hosted:false,maps:false,feeds:false,sheets:true,nothing:false},interactions:["form","offline"],ready:{data:true,text:false,owner:false}}
+};
+var DATA_IDS={hosted:"dHosted",maps:"dMaps",feeds:"dFeeds",sheets:"dSheets",nothing:"dNothing"};
+var INTER_IDS={search:"iSearch",filter:"iFilter",list:"iList",charts:"iCharts",form:"iForm",swipe:"iSwipe",print:"iPrint",offline:"iOffline"};
+var READY_IDS={data:"rData",text:"rText",owner:"rOwner"};
+function applyPreset(p){
+  purpose=p.purpose;audience=p.audience;
+  setPick("purposeRow","data-purpose",purpose);
+  setPick("audienceRow","data-audience",audience);
+  Object.keys(DATA_IDS).forEach(function(k){document.getElementById(DATA_IDS[k]).checked=!!p.data[k];});
+  Object.keys(INTER_IDS).forEach(function(k){document.getElementById(INTER_IDS[k]).checked=p.interactions.indexOf(k)>=0;});
+  Object.keys(READY_IDS).forEach(function(k){document.getElementById(READY_IDS[k]).checked=!!p.ready[k];});
+  document.getElementById("results").innerHTML="";
+  document.getElementById("msg").textContent="";
+}
+document.querySelectorAll("#presetRow .pick").forEach(function(b){
+  b.addEventListener("click",function(){applyPreset(PRESETS[b.getAttribute("data-preset")]);});
+});
+document.getElementById("clearBtn").addEventListener("click",function(){
+  applyPreset({purpose:"show",audience:"staff",data:{hosted:true,maps:true,feeds:false,sheets:false,nothing:false},interactions:["search","filter","list","print"],ready:{data:true,text:true,owner:true}});
+});
+document.getElementById("printBtn").addEventListener("click",function(){window.print();});
+
+function readInputs(){
+  var data={},inter=[],ready={};
+  Object.keys(DATA_IDS).forEach(function(k){data[k]=checked(DATA_IDS[k]);});
+  Object.keys(INTER_IDS).forEach(function(k){if(checked(INTER_IDS[k]))inter.push(k);});
+  Object.keys(READY_IDS).forEach(function(k){ready[k]=checked(READY_IDS[k]);});
+  return {purpose:purpose,audience:audience,data:data,interactions:inter,ready:ready};
+}
+
+document.getElementById("runBtn").addEventListener("click",function(){
+  var inp=readInputs();
+  var r=computePlan(inp);
+  var h="";
+  h+='<div class="scorecard"><div class="score '+r.band+'">'+r.score+' / 100</div>';
+  h+='<div class="verdict '+r.band+'">'+esc(r.verdict)+'</div>';
+  h+='<p>Build this: <b>'+esc(r.appName)+'</b>. '+r.days+' person-days, about '+r.weeksOne+' weeks for one person or '+r.weeksTwo+' weeks for a team of two.</p></div>';
+  h+='<div class="card gate"><h3>Why '+esc(r.appName)+'</h3>';
+  r.why.forEach(function(w){h+='<p>'+esc(w)+'</p>';});
+  if(r.note)h+='<p><b>Note:</b> '+esc(r.note)+'</p>';
+  h+='</div>';
+  h+='<div class="card"><h3>'+esc(r.widgetsLabel)+'</h3><p>'+r.widgets.map(esc).join(", ")+'</p></div>';
+  h+='<div class="card"><h3>Effort</h3><table><tr><th>Item</th><th>Days</th></tr>';
+  h+='<tr><td><b>Total effort</b></td><td><b>'+r.days+' person-days</b></td></tr>';
+  h+='<tr><td>Calendar time, one person</td><td>'+r.weeksOne+' weeks</td></tr>';
+  h+='<tr><td>Calendar time, team of two</td><td>'+r.weeksTwo+' weeks</td></tr></table></div>';
+  if(r.dataPrep.length){
+    h+='<div class="card"><h3>Data prep, before the build</h3>';
+    r.dataPrep.forEach(function(s){h+='<p>'+esc(s)+'</p>';});
+    h+='</div>';
+  }
+  if(r.gaps.length){
+    h+='<div class="card cause"><h3>Close these gaps first</h3>';
+    r.topGaps.forEach(function(g){h+='<p><b>'+esc(g.label)+'.</b> '+esc(g.fix)+'</p>';});
+    if(r.gaps.length>3)h+='<p>'+(r.gaps.length-3)+' more gap'+(r.gaps.length-3>1?'s':'')+' listed in the checklist below.</p>';
+    h+='</div>';
+  }
+  h+='<div class="card"><h3>Five phases</h3><table><tr><th>Phase</th><th>Days</th></tr>';
+  r.phases.forEach(function(p){h+='<tr><td><b>'+esc(p.name)+'</b></td><td>'+p.days+'</td></tr>';});
+  h+='</table></div>';
+  h+='<div class="card"><h3>Build checklist</h3><ul class="checklist">';
+  r.checklist.forEach(function(c){h+='<li><input type="checkbox"> '+esc(c)+'</li>';});
+  h+='</ul></div>';
+  document.getElementById("results").innerHTML=h;
+  document.querySelectorAll("#results .checklist input").forEach(function(cb){
+    cb.addEventListener("change",function(){cb.parentElement.classList.toggle("done",cb.checked);});
+  });
+  document.getElementById("msg").textContent="";
+  document.getElementById("results").scrollIntoView({behavior:"smooth"});
+});
+</script>
+</body>
+</html>
