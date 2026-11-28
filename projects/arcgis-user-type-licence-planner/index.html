@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArcGIS User Type and Licence Planner: the right licence for every seat, by Janaki Gattu</title>
+<meta name="description" content="A working ArcGIS User Type and Licence Planner by Janaki Gattu. Count your team by what they actually do, and get the cheapest ArcGIS Online user type that covers each job, the annual bill, the biggest cost driver, and the two fixes that cut it fastest. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 6px}
+  h2:first-child{margin-top:0}
+  .secnote{color:var(--muted);margin-bottom:16px}
+  .pickrow{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+  .pick{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--text);cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700;text-align:left;flex:1;min-width:200px}
+  .pick small{display:block;color:var(--muted);font-weight:400;margin-top:4px;line-height:1.45}
+  .pick:hover{border-color:var(--accent)}
+  .pick.active{border-color:var(--accent);background:#052e16}
+  .pickrow.presets .pick{min-width:220px}
+  .clearbtn{background:none;border:1px solid var(--line);border-radius:999px;color:var(--muted);cursor:pointer;font-family:inherit;font-size:.9rem;font-weight:700;padding:9px 20px;margin-top:14px}
+  .clearbtn:hover{color:var(--text);border-color:var(--accent)}
+  .qgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+  @media(max-width:640px){.qgrid{grid-template-columns:1fr}}
+  .q label{display:block;font-weight:700;font-size:.95rem;margin-bottom:6px}
+  .q label span{color:var(--muted);font-weight:400}
+  .q input,.q select{width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;color:var(--text);font-family:inherit;font-size:.95rem;padding:12px 14px}
+  .q input:focus,.q select:focus{outline:2px solid var(--accent);outline-offset:1px}
+  .runbtn{display:inline-block;margin-top:24px;background:var(--accent);color:#052e16;font-weight:800;font-family:inherit;font-size:1rem;border:none;border-radius:999px;padding:13px 28px;cursor:pointer}
+  .runbtn:hover{opacity:.9}
+  .printbtn{display:inline-block;margin-top:24px;margin-left:10px;background:none;border:1px solid var(--line);color:var(--text);font-weight:800;font-family:inherit;font-size:1rem;border-radius:999px;padding:13px 28px;cursor:pointer}
+  .printbtn:hover{border-color:var(--accent)}
+  .msg{color:var(--amber);margin-top:16px;font-weight:700}
+  .scorecard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-top:26px}
+  .scorecard .score{font-size:2.6rem;font-weight:800;line-height:1.1}
+  .scorecard .score.green{color:var(--accent)}
+  .scorecard .score.amber{color:var(--amber)}
+  .scorecard .score.red{color:var(--red)}
+  .scorecard .verdict{font-size:1.25rem;font-weight:800;margin-top:6px}
+  .scorecard .verdict.green{color:var(--accent)}
+  .scorecard .verdict.amber{color:var(--amber)}
+  .scorecard .verdict.red{color:var(--red)}
+  .scorecard p{color:var(--muted);margin-top:6px}
+  .scorecard p b{color:#d4d4d4}
+  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:.95rem}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-size:.85rem;text-transform:uppercase;letter-spacing:.06em}
+  td b{color:#d4d4d4}
+  .pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.85rem;font-weight:700;white-space:nowrap}
+  .pill.green{background:#052e16;color:var(--accent)}
+  .pill.amber{background:#451a03;color:var(--amber)}
+  .pill.red{background:#450a0a;color:var(--red)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-top:16px}
+  .card h3{font-size:1.1rem;margin-bottom:6px}
+  .card p{color:var(--muted)}
+  .card p b{color:#d4d4d4}
+  .card.gate{border-left:3px solid var(--accent)}
+  .card.cause{border-left:3px solid var(--amber)}
+  .checklist{list-style:none;margin-top:10px}
+  .checklist li{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);color:var(--muted)}
+  .checklist li:last-child{border-bottom:none}
+  .checklist input{margin-top:5px;accent-color:var(--accent);width:18px;height:18px;flex:none;cursor:pointer}
+  .checklist li.done{color:var(--text)}
+  .howto{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-top:34px}
+  .howto h3{font-size:1.05rem;margin-bottom:10px}
+  .howto ol{margin-left:20px;color:var(--muted)}
+  .howto li{margin-bottom:8px}
+  .howto li b{color:#d4d4d4}
+  .sources{margin-top:34px;color:var(--faint);font-size:.88rem}
+  .sources a{color:var(--muted)}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;margin-top:20px}
+  footer h2{margin-top:0}
+  footer p{color:var(--muted);max-width:640px}
+  footer p b{color:#d4d4d4}
+  .cta{display:inline-block;margin-top:16px;background:var(--accent);color:#052e16;font-weight:800;text-decoration:none;border-radius:999px;padding:12px 24px}
+  @media print{
+    body{background:#fff;color:#111}
+    header,.pickrow,.clearbtn,.qgrid,.runbtn,.printbtn,.howto,.sources,footer,.back{display:none!important}
+    .scorecard,.card{border:1px solid #ccc}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu</a>
+  <p class="eyebrow">GIS Services &middot; Live &middot; Try It Now</p>
+  <h1>ArcGIS User Type and Licence Planner</h1>
+  <p class="lede">Every ArcGIS Online bill tells the same story: too many people on the wrong licence. Count your team by what they actually do, and this planner names <b>the cheapest user type that covers each job</b>, with the annual bill to prove it.</p>
+  <p class="honest"><b>Runs entirely in your browser.</b> No backend, no API key, no account. Prices are Esri US list prices per user per year, read 23 Nov 2026, and you can edit every rate on this page. Prices move, so <b>confirm the current rates with your Esri representative before you budget</b>. The role mapping follows Esri's own user type rules. Nothing you type is sent or stored anywhere.</p>
+</header>
+<main>
+  <h2>Start with a preset, or count your own team</h2>
+  <p class="secnote">A preset fills in the whole planner so you can see how it works. Change any number after loading one.</p>
+  <div class="pickrow presets" id="presetRow">
+    <button class="pick" type="button" data-preset="small">Small team<small>11 people: 5 viewers, 2 field crew, 1 editor, 2 map builders, 1 analyst. $5,275 a year.</small></button>
+    <button class="pick" type="button" data-preset="department">Department<small>47 people across six roles, with 2 viewers who also edit and 1 creator who needs Pro Standard. $24,075 a year.</small></button>
+    <button class="pick" type="button" data-preset="enterprise">Enterprise<small>155 people: 80 viewers (5 also edit), 30 field crew, 15 editors, 20 map builders (3 need Pro Standard), 8 analysts, 2 advanced analysts. $70,875 a year.</small></button>
+  </div>
+  <button class="clearbtn" id="clearBtn" type="button">Clear all</button>
+
+  <h2>Step 1: Count your team by what they do</h2>
+  <p class="secnote">Count people by their job, not by the licence they hold today. The planner maps each job to the cheapest user type that covers it.</p>
+  <div class="qgrid">
+    <div class="q">
+      <label for="viewers">Executives and decision makers <span>(only view maps and dashboards)</span></label>
+      <input id="viewers" type="number" min="0" value="5">
+    </div>
+    <div class="q">
+      <label for="field">Field crew <span>(collect and edit data with Field Maps and Survey123)</span></label>
+      <input id="field" type="number" min="0" value="2">
+    </div>
+    <div class="q">
+      <label for="editors">Data editors and QA staff <span>(edit features and fix data quality in the office)</span></label>
+      <input id="editors" type="number" min="0" value="1">
+    </div>
+    <div class="q">
+      <label for="builders">Map and app builders <span>(create maps, apps, and dashboards, run basic analysis)</span></label>
+      <input id="builders" type="number" min="0" value="2">
+    </div>
+    <div class="q">
+      <label for="analysts">GIS analysts <span>(need ArcGIS Pro Standard and advanced analysis)</span></label>
+      <input id="analysts" type="number" min="0" value="1">
+    </div>
+    <div class="q">
+      <label for="advanced">Advanced analysts <span>(need ArcGIS Pro Advanced and the extensions)</span></label>
+      <input id="advanced" type="number" min="0" value="0">
+    </div>
+  </div>
+
+  <h2>Step 2: The two jobs that move people up a tier</h2>
+  <p class="secnote">Two small facts change the answer more than any other. A viewer who edits needs Contributor, not Viewer. A creator who needs Pro Standard needs Professional, not Creator.</p>
+  <div class="qgrid">
+    <div class="q">
+      <label for="viewersEdit">Of your viewers, how many also edit data? <span>(each one moves from Viewer to Contributor)</span></label>
+      <input id="viewersEdit" type="number" min="0" value="0">
+    </div>
+    <div class="q">
+      <label for="creatorsPro">Of your map builders, how many need ArcGIS Pro Standard? <span>(each one moves from Creator to Professional)</span></label>
+      <input id="creatorsPro" type="number" min="0" value="0">
+    </div>
+  </div>
+
+  <h2>Step 3: Check the rates</h2>
+  <p class="secnote">Esri US list prices per user per year, read 23 Nov 2026. Edit any rate to match your quote, then press Plan my licences.</p>
+  <div class="qgrid">
+    <div class="q">
+      <label for="rateViewer">Viewer <span>($ per user per year)</span></label>
+      <input id="rateViewer" type="number" min="0" value="125">
+    </div>
+    <div class="q">
+      <label for="rateContributor">Contributor <span>($ per user per year)</span></label>
+      <input id="rateContributor" type="number" min="0" value="250">
+    </div>
+    <div class="q">
+      <label for="rateMobile">Mobile Worker <span>($ per user per year)</span></label>
+      <input id="rateMobile" type="number" min="0" value="400">
+    </div>
+    <div class="q">
+      <label for="rateCreator">Creator <span>($ per user per year)</span></label>
+      <input id="rateCreator" type="number" min="0" value="700">
+    </div>
+    <div class="q">
+      <label for="rateProfessional">Professional <span>($ per user per year)</span></label>
+      <input id="rateProfessional" type="number" min="0" value="2200">
+    </div>
+    <div class="q">
+      <label for="ratePlus">Professional Plus <span>($ per user per year)</span></label>
+      <input id="ratePlus" type="number" min="0" value="4200">
+    </div>
+  </div>
+
+  <button class="runbtn" id="runBtn" type="button">Plan my licences</button>
+  <button class="printbtn" id="printBtn" type="button">Print</button>
+  <p class="msg" id="msg"></p>
+  <div id="results"></div>
+
+  <div class="howto">
+    <h3>How the plan is made</h3>
+    <ol>
+      <li><b>Each job maps to one user type.</b> Viewers view only. Field crew get Mobile Worker. Editors get Contributor. Map builders get Creator. Analysts get Professional. Advanced analysts get Professional Plus.</li>
+      <li><b>The cheapest type that covers the job wins.</b> A Viewer cannot create, edit, share, or analyse. A Contributor cannot analyse, create, or share. A Mobile Worker cannot analyse, create, or share. Creator is the first type that can do all of it, and it includes ArcGIS Pro Basic.</li>
+      <li><b>The two moves in Step 2 are the ones teams get wrong.</b> A viewer who edits on a Viewer licence cannot save the edit. A creator who needs Pro Standard on a Creator licence cannot open the tools. Both get fixed here, before the bill is counted.</li>
+      <li><b>An organisation needs at least one Creator, Professional, or Professional Plus licence.</b> That is the licence that creates the account and administers it. If your plan has none, the planner says so and adds one Creator to the bill.</li>
+      <li><b>ArcGIS Enterprise uses the same user type names.</b> Viewer, Editor, Mobile Worker, Creator, and GIS Professional (Basic, Standard, Advanced) work the same way in Portal. Enterprise licences are priced through your Enterprise Agreement, not these list prices, so take the counts in this plan to your Esri representative.</li>
+    </ol>
+  </div>
+
+  <p class="sources">Sources: Esri ArcGIS Online pricing page (user types, what each includes, the one Creator minimum, and the org admin rule); Esri Portal for ArcGIS documentation on user types, roles, and privileges (Viewer, Editor, Field Worker renamed Mobile Worker in July 2022, Creator, GIS Professional Basic, Standard, and Advanced). Rates are Esri US list prices read 23 Nov 2026: Viewer $125, Contributor $250, Mobile Worker $400, Creator $700, Professional $2,200, Professional Plus $4,200 per user per year, with 0, 250, 250, 500, 500, and 500 credits included. The <a href="https://janakigattu.github.io/projects/arcgis-online-credit-estimator/">ArcGIS Online Credit Estimator</a> prices what those credits get spent on. Role mapping and the two fixes are planning rules from practice, not vendor numbers.</p>
+</main>
+<footer>
+  <h2>Right-size the licences, then run the organisation</h2>
+  <p>The licence bill is the easy part. The work that follows, content that stays tidy, a Portal people can find things in, and a team that knows which licence to ask for, is where the money is really saved. <b>Email Janaki with your headcount, your annual total from this planner, and the user type that costs you most</b>, and she will scope the licence review around it.</p>
+  <a class="cta" href="mailto:gjanaki360@gmail.com?subject=ArcGIS%20User%20Type%20and%20Licence%20Planner">Email Janaki</a>
+  <p style="margin-top:14px"><a href="https://janakigattu.github.io/">Book a session</a> &middot; <a href="https://www.linkedin.com/in/janaki-gis-enterprise">LinkedIn</a></p>
+</footer>
+</div>
+<script>
+// --- PURE LOGIC (extracted and tested in Node; no DOM below this line is used by tests) ---
+var TYPES = [
+  {key: "viewer", name: "Viewer", credits: 0, pro: "No ArcGIS Pro", what: "View maps, dashboards, and apps shared with them. Cannot create, edit, share, or analyse."},
+  {key: "contributor", name: "Contributor", credits: 250, pro: "No ArcGIS Pro", what: "View and edit data shared with them, and check data quality. Cannot analyse, create, or share."},
+  {key: "mobile", name: "Mobile Worker", credits: 250, pro: "No ArcGIS Pro", what: "Collect and edit data in the field with Field Maps and Survey123, share location, record tracks. Cannot analyse, create, or share."},
+  {key: "creator", name: "Creator", credits: 500, pro: "ArcGIS Pro Basic", what: "Create maps, apps, and dashboards, run analysis in the portal, administer users and content."},
+  {key: "professional", name: "Professional", credits: 500, pro: "ArcGIS Pro Standard", what: "Everything in Creator, plus ArcGIS Pro Standard for advanced data management and analysis."},
+  {key: "plus", name: "Professional Plus", credits: 500, pro: "ArcGIS Pro Advanced + extensions", what: "Everything in Professional, plus ArcGIS Pro Advanced and the extension products."}
+];
+var DEFAULT_RATES = {viewer: 125, contributor: 250, mobile: 400, creator: 700, professional: 2200, plus: 4200};
+function clamp(n, lo, hi) { return Math.max(lo, Math.min(hi, n)); }
+function buildPlan(roles, rates) {
+  var viewersEdit = clamp(roles.viewersEdit || 0, 0, roles.viewers || 0);
+  var creatorsPro = clamp(roles.creatorsPro || 0, 0, roles.builders || 0);
+  var counts = {
+    viewer: (roles.viewers || 0) - viewersEdit,
+    mobile: roles.field || 0,
+    contributor: (roles.editors || 0) + viewersEdit,
+    creator: (roles.builders || 0) - creatorsPro,
+    professional: (roles.analysts || 0) + creatorsPro,
+    plus: roles.advanced || 0
+  };
+  var creatorCount = counts.creator + counts.professional + counts.plus;
+  var needsCreator = creatorCount === 0;
+  if (needsCreator) { counts.creator = 1; creatorCount = 1; }
+  var total = 0, users = 0, credits = 0, driver = null;
+  var rows = TYPES.map(function (t) {
+    var n = counts[t.key];
+    var cost = n * rates[t.key];
+    total += cost;
+    users += n;
+    credits += n * t.credits;
+    if (n > 0 && (!driver || cost > driver.cost)) { driver = {name: t.name, cost: cost}; }
+    return {key: t.key, name: t.name, count: n, price: rates[t.key], cost: cost, credits: n * t.credits, pro: t.pro, what: t.what};
+  });
+  if (driver) { driver.share = total > 0 ? driver.cost / total : 0; }
+  var fixes = [];
+  if (counts.plus > 0) {
+    fixes.push({title: "Check every Professional Plus seat", text: "Each Professional Plus seat costs $" + (rates.plus - rates.professional).toLocaleString("en-US") + " a year more than Professional. Keep Plus only where the person actually uses ArcGIS Pro Advanced or the extensions. Moving " + counts.plus + " seat" + (counts.plus === 1 ? "" : "s") + " down saves $" + (counts.plus * (rates.plus - rates.professional)).toLocaleString("en-US") + " a year."});
+  }
+  if (counts.professional > 0) {
+    fixes.push({title: "Check every Professional seat", text: "Each Professional seat costs $" + (rates.professional - rates.creator).toLocaleString("en-US") + " a year more than Creator. Anyone who never uses ArcGIS Pro Standard features belongs on Creator. Moving " + counts.professional + " seat" + (counts.professional === 1 ? "" : "s") + " down saves $" + (counts.professional * (rates.professional - rates.creator)).toLocaleString("en-US") + " a year."});
+  }
+  if (counts.creator > 0) {
+    fixes.push({title: "Check every Creator seat", text: "Each Creator seat costs $" + (rates.creator - rates.viewer).toLocaleString("en-US") + " a year more than Viewer. Anyone who only opens dashboards and maps belongs on Viewer. Moving " + counts.creator + " seat" + (counts.creator === 1 ? "" : "s") + " down saves $" + (counts.creator * (rates.creator - rates.viewer)).toLocaleString("en-US") + " a year."});
+  }
+  if (counts.mobile > 0) {
+    fixes.push({title: "Check every Mobile Worker seat against Creator", text: "Field crew who only collect data need Mobile Worker, not Creator. Each seat moved down from Creator saves $" + (rates.creator - rates.mobile).toLocaleString("en-US") + " a year."});
+  }
+  return {counts: counts, rows: rows, total: total, users: users, credits: credits, driver: driver, fixes: fixes.slice(0, 2), needsCreator: needsCreator, creatorCount: creatorCount};
+}
+function money(n) { return "$" + Math.round(n).toLocaleString("en-US"); }
+// --- DOM BELOW ---
+function num(id) { var v = parseFloat(document.getElementById(id).value); return isNaN(v) || v < 0 ? 0 : Math.floor(v); }
+var PRESETS = {
+  small: {viewers: 5, field: 2, editors: 1, builders: 2, analysts: 1, advanced: 0, viewersEdit: 0, creatorsPro: 0},
+  department: {viewers: 25, field: 8, editors: 4, builders: 6, analysts: 3, advanced: 1, viewersEdit: 2, creatorsPro: 1},
+  enterprise: {viewers: 80, field: 30, editors: 15, builders: 20, analysts: 8, advanced: 2, viewersEdit: 5, creatorsPro: 3}
+};
+function fill(p) {
+  document.getElementById("viewers").value = p.viewers;
+  document.getElementById("field").value = p.field;
+  document.getElementById("editors").value = p.editors;
+  document.getElementById("builders").value = p.builders;
+  document.getElementById("analysts").value = p.analysts;
+  document.getElementById("advanced").value = p.advanced;
+  document.getElementById("viewersEdit").value = p.viewersEdit;
+  document.getElementById("creatorsPro").value = p.creatorsPro;
+  document.getElementById("msg").textContent = "";
+  document.getElementById("results").innerHTML = "";
+}
+document.querySelectorAll("#presetRow .pick").forEach(function (b) {
+  b.addEventListener("click", function () {
+    fill(PRESETS[b.getAttribute("data-preset")]);
+    runPlan();
+  });
+});
+document.getElementById("clearBtn").addEventListener("click", function () {
+  ["viewers", "field", "editors", "builders", "analysts", "advanced", "viewersEdit", "creatorsPro"].forEach(function (id) { document.getElementById(id).value = ""; });
+  document.getElementById("msg").textContent = "";
+  document.getElementById("results").innerHTML = "";
+});
+document.getElementById("printBtn").addEventListener("click", function () { window.print(); });
+function runPlan() {
+  var msg = document.getElementById("msg");
+  var out = document.getElementById("results");
+  var roles = {
+    viewers: num("viewers"), field: num("field"), editors: num("editors"),
+    builders: num("builders"), analysts: num("analysts"), advanced: num("advanced"),
+    viewersEdit: num("viewersEdit"), creatorsPro: num("creatorsPro")
+  };
+  var rates = {
+    viewer: num("rateViewer") || DEFAULT_RATES.viewer,
+    contributor: num("rateContributor") || DEFAULT_RATES.contributor,
+    mobile: num("rateMobile") || DEFAULT_RATES.mobile,
+    creator: num("rateCreator") || DEFAULT_RATES.creator,
+    professional: num("rateProfessional") || DEFAULT_RATES.professional,
+    plus: num("ratePlus") || DEFAULT_RATES.plus
+  };
+  var entered = roles.viewers + roles.field + roles.editors + roles.builders + roles.analysts + roles.advanced;
+  if (entered === 0) { msg.textContent = "Enter your team first."; out.innerHTML = ""; return; }
+  msg.textContent = "";
+  var plan = buildPlan(roles, rates);
+  var rows = plan.rows.filter(function (r) { return r.count > 0; }).map(function (r) {
+    return "<tr><td><b>" + r.name + "</b></td><td>" + r.count + "</td><td>" + money(r.price) + "</td><td><b>" + money(r.cost) + "</b></td><td>" + r.credits.toLocaleString("en-US") + "</td><td>" + r.pro + "</td></tr>";
+  }).join("");
+  var fixesHtml = plan.fixes.length ? plan.fixes.map(function (f) {
+    return '<div class="card cause"><h3>' + f.title + '</h3><p>' + f.text + '</p></div>';
+  }).join("") : '<div class="card gate"><h3>Nothing to cut</h3><p>Every seat is already on the cheapest user type that covers the job.</p></div>';
+  out.innerHTML =
+    '<div class="scorecard"><p class="score green">' + money(plan.total) + '</p>' +
+    '<p class="verdict">' + plan.users + ' licences &middot; ' + plan.credits.toLocaleString("en-US") + ' credits included a year</p>' +
+    '<p>Your right-sized ArcGIS Online bill is <b>' + money(plan.total) + ' a year</b> for <b>' + plan.users + ' people</b>. The biggest cost is <b>' + plan.driver.name + ' at ' + money(plan.driver.cost) + ' a year</b>, ' + Math.round(plan.driver.share * 100) + ' percent of the bill.</p>' +
+    (plan.needsCreator ? '<p><b>One Creator added:</b> an ArcGIS Online organisation needs at least one Creator, Professional, or Professional Plus licence to exist and be administered. Your team had none, so one Creator (' + money(rates.creator) + ' a year) is included in the total above.</p>' : '') +
+    '</div>' +
+    '<div class="card"><h3>Your licences, by user type</h3>' +
+    '<table><tr><th>User type</th><th>Seats</th><th>Price each</th><th>Annual cost</th><th>Credits</th><th>ArcGIS Pro</th></tr>' + rows + '</table>' +
+    '<p style="margin-top:10px">Credits are included with the licence and renew each year. Storage, geocoding, routing, and analysis spend them: the <a href="https://janakigattu.github.io/projects/arcgis-online-credit-estimator/">ArcGIS Online Credit Estimator</a> prices what your team will actually use.</p></div>' +
+    '<div class="card"><h3>What each user type can do</h3>' +
+    '<table><tr><th>User type</th><th>What it covers</th></tr>' + plan.rows.map(function (r) { return "<tr><td><b>" + r.name + "</b></td><td>" + r.what + "</td></tr>"; }).join("") + '</table></div>' +
+    fixesHtml +
+    '<div class="card gate"><h3>Before you buy: a short checklist</h3><ul class="checklist">' +
+    '<li><label><input type="checkbox"> Counted every head by job, not by the licence they hold today</label></li>' +
+    '<li><label><input type="checkbox"> Asked each map builder whether they need ArcGIS Pro Standard</label></li>' +
+    '<li><label><input type="checkbox"> Asked each advanced analyst which Pro extensions they actually use</label></li>' +
+    '<li><label><input type="checkbox"> Confirmed at least one Creator, Professional, or Professional Plus seat for administration</label></li>' +
+    '<li><label><input type="checkbox"> Named the organisation administrator (needs Creator or higher)</label></li>' +
+    '<li><label><input type="checkbox"> Checked the credit allowance against the Credit Estimator</label></li>' +
+    '<li><label><input type="checkbox"> Asked your Esri representative to confirm the current list prices</label></li>' +
+    '<li><label><input type="checkbox"> Planned the annual review: licences follow the job, and jobs change</label></li>' +
+    '</ul></div>';
+  out.querySelectorAll(".checklist input").forEach(function (cb) {
+    cb.addEventListener("change", function () { cb.closest("li").classList.toggle("done", cb.checked); });
+  });
+}
+document.getElementById("runBtn").addEventListener("click", runPlan);
+</script>
+</body>
+</html>
