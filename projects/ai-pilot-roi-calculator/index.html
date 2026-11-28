@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Pilot ROI Calculator: when the pilot pays for itself, by Janaki Gattu</title>
+<meta name="description" content="A working AI Pilot ROI Calculator by Janaki Gattu. Enter what the pilot proved, what the rollout costs, and get the payback in months, the annual net value, and the two levers that move the answer fastest. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 6px}
+  h2:first-child{margin-top:0}
+  .secnote{color:var(--muted);margin-bottom:16px}
+  .presets{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+  .preset{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:10px 18px;color:var(--text);cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700}
+  .preset:hover{border-color:var(--accent)}
+  .preset.active{border-color:var(--accent);background:#052e16}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .field{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .field label{display:block;font-weight:700;font-size:1rem;margin-bottom:2px}
+  .field .hint{color:var(--muted);font-size:.88rem;margin-bottom:10px}
+  .field .hint b{color:#d4d4d4}
+  .field input{width:100%;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:8px;padding:10px 12px;font-size:1rem;font-family:inherit}
+  .field input:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+  .actions{margin-top:26px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer}
+  .btn-dark{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a;border:0;cursor:pointer}
+  .result{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px;margin-top:28px}
+  .result h2{margin-top:0}
+  .pill{display:inline-block;font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:6px}
+  .pill.green{background:#14532d;color:#bbf7d0}
+  .pill.amber{background:#451a03;color:#fde68a}
+  .pill.red{background:#450a0a;color:#fecaca}
+  .big{font-size:2.2rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+  .big small{font-size:1rem;color:var(--muted);font-weight:600}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:18px 0 6px}
+  .stat{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .stat .k{color:var(--faint);font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .stat .v{font-size:1.35rem;font-weight:800;margin-top:2px}
+  .stat .s{color:var(--muted);font-size:.88rem}
+  table{width:100%;border-collapse:collapse;margin-top:14px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);font-size:.95rem}
+  th{color:var(--faint);text-transform:uppercase;letter-spacing:.06em;font-size:.8rem}
+  td.num,th.num{text-align:right;white-space:nowrap}
+  tr.top td{color:#fff;font-weight:700}
+  .result h3{margin:24px 0 8px;font-size:1.1rem}
+  .result p{color:var(--muted)}
+  .result ul,.result ol{margin-left:20px;color:#d4d4d4}
+  .result li{margin-bottom:6px}
+  .result .cta{margin-top:24px}
+  .sources{margin-top:26px;border-top:1px solid var(--line);padding-top:18px}
+  .sources p{font-size:.92rem}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+  @media print{
+    body{background:#fff;color:#000}
+    .noprint{display:none !important}
+    .result,.field,.stat{background:#fff;border-color:#ccc;color:#000}
+    .result p,.secnote,.lede{color:#333}
+    a{color:#000}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu&rsquo;s portfolio</a>
+    <p class="eyebrow">Working calculator &middot; Live demo</p>
+    <h1>AI Pilot ROI Calculator</h1>
+    <p class="lede">The pilot saved hours. The finance question is when it pays for the build. <b>Put the pilot&rsquo;s numbers in, get the payback in months.</b> Enter what the pilot proved, what the rollout costs to run, and what it cost to build, and this calculator gives you the payback, the annual net value, and the two levers that move the answer fastest.</p>
+    <p class="honest"><b>How this calculator works, honestly:</b> it runs entirely in your browser. There is no server, no API key, no account, and nothing you enter leaves this page. The value side is the hours the pilot actually saved, priced at the loaded hourly rate of the people using it, over 48 working weeks a year. The 48 weeks, the review rate, and the verdict bands are planning rules from practice, not vendor numbers. Treat the result as a planning estimate, not a budget sign-off. If the pilot never measured hours saved, measure that first: a payback built on a guess is a guess.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <h2>Start from a preset, or enter your own numbers</h2>
+    <p class="secnote">The presets are typical pilots, not promises. Change any number and the payback follows.</p>
+    <div class="presets noprint">
+      <button type="button" class="preset" id="preset-small">Small team document intake</button>
+      <button type="button" class="preset" id="preset-dept">Department support assistant</button>
+      <button type="button" class="preset" id="preset-regulated">Regulated rollout, review-heavy</button>
+      <button type="button" class="preset" id="preset-clear">Clear all</button>
+    </div>
+
+    <h2>What the pilot proved</h2>
+    <p class="secnote">Use the pilot&rsquo;s measured number, not the hoped-for one. If the pilot saved less than an hour a week per user, say so: the calculator will show it.</p>
+    <div class="grid">
+      <div class="field">
+        <label for="hoursSaved">Hours saved per user per week</label>
+        <p class="hint">Measured in the pilot. The number the pilot was judged on.</p>
+        <input type="number" id="hoursSaved" min="0" step="any" value="2">
+      </div>
+      <div class="field">
+        <label for="pilotUsers">Pilot users</label>
+        <p class="hint">How many people used the assistant in the pilot. For context only.</p>
+        <input type="number" id="pilotUsers" min="0" step="any" value="5">
+      </div>
+    </div>
+
+    <h2>The rollout</h2>
+    <p class="secnote">Not everyone adopts on day one. Price the adoption you expect, not the headcount you have.</p>
+    <div class="grid">
+      <div class="field">
+        <label for="totalUsers">Total users at full rollout</label>
+        <p class="hint">Everyone who would use the assistant once it is live.</p>
+        <input type="number" id="totalUsers" min="0" step="any" value="50">
+      </div>
+      <div class="field">
+        <label for="adoption">Adoption at full rollout (%)</label>
+        <p class="hint">Share of those users who actually use it weekly. 70 is a fair plan; 100 is a hope.</p>
+        <input type="number" id="adoption" min="0" max="100" step="any" value="80">
+      </div>
+      <div class="field">
+        <label for="hourlyRate">Loaded hourly rate of users ($)</label>
+        <p class="hint">What an hour of a user&rsquo;s time costs, loaded. 85 is a typical professional rate.</p>
+        <input type="number" id="hourlyRate" min="0" step="any" value="85">
+      </div>
+    </div>
+
+    <h2>What it costs to run</h2>
+    <p class="secnote">The model bill is usually the small line. The human review is usually the big one. Price both.</p>
+    <div class="grid">
+      <div class="field">
+        <label for="monthlyModel">Model and hosting cost per month ($)</label>
+        <p class="hint">The model bill plus hosting. Price it with the <a href="https://janakigattu.github.io/projects/ai-cost-estimator/">AI Cost Estimator</a> if you have not yet.</p>
+        <input type="number" id="monthlyModel" min="0" step="any" value="400">
+      </div>
+      <div class="field">
+        <label for="reviewHours">Review hours per week</label>
+        <p class="hint">Human time checking answers before they go out. One in five answers reviewed is the usual plan.</p>
+        <input type="number" id="reviewHours" min="0" step="any" value="5">
+      </div>
+      <div class="field">
+        <label for="reviewRate">Loaded hourly rate of reviewers ($)</label>
+        <p class="hint">Usually the same as the users&rsquo; rate. Raise it if reviewers are senior staff.</p>
+        <input type="number" id="reviewRate" min="0" step="any" value="85">
+      </div>
+    </div>
+
+    <h2>What it cost to build</h2>
+    <p class="secnote">The one-off cost the payback has to recover. Training is part of it: an assistant nobody was trained on is an assistant nobody uses.</p>
+    <div class="grid">
+      <div class="field">
+        <label for="buildCost">One-off build cost ($)</label>
+        <p class="hint">Design, build, and the harness around it: tools, data, logging, and the fallback.</p>
+        <input type="number" id="buildCost" min="0" step="any" value="25000">
+      </div>
+      <div class="field">
+        <label for="trainingHours">Training hours per user</label>
+        <p class="hint">Hours to train each user, priced at their loaded rate. Two hours is a fair plan.</p>
+        <input type="number" id="trainingHours" min="0" step="any" value="2">
+      </div>
+    </div>
+
+    <div class="actions noprint">
+      <button type="button" class="btn" id="calcBtn">Work out the payback</button>
+      <button type="button" class="btn-dark" id="printBtn">Print the summary</button>
+    </div>
+
+    <div class="result" id="result" aria-live="polite">
+      <p class="secnote">Press &ldquo;Work out the payback&rdquo; to see the result.</p>
+    </div>
+
+    <div class="sources">
+      <h2>Sources and method</h2>
+      <p><b>Judge the pilot on a verifiable outcome.</b> The Harness Readiness Check from Janaki&rsquo;s article <a href="https://www.linkedin.com/pulse/harness-engineering-discipline-separates-real-ai-agents-from-janaki-gattu/">Harness Engineering: The Discipline That Separates Real AI Agents from Demos</a> (LinkedIn, 24 Nov 2026): build the harness around one small task and judge the pilot on a number you can measure. Hours saved per user per week is that number here.</p>
+      <p><b>Price the running bill first.</b> The <a href="https://janakigattu.github.io/projects/ai-cost-estimator/">AI Cost Estimator</a> prices the model, the human review, and the hosting on the same usage. Use its monthly total as the model and hosting line above.</p>
+      <p><b>Plan the rollout in waves.</b> The <a href="https://janakigattu.github.io/projects/ai-assistant-rollout-planner/">AI Assistant Rollout Planner</a> sizes the waves and checks the review capacity the rollout needs. The one-in-five review rate and the 48 working weeks a year are the same planning rules used there.</p>
+      <p><b>What is a planning rule, and what is a fact.</b> The 48 working weeks, the verdict bands (6, 12, and 24 months), and the adoption sensitivity are planning rules from practice, stated here so you can argue with them. The hours saved, the rates, and the costs are yours: change them and the answer changes.</p>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Built by <a href="https://janakigattu.github.io/">Janaki Gattu</a>, Enterprise GIS Consultant and GIS Solutions Architect. Questions, or a pilot to price? <a href="mailto:gjanaki360@gmail.com?subject=AI%20pilot%20ROI">Email Janaki</a> or <a href="https://janakigattu.github.io/#book">book a session</a>.</p>
+  </div>
+</footer>
+
+<script>
+var WEEKS = 48;
+
+function num(id){
+  var v = parseFloat(document.getElementById(id).value);
+  return isFinite(v) && v > 0 ? v : 0;
+}
+function money(n){
+  return "$" + Math.round(n).toLocaleString("en-US");
+}
+function months(n){
+  return (Math.round(n * 10) / 10).toLocaleString("en-US");
+}
+
+function calcROI(inp){
+  var adoption = Math.min(100, Math.max(0, inp.adoption)) / 100;
+  var annualHours = inp.hoursSaved * inp.totalUsers * adoption * WEEKS;
+  var grossValue = annualHours * inp.hourlyRate;
+  var annualRunning = inp.monthlyModel * 12 + inp.reviewHours * WEEKS * inp.reviewRate;
+  var trainingCost = inp.totalUsers * inp.trainingHours * inp.hourlyRate;
+  var oneOff = inp.buildCost + trainingCost;
+  var netAnnual = grossValue - annualRunning;
+  var yearOneCost = oneOff + annualRunning;
+  var yearOneNet = grossValue - yearOneCost;
+  var roiYearOne = yearOneCost > 0 ? (yearOneNet / yearOneCost) * 100 : 0;
+  var payback = null;
+  if (netAnnual > 0 && oneOff > 0) payback = oneOff / (netAnnual / 12);
+  if (netAnnual > 0 && oneOff === 0) payback = 0;
+  var verdict = "Does not pay yet";
+  var band = "red";
+  if (payback !== null && payback <= 6){ verdict = "Pays for itself fast"; band = "green"; }
+  else if (payback !== null && payback <= 12){ verdict = "Pays for itself in year one"; band = "green"; }
+  else if (payback !== null && payback <= 24){ verdict = "Pays for itself in year two"; band = "amber"; }
+  var biggest = "Build cost";
+  var biggestAmt = inp.buildCost;
+  if (trainingCost > biggestAmt){ biggest = "Training"; biggestAmt = trainingCost; }
+  if (annualRunning > biggestAmt){ biggest = "Annual running cost"; biggestAmt = annualRunning; }
+  var half = calcAtAdoption(inp, adoption / 2);
+  var full = calcAtAdoption(inp, 1);
+  var reviewHalf = calcWithReview(inp, inp.reviewHours / 2);
+  return {
+    adoption: adoption, annualHours: annualHours, grossValue: grossValue,
+    annualRunning: annualRunning, trainingCost: trainingCost, oneOff: oneOff,
+    netAnnual: netAnnual, yearOneCost: yearOneCost, yearOneNet: yearOneNet,
+    roiYearOne: roiYearOne, payback: payback, verdict: verdict, band: band,
+    biggest: biggest, biggestAmt: biggestAmt,
+    halfAdoption: half, fullAdoption: full, reviewHalf: reviewHalf
+  };
+}
+function calcAtAdoption(inp, adoption){
+  var annualHours = inp.hoursSaved * inp.totalUsers * adoption * WEEKS;
+  var grossValue = annualHours * inp.hourlyRate;
+  var annualRunning = inp.monthlyModel * 12 + inp.reviewHours * WEEKS * inp.reviewRate;
+  var netAnnual = grossValue - annualRunning;
+  var oneOff = inp.buildCost + inp.totalUsers * inp.trainingHours * inp.hourlyRate;
+  var payback = null;
+  if (netAnnual > 0 && oneOff > 0) payback = oneOff / (netAnnual / 12);
+  if (netAnnual > 0 && oneOff === 0) payback = 0;
+  return { annualHours: annualHours, grossValue: grossValue, netAnnual: netAnnual, payback: payback };
+}
+function calcWithReview(inp, reviewHours){
+  var annualRunning = inp.monthlyModel * 12 + reviewHours * WEEKS * inp.reviewRate;
+  var netAnnual = inp.hoursSaved * inp.totalUsers * (Math.min(100, Math.max(0, inp.adoption)) / 100) * WEEKS * inp.hourlyRate - annualRunning;
+  var oneOff = inp.buildCost + inp.totalUsers * inp.trainingHours * inp.hourlyRate;
+  var payback = null;
+  if (netAnnual > 0 && oneOff > 0) payback = oneOff / (netAnnual / 12);
+  if (netAnnual > 0 && oneOff === 0) payback = 0;
+  return { payback: payback };
+}
+
+function readInputs(){
+  return {
+    hoursSaved: num("hoursSaved"), pilotUsers: num("pilotUsers"),
+    totalUsers: num("totalUsers"), adoption: num("adoption"),
+    hourlyRate: num("hourlyRate"), monthlyModel: num("monthlyModel"),
+    reviewHours: num("reviewHours"), reviewRate: num("reviewRate"),
+    buildCost: num("buildCost"), trainingHours: num("trainingHours")
+  };
+}
+
+function render(){
+  var inp = readInputs();
+  var r = calcROI(inp);
+  var el = document.getElementById("result");
+  var paybackHtml;
+  if (r.payback === null){
+    paybackHtml = "<p class=\"big\">No payback at this adoption</p><p>The running cost is higher than the value the hours saved are worth, so the build cost never comes back. Raise the hours saved, raise adoption, or cut the review hours.</p>";
+  } else if (r.payback === 0){
+    paybackHtml = "<p class=\"big\">0 months</p><p>There is no one-off cost to recover, so the assistant pays for itself from the first month it runs at a profit.</p>";
+  } else {
+    paybackHtml = "<p class=\"big\">" + months(r.payback) + " <small>months to pay back the build</small></p><p>The one-off build and training cost of " + money(r.oneOff) + " comes back out of the net annual value of " + money(r.netAnnual) + ".</p>";
+  }
+  var halfHtml;
+  if (r.halfAdoption.payback === null){
+    halfHtml = "at half the adoption (" + Math.round(r.adoption * 50) + "%) the assistant loses " + money(-r.halfAdoption.netAnnual) + " a year and never pays back.";
+  } else {
+    halfHtml = "at half the adoption (" + Math.round(r.adoption * 50) + "%) the payback stretches to " + months(r.halfAdoption.payback) + " months on " + money(r.halfAdoption.netAnnual) + " a year net.";
+  }
+  var lever1 = "";
+  if (r.payback !== null && r.fullAdoption.payback !== null){
+    lever1 = "<li><b>Raise adoption to 100%:</b> payback falls to " + months(r.fullAdoption.payback) + " months, saving " + months(r.payback - r.fullAdoption.payback) + " months.</li>";
+  } else if (r.payback === null && r.fullAdoption.payback !== null){
+    lever1 = "<li><b>Raise adoption to 100%:</b> the assistant starts paying back, in " + months(r.fullAdoption.payback) + " months.</li>";
+  } else {
+    lever1 = "<li><b>Raise adoption to 100%:</b> still no payback. Adoption is not the problem; the hours saved or the running cost is.</li>";
+  }
+  var lever2 = "";
+  if (r.payback !== null && r.reviewHalf.payback !== null){
+    lever2 = "<li><b>Halve the review hours:</b> payback falls to " + months(r.reviewHalf.payback) + " months, saving " + months(r.payback - r.reviewHalf.payback) + " months. Only do this if the answers are good enough to review less.</li>";
+  } else if (r.payback === null && r.reviewHalf.payback !== null){
+    lever2 = "<li><b>Halve the review hours:</b> the assistant starts paying back, in " + months(r.reviewHalf.payback) + " months. Check the answers are good enough first.</li>";
+  } else {
+    lever2 = "<li><b>Halve the review hours:</b> still no payback. The review cost is not what is sinking it.</li>";
+  }
+  el.innerHTML =
+    "<p class=\"pill " + r.band + "\">" + r.verdict + "</p>" +
+    paybackHtml +
+    "<div class=\"stats\">" +
+    "<div class=\"stat\"><p class=\"k\">Hours saved a year</p><p class=\"v\">" + Math.round(r.annualHours).toLocaleString("en-US") + "</p><p class=\"s\">At " + Math.round(r.adoption * 100) + "% adoption, 48 weeks</p></div>" +
+    "<div class=\"stat\"><p class=\"k\">Gross value a year</p><p class=\"v\">" + money(r.grossValue) + "</p><p class=\"s\">Hours saved at " + money(inp.hourlyRate) + " an hour</p></div>" +
+    "<div class=\"stat\"><p class=\"k\">Running cost a year</p><p class=\"v\">" + money(r.annualRunning) + "</p><p class=\"s\">Model, hosting, and review</p></div>" +
+    "<div class=\"stat\"><p class=\"k\">Net value a year</p><p class=\"v\">" + money(r.netAnnual) + "</p><p class=\"s\">Gross value minus running cost</p></div>" +
+    "<div class=\"stat\"><p class=\"k\">Year-one net</p><p class=\"v\">" + money(r.yearOneNet) + "</p><p class=\"s\">After build, training, and running</p></div>" +
+    "<div class=\"stat\"><p class=\"k\">ROI in year one</p><p class=\"v\">" + Math.round(r.roiYearOne) + "%</p><p class=\"s\">Year-one net over year-one cost</p></div>" +
+    "</div>" +
+    "<h3>Where the money goes</h3>" +
+    "<table><tr><th>Line</th><th class=\"num\">Amount</th></tr>" +
+    "<tr><td>Value of hours saved a year</td><td class=\"num\">" + money(r.grossValue) + "</td></tr>" +
+    "<tr><td>Model and hosting a year</td><td class=\"num\">" + money(inp.monthlyModel * 12) + "</td></tr>" +
+    "<tr><td>Human review a year</td><td class=\"num\">" + money(inp.reviewHours * WEEKS * inp.reviewRate) + "</td></tr>" +
+    "<tr class=\"top\"><td>Net value a year</td><td class=\"num\">" + money(r.netAnnual) + "</td></tr>" +
+    "<tr><td>One-off build cost</td><td class=\"num\">" + money(inp.buildCost) + "</td></tr>" +
+    "<tr><td>Training (" + inp.totalUsers + " users, " + inp.trainingHours + " hours each)</td><td class=\"num\">" + money(r.trainingCost) + "</td></tr>" +
+    "<tr class=\"top\"><td>Year-one cost in total</td><td class=\"num\">" + money(r.yearOneCost) + "</td></tr>" +
+    "</table>" +
+    "<h3>What moves the answer fastest</h3>" +
+    "<p>The biggest year-one cost is the <b>" + r.biggest + "</b> at " + money(r.biggestAmt) + ". And " + halfHtml + "</p>" +
+    "<ul>" + lever1 + lever2 + "</ul>" +
+    "<h3>What to do next</h3>" +
+    "<ol>" +
+    "<li>If the pilot never measured hours saved, measure it for two weeks before you trust this number.</li>" +
+    "<li>Take the payback to the budget conversation: it is the one number finance will ask for.</li>" +
+    "<li>If the payback is over a year, price the rollout in waves with the <a href=\"https://janakigattu.github.io/projects/ai-assistant-rollout-planner/\">AI Assistant Rollout Planner</a> and re-run this with the first wave only.</li>" +
+    "</ol>" +
+    "<p class=\"cta\">Email Janaki with the payback in months and the net value a year, and she will check the numbers against the pilot before the budget goes in: <a href=\"mailto:gjanaki360@gmail.com?subject=AI%20pilot%20ROI\">gjanaki360@gmail.com</a>, or <a href=\"https://janakigattu.github.io/#book\">book a session</a>.</p>";
+}
+
+var PRESETS = {
+  "preset-small": { hoursSaved: 3, pilotUsers: 5, totalUsers: 15, adoption: 80, hourlyRate: 85, monthlyModel: 150, reviewHours: 2, reviewRate: 85, buildCost: 12000, trainingHours: 1 },
+  "preset-dept": { hoursSaved: 2, pilotUsers: 8, totalUsers: 80, adoption: 70, hourlyRate: 75, monthlyModel: 600, reviewHours: 10, reviewRate: 75, buildCost: 45000, trainingHours: 2 },
+  "preset-regulated": { hoursSaved: 1.5, pilotUsers: 6, totalUsers: 120, adoption: 50, hourlyRate: 95, monthlyModel: 900, reviewHours: 25, reviewRate: 95, buildCost: 60000, trainingHours: 3 }
+};
+function setPreset(p){
+  var ids = ["hoursSaved","pilotUsers","totalUsers","adoption","hourlyRate","monthlyModel","reviewHours","reviewRate","buildCost","trainingHours"];
+  ids.forEach(function(id){ document.getElementById(id).value = p[id]; });
+  document.querySelectorAll(".preset").forEach(function(b){ b.classList.remove("active"); });
+  render();
+}
+function clearAll(){
+  var ids = ["hoursSaved","pilotUsers","totalUsers","adoption","hourlyRate","monthlyModel","reviewHours","reviewRate","buildCost","trainingHours"];
+  ids.forEach(function(id){ document.getElementById(id).value = 0; });
+  document.querySelectorAll(".preset").forEach(function(b){ b.classList.remove("active"); });
+  render();
+}
+document.getElementById("calcBtn").addEventListener("click", render);
+document.getElementById("printBtn").addEventListener("click", function(){ window.print(); });
+Object.keys(PRESETS).forEach(function(id){
+  document.getElementById(id).addEventListener("click", function(){
+    document.querySelectorAll(".preset").forEach(function(b){ b.classList.remove("active"); });
+    document.getElementById(id).classList.add("active");
+    setPreset(PRESETS[id]);
+  });
+});
+document.getElementById("preset-clear").addEventListener("click", clearAll);
+render();
+</script>
+</body>
+</html>
