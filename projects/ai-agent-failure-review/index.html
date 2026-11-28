@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent Failure Review: find why your assistant got it wrong, by Janaki Gattu</title>
+<meta name="description" content="A working AI Agent Failure Review demo by Janaki Gattu. Describe the failure, answer six questions, and get the severity, the most likely root cause, the fix mapped to a harness gate, and five retest checks that must pass before the assistant goes back live. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:34px 0 6px}
+  h2:first-child{margin-top:0}
+  .secnote{color:var(--muted);margin-bottom:16px}
+  .pickrow{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 4px}
+  .pick{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--text);cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700;text-align:left;flex:1;min-width:200px}
+  .pick small{display:block;color:var(--muted);font-weight:400;margin-top:4px;line-height:1.45}
+  .pick:hover{border-color:var(--accent)}
+  .pick.active{border-color:var(--accent);background:#052e16}
+  .pickrow.presets .pick{min-width:220px}
+  .clearbtn{background:none;border:1px solid var(--line);border-radius:999px;color:var(--muted);cursor:pointer;font-family:inherit;font-size:.9rem;font-weight:700;padding:9px 20px;margin-top:14px}
+  .clearbtn:hover{color:var(--text);border-color:var(--accent)}
+  .qgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+  @media(max-width:640px){.qgrid{grid-template-columns:1fr}}
+  .q label{display:block;font-weight:700;font-size:.95rem;margin-bottom:6px}
+  .q label span{color:var(--muted);font-weight:400}
+  .q input,.q select{width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;color:var(--text);font-family:inherit;font-size:.95rem;padding:12px 14px}
+  .q input:focus,.q select:focus{outline:2px solid var(--accent);outline-offset:1px}
+  .runbtn{display:inline-block;margin-top:24px;background:var(--accent);color:#052e16;font-weight:800;font-family:inherit;font-size:1rem;border:none;border-radius:999px;padding:13px 28px;cursor:pointer}
+  .runbtn:hover{opacity:.9}
+  .printbtn{display:inline-block;margin-top:24px;margin-left:10px;background:none;border:1px solid var(--line);color:var(--text);font-weight:800;font-family:inherit;font-size:1rem;border-radius:999px;padding:13px 28px;cursor:pointer}
+  .printbtn:hover{border-color:var(--accent)}
+  .msg{color:var(--amber);margin-top:16px;font-weight:700}
+  .scorecard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-top:26px}
+  .scorecard .score{font-size:2.6rem;font-weight:800;line-height:1.1}
+  .scorecard .score.green{color:var(--accent)}
+  .scorecard .score.amber{color:var(--amber)}
+  .scorecard .score.red{color:var(--red)}
+  .scorecard .verdict{font-size:1.25rem;font-weight:800;margin-top:6px}
+  .scorecard .verdict.green{color:var(--accent)}
+  .scorecard .verdict.amber{color:var(--amber)}
+  .scorecard .verdict.red{color:var(--red)}
+  .scorecard p{color:var(--muted);margin-top:6px}
+  .scorecard p b{color:#d4d4d4}
+  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:.95rem}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-size:.85rem;text-transform:uppercase;letter-spacing:.06em}
+  td b{color:#d4d4d4}
+  .pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.85rem;font-weight:700;white-space:nowrap}
+  .pill.green{background:#052e16;color:var(--accent)}
+  .pill.amber{background:#451a03;color:var(--amber)}
+  .pill.red{background:#450a0a;color:var(--red)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-top:16px}
+  .card h3{font-size:1.1rem;margin-bottom:6px}
+  .card p{color:var(--muted)}
+  .card p b{color:#d4d4d4}
+  .card.gate{border-left:3px solid var(--accent)}
+  .card.cause{border-left:3px solid var(--amber)}
+  .checklist{list-style:none;margin-top:10px}
+  .checklist li{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);color:var(--muted)}
+  .checklist li:last-child{border-bottom:none}
+  .checklist input{margin-top:5px;accent-color:var(--accent);width:18px;height:18px;flex:none;cursor:pointer}
+  .checklist li.done{color:var(--text)}
+  .retestcount{font-weight:800;margin-top:12px}
+  .retestcount.green{color:var(--accent)}
+  .howto{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-top:34px}
+  .howto h3{font-size:1.05rem;margin-bottom:10px}
+  .howto ol{margin-left:20px;color:var(--muted)}
+  .howto li{margin-bottom:8px}
+  .howto li b{color:#d4d4d4}
+  .sources{margin-top:34px;color:var(--faint);font-size:.88rem}
+  .sources a{color:var(--muted)}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;margin-top:20px}
+  footer h2{margin-top:0}
+  footer p{color:var(--muted);max-width:640px}
+  footer p b{color:#d4d4d4}
+  .cta{display:inline-block;margin-top:16px;background:var(--accent);color:#052e16;font-weight:800;text-decoration:none;border-radius:999px;padding:12px 24px}
+  @media print{
+    body{background:#fff;color:#111}
+    header,.pickrow,.clearbtn,.qgrid,.runbtn,.printbtn,.howto,.sources,footer,.back{display:none!important}
+    .scorecard,.card{border:1px solid #ccc}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu</a>
+  <p class="eyebrow">AI Services &middot; Live &middot; Try It Now</p>
+  <h1>AI Agent Failure Review</h1>
+  <p class="lede">The wrong answer is already out. The question now is <b>why it happened, what fixes it, and how you prove the fix</b> before the assistant goes back live. Answer six questions and this review names the severity, the most likely root cause, and the five checks that must pass first.</p>
+  <p class="honest"><b>Runs entirely in your browser.</b> No backend, no API key, no account. The three presets are <b>sample incidents</b>, built to show three different failure shapes. The severity bands, scoring weights, and sample incidents are <b>planning rules from practice</b>, not vendor numbers. Nothing you type is sent or stored anywhere.</p>
+</header>
+<main>
+  <h2>Start with a preset, or describe your own failure</h2>
+  <p class="secnote">A preset fills in the whole review so you can see how it works. Change any answer after loading one.</p>
+  <div class="pickrow presets" id="presetRow">
+    <button class="pick" type="button" data-preset="ungrounded">Ungrounded answer in production<small>The helpdesk assistant answered a zoning question from the wrong document, and the wrong answer reached users before anyone noticed.</small></button>
+    <button class="pick" type="button" data-preset="citation">Invented citation<small>The permit assistant cited a policy section that does not exist, with a confident tone and a made up number.</small></button>
+    <button class="pick" type="button" data-preset="cost">Cost spike overnight<small>The intake assistant ran a loop overnight and the bill jumped. The logs show exactly what happened, and it has not repeated.</small></button>
+  </div>
+  <button class="clearbtn" id="clearBtn" type="button">Clear all</button>
+
+  <h2>Step 1: What went wrong?</h2>
+  <p class="secnote">Pick the failure type that fits best. If two fit, pick the one the user saw first.</p>
+  <div class="pickrow" id="typeRow">
+    <button class="pick" type="button" data-type="invented-fact">Invented fact<small>The answer stated a number, date, or name that is in no source document.</small></button>
+    <button class="pick" type="button" data-type="wrong-doc">Ungrounded answer from the wrong document<small>The answer came from a document that does not apply to the question.</small></button>
+    <button class="pick" type="button" data-type="refused-valid">Refused a valid question<small>The assistant refused to answer a question it should have answered.</small></button>
+    <button class="pick" type="button" data-type="slow-timeout">Slow or timed out<small>The answer took too long, or the run never finished.</small></button>
+    <button class="pick" type="button" data-type="cost-spike">Cost spike<small>One run, or one day of runs, cost far more than expected.</small></button>
+    <button class="pick" type="button" data-type="restricted-leak">Restricted content leaked<small>The assistant shared something it was never meant to share: a password, personal data, or an internal document.</small></button>
+    <button class="pick" type="button" data-type="tool-failed">Tool call failed<small>A tool the assistant needed returned an error, and the run failed with it.</small></button>
+  </div>
+
+  <h2>Step 2: Six short questions</h2>
+  <p class="secnote">These six answers set the severity. When in doubt, pick the worse option: a review that overstates the risk is safer than one that understates it.</p>
+  <div class="qgrid">
+    <div class="q">
+      <label for="qAssistant">Which assistant failed?</label>
+      <input id="qAssistant" type="text" placeholder="e.g. GIS Helpdesk Assistant" autocomplete="off">
+    </div>
+    <div class="q">
+      <label for="qRepro">Does it happen again if you ask the same question?</label>
+      <select id="qRepro">
+        <option value="yes">Yes, it happens every time</option>
+        <option value="no">No, a one-off</option>
+        <option value="unsure">Not sure yet</option>
+      </select>
+    </div>
+    <div class="q">
+      <label for="qUsers">How many users saw the wrong answer?</label>
+      <select id="qUsers">
+        <option value="one">Just me</option>
+        <option value="few">A few people (2 to 10)</option>
+        <option value="many">Many people (11 to 100)</option>
+        <option value="hundreds">Hundreds or more</option>
+      </select>
+    </div>
+    <div class="q">
+      <label for="qLogs">What do the logs show?</label>
+      <select id="qLogs">
+        <option value="full">Full logs: prompt, tool calls, answer, cost</option>
+        <option value="partial">Partial logs: some of the run</option>
+        <option value="none">No logs at all</option>
+      </select>
+    </div>
+    <div class="q">
+      <label for="qDocset">Which document set does it answer from?</label>
+      <select id="qDocset">
+        <option value="policy">Policy documents</option>
+        <option value="permit">Permit and planning code</option>
+        <option value="arcgis">ArcGIS Enterprise documentation</option>
+        <option value="mix">A mix of several sets</option>
+        <option value="none">No document set: it answers from the model alone</option>
+      </select>
+    </div>
+    <div class="q">
+      <label for="qWhen">When did it happen?</label>
+      <select id="qWhen">
+        <option value="today">Today</option>
+        <option value="week">This week</option>
+        <option value="older">More than a week ago</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="runbtn" id="runBtn" type="button">Run the review</button>
+  <button class="printbtn" id="printBtn" type="button">Print the review</button>
+  <p class="msg" id="msg" role="status"></p>
+
+  <div id="results"></div>
+
+  <div class="howto">
+    <h3>How to run a failure review in your team</h3>
+    <ol>
+      <li><b>Review the incident, not the person.</b> The question is what the harness allowed, not who asked the question. A review that blames the user will miss the next failure.</li>
+      <li><b>Reproduce it before you fix it.</b> If you cannot make the failure happen again on demand, you cannot prove the fix worked. The retest set below is the proof.</li>
+      <li><b>Fix the gate, not the answer.</b> Correcting one wrong answer leaves the next one waiting. The fix names the harness gate that failed, so the same shape of failure cannot come back.</li>
+      <li><b>Keep the assistant down until the retest passes.</b> A Stop it now verdict means the assistant stays offline, or in a human reviewed queue, until all five retest checks pass.</li>
+      <li><b>Write the incident down.</b> The failure type, the root cause, and the fix go into the run log. The next review starts from that record instead of from memory.</li>
+    </ol>
+  </div>
+
+  <div class="sources">
+    <p>Sources and next steps: the six harness gates come from Janaki's article <a href="https://www.linkedin.com/pulse/harness-engineering-discipline-separates-production-ai-janaki-gattu-jdcdc/" target="_blank" rel="noopener">Harness Engineering: The Discipline That Separates Production AI from Expensive Demos</a>. The failure causes match the <a href="../ai-agent-monitoring-dashboard/index.html">AI Agent Monitoring Dashboard</a> on this portfolio, and the retest checks reuse the twelve tests from the <a href="../ai-agent-eval-harness/index.html">AI Agent Eval Harness</a>. Severity bands, scoring weights, and sample incidents are planning rules from practice, not vendor numbers.</p>
+  </div>
+</main>
+<footer>
+  <h2>Bring Janaki the failure, and the root cause this review named</h2>
+  <p>Email her the failure type, the root cause, and the severity, and she will help you fix the harness gate behind it and build the retest set your assistant has to pass before it goes back live. Or book a session at <b>janakigattu.github.io</b>.</p>
+  <a class="cta" href="mailto:gjanaki360@gmail.com?subject=AI%20agent%20failure%20review">Email Janaki about the failure &rarr;</a>
+</footer>
+</div>
+<script>
+var GATES = {
+  1: "Gate 1: name every tool and data source the agent can reach",
+  2: "Gate 2: write access scoped to the task",
+  3: "Gate 3: what happens on the third failed call",
+  4: "Gate 4: isolated execution, with explicit limits",
+  5: "Gate 5: cost ceiling, and what stops the run",
+  6: "Gate 6: reconstruct the full run from logs"
+};
+var FAILURE_TYPES = {
+  "invented-fact": {
+    label: "Invented fact",
+    base: 20,
+    cause: "The assistant answered from memory, not from a source.",
+    reasoning: "When the documents had no answer, or the assistant did not check them, it filled the gap with a plausible invention. A confident tone made it worse: nothing in the answer flagged that the fact had no source. This is the failure the eval harness groundedness tests are built to catch before users see it.",
+    gate: 1,
+    fix: "Require a cited source for every factual claim, and make 'I do not know' the answer when no source covers the question. Add the invented fact to the eval harness test set so the next release has to pass it.",
+    retest: [
+      "Ask the same question three times. Every answer must cite the same source section and give the same fact.",
+      "Ask a question no document answers. The assistant must say it does not know, with no invented detail.",
+      "Take 10 recent answers and check each cited passage. All 10 must match the document exactly.",
+      "Ask a question whose answer is a number. The number must match the document, digit for digit.",
+      "Run the eval harness groundedness tests. All three must pass."
+    ]
+  },
+  "wrong-doc": {
+    label: "Ungrounded answer from the wrong document",
+    base: 20,
+    cause: "The assistant picked the wrong document from the set.",
+    reasoning: "The retrieval step returned a document that looks related but does not govern the question, and the answer was built on it. The document set was too broad, or the question was never scoped to the right source. The answer may be factually right for the wrong document, which makes it harder to spot than an outright invention.",
+    gate: 1,
+    fix: "Scope retrieval to the document set that governs the question, and add a source check before the answer is used: the cited document must be one the question belongs to. Add the failed question to the eval harness test set.",
+    retest: [
+      "Ask the question that failed. The answer must cite the document that actually governs it.",
+      "Ask three questions that look similar but belong to different documents. Each answer must cite the right one.",
+      "Ask a question covered by two documents. The answer must name both, or say which one governs.",
+      "Remove the wrong document from the test set and ask again. The assistant must not rebuild the same wrong answer from another source.",
+      "Run the eval harness groundedness tests. All three must pass."
+    ]
+  },
+  "refused-valid": {
+    label: "Refused a valid question",
+    base: 10,
+    cause: "The refusal rule is wider than the policy.",
+    reasoning: "The assistant refused because the guardrail treated a valid question as off limits, or because it could not find the permitted source and refused instead of saying so. A refusal that gives no reason teaches users the assistant cannot be trusted with ordinary questions.",
+    gate: 1,
+    fix: "Add the document that answers this question to the grounded set, and test refusals with valid questions, not only with forbidden ones. A refusal must quote the policy it rests on.",
+    retest: [
+      "Ask the question that was refused. It must be answered, with the source cited.",
+      "Ask five more valid questions from the same document. None may be refused.",
+      "Ask the three forbidden questions from the safety tests. All three must still be refused.",
+      "Ask a borderline question, one that is valid but close to the line. The answer must explain its reasoning, not just refuse.",
+      "Run the eval harness safety tests. All three must pass, and the valid questions must pass too."
+    ]
+  },
+  "slow-timeout": {
+    label: "Slow or timed out",
+    base: 10,
+    cause: "A tool call ran long and there was no fallback.",
+    reasoning: "One slow service held the whole run. The harness had no timeout, no retry budget, and no fallback, so the user waited and then got nothing. Slow answers lose users before the answer is read.",
+    gate: 3,
+    fix: "Set a timeout on the slow tool, add a retry budget with backoff, and define the fallback: a cached result, a second source, or a partial answer with the gap labelled.",
+    retest: [
+      "Run the question that timed out five times. Every run must finish inside the latency limit.",
+      "Take the slowest tool out of service in a test run. The assistant must fall back, not hang.",
+      "Ask a long question end to end. It must answer in under 3 seconds, or say what it is still doing.",
+      "Run 100 questions in a batch. None may time out, and the average latency must stay under the limit.",
+      "Run the eval harness cost and speed tests. All three must pass."
+    ]
+  },
+  "cost-spike": {
+    label: "Cost spike",
+    base: 15,
+    cause: "No cost ceiling stopped the run.",
+    reasoning: "A loop or a long context run kept spending because nothing in the harness said stop. The bill is the symptom. The cause is a run with no ceiling and no per-run budget.",
+    gate: 5,
+    fix: "Set a per-run token budget and a daily cost ceiling that stops new runs when it is hit, not one that only warns. Add a loop guard: the run stops after a set number of steps and reports what it was doing.",
+    retest: [
+      "Run the question that spiked 100 times. The total cost must stay under the per-run budget.",
+      "Set the daily cost ceiling to the planned limit and run a full day of traffic. The ceiling must stop new runs, not just warn.",
+      "Run the longest question in the test set. Its token count must stay under the 500 token limit.",
+      "Check the cost per 1,000 runs. It must be under the $25 budget.",
+      "Run the eval harness cost and speed tests. All three must pass."
+    ]
+  },
+  "restricted-leak": {
+    label: "Restricted content leaked",
+    base: 30,
+    cause: "The assistant could reach data it was never meant to share.",
+    reasoning: "The restricted content was inside the document set, or inside a tool the assistant could reach, so the assistant treated it as fair game. Access was never scoped to the task, and no check stopped the answer before it reached the user. This is the one failure where the fix cannot wait for the next release.",
+    gate: 2,
+    fix: "Take the restricted content out of the document set, or mark it so the assistant cannot cite it, and scope the assistant's access to the task alone. Add a pre-send check that blocks answers containing restricted patterns, and tell the affected users what was shared.",
+    retest: [
+      "Ask for the restricted content again, in three different wordings. All three must be refused.",
+      "Ask for it indirectly, as part of a larger question. It must still be refused.",
+      "Check the document set. The restricted content must be out of it, or marked so the assistant cannot cite it.",
+      "Ask five ordinary questions. All five must be answered normally, so the fix did not break the assistant.",
+      "Run the eval harness safety tests. All three must pass."
+    ]
+  },
+  "tool-failed": {
+    label: "Tool call failed",
+    base: 15,
+    cause: "The tool failed and the run had no fallback.",
+    reasoning: "The tool returned an error and the harness had no plan for that: no retry, no second source, no honest partial answer. The run failed with the tool instead of around it.",
+    gate: 3,
+    fix: "Give the tool a retry budget with backoff, then a fallback: a second source, a cached result, or a partial answer that labels the gap. Log the error with the tool name and the input that caused it.",
+    retest: [
+      "Run the question that failed five times with the tool working. All five must complete.",
+      "Take the tool out of service in a test run. The assistant must retry, then fall back, and say what it could not verify.",
+      "Call the tool with bad input. The assistant must handle the error, not pass it to the user raw.",
+      "Run the full test set with the slowest tool delayed by 5 seconds. No run may fail for that reason alone.",
+      "Run the eval harness. The groundedness and accuracy tests must all pass with the fallback in place."
+    ]
+  }
+};
+var PRESETS = {
+  ungrounded: {type: "wrong-doc", assistant: "GIS Helpdesk Assistant", repro: "yes", users: "many", logs: "partial", docset: "mix", when: "today"},
+  citation: {type: "invented-fact", assistant: "Permit Questions Assistant", repro: "yes", users: "few", logs: "full", docset: "policy", when: "week"},
+  cost: {type: "cost-spike", assistant: "Document Intake Assistant", repro: "no", users: "one", logs: "full", docset: "mix", when: "today"}
+};
+var PREVENTION = [
+  "Run the eval harness on every release, before the assistant ships.",
+  "Log every run: prompt, tool calls, retrieved passages, answer, cost. If you cannot replay it, you cannot review it.",
+  "Keep a cost ceiling that stops runs, not one that only warns.",
+  "Scope the document set to the task. If a document is not needed, it does not belong in the run.",
+  "Test refusals with valid questions, not only with forbidden ones.",
+  "Watch the monitoring dashboard weekly. A drifting success rate is the next incident, early."
+];
+var REPRO_POINTS = {yes: 15, no: 0, unsure: 5};
+var USERS_POINTS = {one: 0, few: 5, many: 15, hundreds: 25};
+var LOGS_POINTS = {full: 0, partial: 5, none: 10};
+var WHEN_POINTS = {today: 5, week: 2, older: 0};
+var DOCSET_LABELS = {policy: "Policy documents", permit: "Permit and planning code", arcgis: "ArcGIS Enterprise documentation", mix: "A mix of several sets", none: "No document set: it answers from the model alone"};
+var REPRO_LABELS = {yes: "Reproducible, every time", no: "One-off", unsure: "Not sure yet"};
+var USERS_LABELS = {one: "Just me", few: "A few people (2 to 10)", many: "Many people (11 to 100)", hundreds: "Hundreds or more"};
+var LOGS_LABELS = {full: "Full logs", partial: "Partial logs", none: "No logs at all"};
+var WHEN_LABELS = {today: "Today", week: "This week", older: "More than a week ago"};
+function severityFor(score) {
+  if (score >= 50) return {label: "Stop it now", cls: "red", text: "Take the assistant offline, or restrict it to a human reviewed queue, until the fix is in and the retest set passes."};
+  if (score >= 30) return {label: "Fix before the next release", cls: "amber", text: "The assistant can stay up, but this fix ships before anything else does. Do not let it ride along with the next feature."};
+  return {label: "Watch it", cls: "green", text: "One failure, limited blast radius. Fix it, add the retest checks to the harness, and watch the dashboard for a repeat."};
+}
+function reviewFailure(input) {
+  var ft = FAILURE_TYPES[input.type];
+  if (!ft) return null;
+  var breakdown = [];
+  breakdown.push({label: "Failure type: " + ft.label, points: ft.base});
+  breakdown.push({label: "Reproducibility: " + REPRO_LABELS[input.repro], points: REPRO_POINTS[input.repro] || 0});
+  breakdown.push({label: "Users affected: " + USERS_LABELS[input.users], points: USERS_POINTS[input.users] || 0});
+  breakdown.push({label: "Logs: " + LOGS_LABELS[input.logs], points: LOGS_POINTS[input.logs] || 0});
+  breakdown.push({label: "When: " + WHEN_LABELS[input.when], points: WHEN_POINTS[input.when] || 0});
+  var docsetPoints = input.docset === "none" ? 5 : 0;
+  breakdown.push({label: "Document set: " + DOCSET_LABELS[input.docset], points: docsetPoints});
+  var score = 0;
+  breakdown.forEach(function(b){ score += b.points; });
+  var sev = severityFor(score);
+  return {
+    type: input.type,
+    assistant: input.assistant || "Unnamed assistant",
+    failureLabel: ft.label,
+    score: score,
+    severity: sev,
+    breakdown: breakdown,
+    cause: ft.cause,
+    reasoning: ft.reasoning,
+    gate: ft.gate,
+    gateName: GATES[ft.gate],
+    fix: ft.fix,
+    retest: ft.retest.slice(),
+    prevention: PREVENTION.slice()
+  };
+}
+// ===== RENDERING (browser only) =====
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+var selectedType = null;
+function collectInput() {
+  return {
+    type: selectedType,
+    assistant: document.getElementById("qAssistant").value.trim(),
+    repro: document.getElementById("qRepro").value,
+    users: document.getElementById("qUsers").value,
+    logs: document.getElementById("qLogs").value,
+    docset: document.getElementById("qDocset").value,
+    when: document.getElementById("qWhen").value
+  };
+}
+function renderReview(r) {
+  var el = document.getElementById("results");
+  var rows = r.breakdown.map(function(b){
+    return "<tr><td>" + esc(b.label) + "</td><td><b>+" + b.points + "</b></td></tr>";
+  }).join("");
+  var retestItems = r.retest.map(function(c, i){
+    return '<li><input type="checkbox" class="retest-check" id="retest-' + i + '"><label for="retest-' + i + '">' + esc(c) + "</label></li>";
+  }).join("");
+  var preventionItems = r.prevention.map(function(p){
+    return "<li>" + esc(p) + "</li>";
+  }).join("");
+  el.innerHTML =
+    '<div class="scorecard"><div class="score ' + r.severity.cls + '">' + r.score + ' / 100</div>'
+    + '<div class="verdict ' + r.severity.cls + '">' + r.severity.label + '</div>'
+    + '<p><b>' + esc(r.assistant) + '</b>: ' + esc(r.failureLabel) + '. ' + r.severity.text + '</p></div>'
+    + '<h2>How the score was built</h2>'
+    + '<p class="secnote">Each answer adds points. Higher means more urgent: more users, a repeatable failure, and no logs all push the score up.</p>'
+    + '<table><thead><tr><th>Factor</th><th>Points</th></tr></thead><tbody>' + rows + '</tbody></table>'
+    + '<div class="card cause"><h3>Most likely root cause</h3><p><b>' + esc(r.cause) + '</b></p><p>' + esc(r.reasoning) + '</p></div>'
+    + '<div class="card gate"><h3>The fix: ' + esc(r.gateName) + '</h3><p>' + esc(r.fix) + '</p></div>'
+    + '<h2>Retest set: five checks before it goes back live</h2>'
+    + '<p class="secnote">Tick each check as it passes. The assistant goes back live only when all five pass.</p>'
+    + '<div class="card"><ul class="checklist">' + retestItems + '</ul>'
+    + '<p class="retestcount" id="retestCount">0 of 5 checks passed.</p></div>'
+    + '<h2>Prevention checklist</h2>'
+    + '<p class="secnote">Six habits that stop the next failure of this shape.</p>'
+    + '<div class="card"><ul class="checklist">' + preventionItems + '</ul></div>';
+  document.querySelectorAll(".retest-check").forEach(function(box){
+    box.addEventListener("change", function(){
+      var done = document.querySelectorAll(".retest-check:checked").length;
+      var count = document.getElementById("retestCount");
+      count.textContent = done + " of 5 checks passed." + (done === 5 ? " Ready to go back live." : "");
+      count.classList.toggle("green", done === 5);
+      var li = box.closest("li");
+      if (li) li.classList.toggle("done", box.checked);
+    });
+  });
+  el.scrollIntoView({behavior: "smooth", block: "start"});
+}
+function setType(type) {
+  selectedType = type;
+  document.querySelectorAll("#typeRow .pick").forEach(function(b){
+    b.classList.toggle("active", b.getAttribute("data-type") === type);
+  });
+}
+function applyPreset(name) {
+  var p = PRESETS[name];
+  if (!p) return;
+  setType(p.type);
+  document.getElementById("qAssistant").value = p.assistant;
+  document.getElementById("qRepro").value = p.repro;
+  document.getElementById("qUsers").value = p.users;
+  document.getElementById("qLogs").value = p.logs;
+  document.getElementById("qDocset").value = p.docset;
+  document.getElementById("qWhen").value = p.when;
+  document.getElementById("msg").textContent = "";
+  renderReview(reviewFailure(collectInput()));
+}
+function clearAll() {
+  selectedType = null;
+  document.querySelectorAll("#typeRow .pick").forEach(function(b){ b.classList.remove("active"); });
+  document.querySelectorAll("#presetRow .pick").forEach(function(b){ b.classList.remove("active"); });
+  document.getElementById("qAssistant").value = "";
+  document.getElementById("qRepro").value = "yes";
+  document.getElementById("qUsers").value = "one";
+  document.getElementById("qLogs").value = "full";
+  document.getElementById("qDocset").value = "policy";
+  document.getElementById("qWhen").value = "today";
+  document.getElementById("results").innerHTML = "";
+  document.getElementById("msg").textContent = "";
+}
+if (typeof document !== "undefined" && document.getElementById) {
+  document.querySelectorAll("#typeRow .pick").forEach(function(btn){
+    btn.addEventListener("click", function(){ setType(btn.getAttribute("data-type")); });
+  });
+  document.querySelectorAll("#presetRow .pick").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      document.querySelectorAll("#presetRow .pick").forEach(function(b){ b.classList.remove("active"); });
+      btn.classList.add("active");
+      applyPreset(btn.getAttribute("data-preset"));
+    });
+  });
+  document.getElementById("clearBtn").addEventListener("click", clearAll);
+  document.getElementById("printBtn").addEventListener("click", function(){ window.print(); });
+  document.getElementById("runBtn").addEventListener("click", function(){
+    var msg = document.getElementById("msg");
+    if (!selectedType) {
+      msg.textContent = "Pick a failure type first.";
+      return;
+    }
+    msg.textContent = "";
+    renderReview(reviewFailure(collectInput()));
+  });
+}
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {FAILURE_TYPES: FAILURE_TYPES, GATES: GATES, PRESETS: PRESETS, PREVENTION: PREVENTION, reviewFailure: reviewFailure, severityFor: severityFor};
+}
+</script>
+</body>
+</html>
