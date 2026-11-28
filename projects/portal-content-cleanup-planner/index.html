@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal Content Cleanup Planner: a working planner by Janaki Gattu</title>
+<meta name="description" content="A working Portal Content Cleanup Planner by Janaki Gattu. Count what is in your ArcGIS Enterprise Portal or ArcGIS Online organisation and get the archive, delete, and reassign lists, the storage you get back, a content health score, and a phased cleanup plan. Runs entirely in your browser.">
+<style>
+  :root{--bg:#0a0a0a;--bg2:#111;--card:#161616;--text:#f5f5f5;--muted:#a3a3a3;--faint:#737373;--line:#262626;--accent:#4ade80;--amber:#fbbf24;--red:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  header{padding:40px 0 28px;border-bottom:1px solid var(--line)}
+  .back{color:var(--muted);text-decoration:none;font-size:.92rem}
+  .back:hover{color:var(--text)}
+  .eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;margin:22px 0 10px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+  .lede{color:var(--muted);max-width:680px;font-size:1.05rem}
+  .lede b{color:#d4d4d4}
+  .honest{margin-top:18px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;color:var(--muted);font-size:.92rem}
+  .honest b{color:var(--accent)}
+  main{padding:28px 0 64px}
+  h2{font-size:1.35rem;margin:28px 0 8px}
+  h3{font-size:1.1rem;margin:22px 0 8px}
+  p{color:var(--muted)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px 28px;margin-top:16px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+  .field label{display:block;font-weight:700;font-size:.95rem;margin-bottom:4px}
+  .field p{font-size:.88rem;margin-bottom:6px}
+  .field input,.field select{width:100%;background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:10px;padding:11px 14px;font-size:1rem}
+  .field input:focus,.field select:focus{outline:2px solid var(--accent);outline-offset:1px}
+  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--accent);color:#052e16;border:0;cursor:pointer}
+  .btn-dark{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;background:var(--text);color:#0a0a0a;border:0;cursor:pointer}
+  .btn-outline{display:inline-block;text-decoration:none;font-weight:700;border-radius:999px;padding:13px 26px;font-size:1rem;border:1px solid #525252;color:var(--text);background:none;cursor:pointer;margin-left:10px}
+  .presetrow{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+  .preset{background:var(--bg2);border:1px solid #404040;color:var(--text);border-radius:999px;padding:9px 18px;font-size:.95rem;cursor:pointer}
+  .preset:hover{border-color:var(--accent)}
+  .preset.active{border-color:var(--accent);color:var(--accent)}
+  .score{font-size:3rem;font-weight:800;line-height:1;color:var(--accent)}
+  .score.amber{color:var(--amber)}
+  .score.red{color:var(--red)}
+  .pill{display:inline-block;font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:6px}
+  .pill.green{background:#14532d;color:#bbf7d0}
+  .pill.amber{background:#451a03;color:#fde68a}
+  .pill.red{background:#450a0a;color:#fecaca}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:16px}
+  .kpi{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .kpi .n{font-size:1.6rem;font-weight:800;line-height:1.1}
+  .kpi .l{font-size:.88rem;color:var(--muted);margin-top:4px}
+  table{width:100%;border-collapse:collapse;margin-top:12px;font-size:.95rem}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:700}
+  td.num,th.num{text-align:right}
+  ul,ol{margin-left:20px;color:#d4d4d4}
+  li{margin-bottom:6px}
+  .warn{background:#1c1005;border:1px solid #713f12;border-radius:12px;padding:14px 18px;color:#fde68a;font-size:.95rem;margin-top:16px}
+  .warn b{color:#fbbf24}
+  .cta{margin-top:24px}
+  .note{font-size:.9rem;color:var(--faint);margin-top:10px}
+  .result h2{margin-top:0}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--faint);font-size:.92rem}
+  footer a{color:var(--muted);text-decoration:none}
+  @media print{.btn,.btn-dark,.btn-outline,.presetrow,#formcard{display:none}body{background:#fff;color:#111}.card{border-color:#ccc}header{border-color:#ccc}}
+  @media (max-width:600px){.btn-outline{margin-left:0;margin-top:10px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="back" href="https://janakigattu.github.io/">&larr; Back to Janaki Gattu&rsquo;s portfolio</a>
+    <p class="eyebrow">Working planner &middot; Live demo</p>
+    <h1>Portal Content Cleanup Planner</h1>
+    <p class="lede">Every Portal grows a junk drawer: test maps from 2019, apps nobody opens, layers owned by people who left years ago. <b>This planner counts what is in yours, names what can go, and puts the cleanup in order.</b></p>
+    <p class="honest"><b>How this planner works, honestly:</b> it runs entirely in your browser. There is no server, no API key, no account, and nothing you enter leaves this page. The counts come from you, so pull them from your Portal first: Content, My organization, filter by item type, and sort by modified date. Storage reclaimed is an estimate from the share of items flagged, not a measured number, so confirm it against the item report before you quote it.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <div class="card" id="formcard">
+      <h2 style="margin-top:0">What is in your Portal?</h2>
+      <p>Start with a preset, or enter your own counts. The planner works for ArcGIS Enterprise Portal and for ArcGIS Online: pick your platform, because what deletion means is different on each.</p>
+      <div class="presetrow" id="presets">
+        <button class="preset active" type="button" data-preset="small">Small organisation</button>
+        <button class="preset" type="button" data-preset="dept">Department</button>
+        <button class="preset" type="button" data-preset="large">Large enterprise</button>
+        <button class="preset" type="button" data-preset="clear">Clear all</button>
+      </div>
+
+      <h3>Items by type</h3>
+      <div class="grid">
+        <div class="field"><label for="in-maps">Web maps</label><p>Web maps, including maps inside apps.</p><input id="in-maps" type="number" min="0" value="60"></div>
+        <div class="field"><label for="in-apps">Web apps</label><p>Experience Builder, Dashboards, and other apps.</p><input id="in-apps" type="number" min="0" value="40"></div>
+        <div class="field"><label for="in-feature">Hosted feature services</label><p>Hosted feature layers and their views.</p><input id="in-feature" type="number" min="0" value="50"></div>
+        <div class="field"><label for="in-tile">Hosted tile and scene layers</label><p>Tile layers, scene layers, and their caches.</p><input id="in-tile" type="number" min="0" value="5"></div>
+        <div class="field"><label for="in-dash">Dashboards</label><p>ArcGIS Dashboards, counted separately from apps.</p><input id="in-dash" type="number" min="0" value="15"></div>
+        <div class="field"><label for="in-story">StoryMaps</label><p>ArcGIS StoryMaps stories.</p><input id="in-story" type="number" min="0" value="10"></div>
+        <div class="field"><label for="in-note">Notebooks</label><p>ArcGIS Notebooks.</p><input id="in-note" type="number" min="0" value="5"></div>
+        <div class="field"><label for="in-file">Files</label><p>Documents, images, and other uploaded files.</p><input id="in-file" type="number" min="0" value="80"></div>
+        <div class="field"><label for="in-other">Other items</label><p>Everything else: geoprocessing tools, services, and the rest.</p><input id="in-other" type="number" min="0" value="35"></div>
+      </div>
+
+      <h3>How old, how used, who owns it</h3>
+      <div class="grid">
+        <div class="field"><label for="in-stale">Not modified in 12 months or more</label><p>Items whose last edit is a year or older.</p><input id="in-stale" type="number" min="0" value="60"></div>
+        <div class="field"><label for="in-noview">No views in the last 180 days</label><p>Items nobody opened in six months. Check the item views on the item page.</p><input id="in-noview" type="number" min="0" value="50"></div>
+        <div class="field"><label for="in-private">Shared to nobody</label><p>Private items, visible only to the owner.</p><input id="in-private" type="number" min="0" value="40"></div>
+        <div class="field"><label for="in-departed">Owned by people who left</label><p>Items whose owner no longer works here.</p><input id="in-departed" type="number" min="0" value="15"></div>
+        <div class="field"><label for="in-untagged">No tags at all</label><p>Items with no tags, so search cannot find them.</p><input id="in-untagged" type="number" min="0" value="80"></div>
+        <div class="field"><label for="in-storage">Storage used (GB)</label><p>Total storage the organisation is using, from the status page.</p><input id="in-storage" type="number" min="0" step="0.1" value="40"></div>
+      </div>
+
+      <h3>Platform</h3>
+      <div class="grid">
+        <div class="field"><label for="in-platform">Where does this content live?</label><p>Deletion works differently on each. Enterprise has no recycle bin.</p>
+          <select id="in-platform">
+            <option value="enterprise" selected>ArcGIS Enterprise Portal</option>
+            <option value="online">ArcGIS Online</option>
+          </select>
+        </div>
+      </div>
+
+      <p style="margin-top:20px"><button class="btn" id="planbtn" type="button">Plan my cleanup</button></p>
+      <p class="note">The delete list is an estimate. The planner cannot see which items sit in all three groups at once, so it takes the smallest of the three counts: stale, no views, and shared to nobody. Run the item report to confirm the exact list before anything is deleted.</p>
+    </div>
+
+    <div class="card result" id="result" style="display:none"></div>
+
+    <div class="card">
+      <h2 style="margin-top:0">How the planner decides</h2>
+      <p>Four lists, in the order a careful admin works through them:</p>
+      <ol>
+        <li><b>Archive:</b> stale items that are shared or viewed. They are not junk, they are just old. Move them to an archive folder or group first, and watch for a month. Nothing is lost if someone still needs one.</li>
+        <li><b>Delete:</b> stale, unviewed, and shared to nobody. That combination is the safest delete list a planner can produce without seeing the items. Even so, each one gets an owner check first.</li>
+        <li><b>Reassign:</b> items owned by people who left. Reassign them to a named owner or a service account before they become orphans nobody can edit or delete.</li>
+        <li><b>Retag:</b> items with no tags. Tagging is the cheapest fix in the whole plan: ten minutes a day for a week, and search starts working again.</li>
+      </ol>
+      <h3>What deletion means on your platform</h3>
+      <p><b>ArcGIS Enterprise:</b> there is no recycle bin. A deleted item is gone, and the only way back is a WebGISDR restore of the whole organisation, which also loses anything created since the last backup. That is why this plan archives first, confirms with the owner second, and deletes last. Turn on delete protection for the items that must never be deleted by accident.</p>
+      <p><b>ArcGIS Online:</b> deleted items go to the recycle bin for 14 days, and the owner or an administrator can restore them in that window. Restored items come back private, with no metadata, categories, or folder, so a restore is a rescue, not an undo. Items in the recycle bin still use storage, so the space only comes back after the 14 days.</p>
+      <h3>Where the numbers come from</h3>
+      <p>The health score is five parts of 20: stale share, no-view share, private share, departed-owner share, and untagged share. The effort is planning rules from practice, not Esri numbers: 0.02 person-days to archive an item, 0.05 to confirm and delete one, 0.1 to reassign one, and 0.01 to tag one. The phased plan is sized from those totals.</p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Sources</h2>
+      <ul>
+        <li>Esri Support: <a href="https://support.esri.com/en-us/knowledge-base/faq-can-deleted-items-be-recovered-in-arcgis-enterprise-000031852" target="_blank" rel="noopener">Can deleted items be recovered in ArcGIS Enterprise?</a> Deleted items cannot be recovered; WebGISDR restore is the only way back. Enable delete protection to avoid accidental deletion.</li>
+        <li>Esri Blog: <a href="https://www.esri.com/arcgis-blog/products/arcgis-online/announcements/recycle-bin-what-you-need-to-know" target="_blank" rel="noopener">Recycle bin: what you need to know</a> ArcGIS Online, June 2024. Deleted items are restorable for 14 days; restored items lose metadata and sharing and come back private.</li>
+        <li>Esri Developer: <a href="https://developers.arcgis.com/rest/users-groups-and-items/recycle-bin-reference/" target="_blank" rel="noopener">Recycle bin reference</a> The recycle bin is enabled by default for organisations created after the June 2024 update.</li>
+        <li>On this portfolio: the <a href="https://janakigattu.github.io/projects/webgisdr-backup-recovery-planner/">WebGISDR Backup and Recovery Planner</a> for the backup that makes a delete safe, and the <a href="https://janakigattu.github.io/projects/enterprise-gis-health-check-agent/">Enterprise GIS Health Check Agent</a> for the wider health check this cleanup sits inside.</li>
+      </ul>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Portal Content Cleanup Planner: a working planner by <a href="https://www.linkedin.com/in/janaki-gis-enterprise" target="_blank" rel="noopener">Janaki Gattu</a>, Enterprise GIS Consultant &amp; GIS Solutions Architect. Questions about your own Portal? <a href="mailto:gjanaki360@gmail.com?subject=Portal%20Content%20Cleanup%20Planner">Email gjanaki360@gmail.com</a> with your total item count and the storage you would get back, or <a href="https://janakigattu.github.io/">book a session</a>.</p>
+  </div>
+</footer>
+
+<script>
+var TYPE_FIELDS = ["in-maps","in-apps","in-feature","in-tile","in-dash","in-story","in-note","in-file","in-other"];
+
+var PRESETS = {
+  small: {maps:60, apps:40, feature:50, tile:5, dash:15, story:10, note:5, file:80, other:35, stale:60, noview:50, priv:40, departed:15, untagged:80, storage:40, platform:"enterprise"},
+  dept: {maps:300, apps:250, feature:400, tile:40, dash:120, story:60, note:40, file:500, other:290, stale:700, noview:550, priv:420, departed:180, untagged:800, storage:320, platform:"enterprise"},
+  large: {maps:1500, apps:1200, feature:2000, tile:200, dash:600, story:300, note:200, file:2500, other:1500, stale:3800, noview:3000, priv:2200, departed:900, untagged:4000, storage:1800, platform:"online"}
+};
+
+function num(id){ var v = parseFloat(document.getElementById(id).value); return isNaN(v) || v < 0 ? 0 : v; }
+
+function readInputs(){
+  return {
+    maps:num("in-maps"), apps:num("in-apps"), feature:num("in-feature"), tile:num("in-tile"),
+    dash:num("in-dash"), story:num("in-story"), note:num("in-note"), file:num("in-file"), other:num("in-other"),
+    stale:num("in-stale"), noview:num("in-noview"), priv:num("in-private"), departed:num("in-departed"),
+    untagged:num("in-untagged"), storage:num("in-storage"),
+    platform:document.getElementById("in-platform").value
+  };
+}
+
+function clampCount(v, total){ return Math.min(Math.max(0, Math.round(v)), total); }
+
+function computePlan(i){
+  var total = i.maps + i.apps + i.feature + i.tile + i.dash + i.story + i.note + i.file + i.other;
+  total = Math.round(total);
+  if(total === 0){
+    return {total:0, score:0, verdict:"No items entered", band:"red", del:0, archive:0, reassign:0, retag:0, reclaimed:0, days:0, weeks1:0, weeks2:0, stale:0, noview:0, priv:0, departed:0, untagged:0, storage:0, platform:i.platform};
+  }
+  var stale = clampCount(i.stale, total);
+  var noview = clampCount(i.noview, total);
+  var priv = clampCount(i.priv, total);
+  var departed = clampCount(i.departed, total);
+  var untagged = clampCount(i.untagged, total);
+  var del = Math.min(stale, noview, priv);
+  var archive = stale - del;
+  var reassign = departed;
+  var retag = untagged;
+  var reclaimed = i.storage * (del / total);
+  var score = Math.round(
+    20 * (1 - stale / total) +
+    20 * (1 - noview / total) +
+    20 * (1 - priv / total) +
+    20 * (1 - departed / total) +
+    20 * (1 - untagged / total)
+  );
+  var verdict, band;
+  if(score >= 80){ verdict = "Tidy"; band = "green"; }
+  else if(score >= 50){ verdict = "Needs a cleanup pass"; band = "amber"; }
+  else { verdict = "Cleanup overdue"; band = "red"; }
+  var days = archive * 0.02 + del * 0.05 + reassign * 0.1 + retag * 0.01;
+  days = Math.round(days * 10) / 10;
+  var weeks1 = Math.round(days / 5 * 10) / 10;
+  var weeks2 = Math.round(days / 10 * 10) / 10;
+  return {total:total, score:score, verdict:verdict, band:band, del:del, archive:archive, reassign:reassign, retag:retag, reclaimed:reclaimed, days:days, weeks1:weeks1, weeks2:weeks2, stale:stale, noview:noview, priv:priv, departed:departed, untagged:untagged, storage:i.storage, platform:i.platform};
+}
+
+function fmt(n){ return n.toLocaleString("en-US"); }
+function fmtGB(n){ return (Math.round(n * 10) / 10).toLocaleString("en-US"); }
+
+function render(r){
+  var el = document.getElementById("result");
+  if(r.total === 0){
+    el.innerHTML = "<h2>Enter your item counts first</h2><p>The planner needs at least one item. Pick a preset above, or count your items in the Portal: Content, My organization, filter by item type, sort by modified date.</p>";
+    el.style.display = "block";
+    el.scrollIntoView({behavior:"smooth"});
+    return;
+  }
+  var delNote = r.platform === "enterprise"
+    ? "ArcGIS Enterprise has no recycle bin, so these deletions are permanent. Confirm each one with its owner, and check the item dependencies first: a hosted feature service may feed views and apps that still work."
+    : "ArcGIS Online sends deleted items to the recycle bin for 14 days, so a mistaken delete can be restored. Restored items come back private with no metadata, so treat the bin as a rescue, not an undo.";
+  var phases = [
+    ["Phase 1, week 1: protect and report", "Turn on delete protection for the items that must never be deleted. Run the item report and confirm the delete list against it. Tell owners what is coming."],
+    ["Phase 2, weeks 1 to 2: archive the stale and shared", fmt(r.archive) + " items move to an archive folder or group. Leave them there for a month and watch for anyone asking for one back."],
+    ["Phase 3, weeks 2 to 3: confirm the delete list", "Each of the " + fmt(r.del) + " delete candidates gets an owner check. No owner, no delete. Items with no owner go to the reassign list first."],
+    ["Phase 4, weeks 3 to 4: reassign and retag", fmt(r.reassign) + " items move to a named owner or a service account. " + fmt(r.retag) + " items get tags, ten minutes a day until the backlog is gone."],
+    ["Phase 5: delete, then write the rule", "Delete the confirmed list. " + delNote + " Then write the content policy down: who reviews what, how often, and what stale means here, so the junk drawer does not fill up again."]
+  ];
+  var html = "";
+  html += "<h2>Your cleanup plan</h2>";
+  html += "<p class=\"score " + (r.band === "green" ? "" : r.band) + "\">" + r.score + "<span style=\"font-size:1.4rem\"> / 100</span></p>";
+  html += "<p><span class=\"pill " + r.band + "\">" + r.verdict + "</span></p>";
+  html += "<p>" + fmt(r.total) + " items in total. " + fmt(r.stale) + " not modified in a year, " + fmt(r.noview) + " with no views in six months, " + fmt(r.priv) + " shared to nobody, " + fmt(r.departed) + " owned by people who left, " + fmt(r.untagged) + " with no tags.</p>";
+  html += "<div class=\"kpis\">";
+  html += "<div class=\"kpi\"><div class=\"n\">" + fmt(r.del) + "</div><div class=\"l\">Delete candidates</div></div>";
+  html += "<div class=\"kpi\"><div class=\"n\">" + fmt(r.archive) + "</div><div class=\"l\">Archive first</div></div>";
+  html += "<div class=\"kpi\"><div class=\"n\">" + fmt(r.reassign) + "</div><div class=\"l\">Reassign to a new owner</div></div>";
+  html += "<div class=\"kpi\"><div class=\"n\">" + fmt(r.retag) + "</div><div class=\"l\">Retag</div></div>";
+  html += "<div class=\"kpi\"><div class=\"n\">" + fmtGB(r.reclaimed) + " GB</div><div class=\"l\">Storage reclaimed (estimate)</div></div>";
+  html += "<div class=\"kpi\"><div class=\"n\">" + r.days + " days</div><div class=\"l\">Effort, " + r.weeks1 + " weeks for one person, " + r.weeks2 + " for a team of two</div></div>";
+  html += "</div>";
+  html += "<h3>Where the storage sits</h3>";
+  html += "<table><tr><th>List</th><th class=\"num\">Items</th><th>What happens to them</th></tr>";
+  html += "<tr><td>Delete</td><td class=\"num\">" + fmt(r.del) + "</td><td>Stale, unviewed, and shared to nobody. Owner check first, then delete.</td></tr>";
+  html += "<tr><td>Archive</td><td class=\"num\">" + fmt(r.archive) + "</td><td>Stale but shared or viewed. Archive folder or group for a month.</td></tr>";
+  html += "<tr><td>Reassign</td><td class=\"num\">" + fmt(r.reassign) + "</td><td>Owned by people who left. New named owner or service account.</td></tr>";
+  html += "<tr><td>Retag</td><td class=\"num\">" + fmt(r.retag) + "</td><td>No tags. Search cannot find them until they are tagged.</td></tr></table>";
+  html += "<p class=\"note\">Storage reclaimed is " + fmtGB(r.reclaimed) + " GB of the " + fmtGB(r.storage) + " GB you entered, the same share as the delete list is of the total. Confirm it against the item report: a few large tile layers move the number more than a hundred small maps.</p>";
+  html += "<div class=\"warn\"><b>Before you delete anything:</b> " + delNote + "</div>";
+  html += "<h3>The phased plan</h3><ol>";
+  phases.forEach(function(p){ html += "<li><b>" + p[0] + ".</b> " + p[1] + "</li>"; });
+  html += "</ol>";
+  html += "<h3>Cleanup checklist</h3><ul>";
+  html += "<li>Delete protection on for the items that must never be deleted.</li>";
+  html += "<li>Item report run, delete list confirmed against it.</li>";
+  html += "<li>Owners told what is coming, with a date to object.</li>";
+  html += "<li>Archive folder or group created, " + fmt(r.archive) + " items moved.</li>";
+  html += "<li>Delete candidates checked against dependencies: views, apps, and services that use them.</li>";
+  html += "<li>" + fmt(r.reassign) + " orphaned items reassigned to a named owner.</li>";
+  html += "<li>" + fmt(r.retag) + " untagged items tagged.</li>";
+  html += "<li>Delete list confirmed, then deleted.</li>";
+  html += "<li>Storage checked a week later to confirm the " + fmtGB(r.reclaimed) + " GB came back.</li>";
+  html += "<li>Content policy written: review cycle, stale definition, and who owns the cleanup.</li>";
+  html += "</ul>";
+  html += "<div class=\"cta\"><button class=\"btn-dark\" type=\"button\" onclick=\"window.print()\">Print this plan</button> <a class=\"btn\" href=\"mailto:gjanaki360@gmail.com?subject=Portal%20Content%20Cleanup%20Planner\">Email Janaki my numbers</a></div>";
+  html += "<p class=\"note\">Email Janaki with your total item count and the storage you would get back, and she will run the cleanup with your team or hand you the item report queries to do it yourself.</p>";
+  el.innerHTML = html;
+  el.style.display = "block";
+  el.scrollIntoView({behavior:"smooth"});
+}
+
+function applyPreset(name){
+  var p = PRESETS[name];
+  if(!p) return;
+  document.getElementById("in-maps").value = p.maps;
+  document.getElementById("in-apps").value = p.apps;
+  document.getElementById("in-feature").value = p.feature;
+  document.getElementById("in-tile").value = p.tile;
+  document.getElementById("in-dash").value = p.dash;
+  document.getElementById("in-story").value = p.story;
+  document.getElementById("in-note").value = p.note;
+  document.getElementById("in-file").value = p.file;
+  document.getElementById("in-other").value = p.other;
+  document.getElementById("in-stale").value = p.stale;
+  document.getElementById("in-noview").value = p.noview;
+  document.getElementById("in-private").value = p.priv;
+  document.getElementById("in-departed").value = p.departed;
+  document.getElementById("in-untagged").value = p.untagged;
+  document.getElementById("in-storage").value = p.storage;
+  document.getElementById("in-platform").value = p.platform;
+  document.querySelectorAll("#presets .preset").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-preset") === name); });
+}
+
+document.querySelectorAll("#presets .preset").forEach(function(b){
+  b.addEventListener("click", function(){
+    var name = b.getAttribute("data-preset");
+    if(name === "clear"){
+      TYPE_FIELDS.concat(["in-stale","in-noview","in-private","in-departed","in-untagged","in-storage"]).forEach(function(id){ document.getElementById(id).value = 0; });
+      document.querySelectorAll("#presets .preset").forEach(function(x){ x.classList.remove("active"); });
+      return;
+    }
+    applyPreset(name);
+  });
+});
+
+document.getElementById("planbtn").addEventListener("click", function(){ render(computePlan(readInputs())); });
+</script>
+</body>
+</html>
